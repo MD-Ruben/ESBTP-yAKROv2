@@ -7,10 +7,10 @@
     <!-- En-tête avec bouton d'ajout -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Gestion des Enseignants</h1>
-        @if(auth()->user()->hasRole('admin'))
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTeacherModal">
-            <i class="fas fa-user-plus"></i> Ajouter un Enseignant
-        </button>
+        @if(auth()->check() && auth()->user()->role === 'admin')
+            <a href="{{ route('teachers.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter un Enseignant
+            </a>
         @endif
     </div>
 
@@ -22,14 +22,14 @@
         </div>
     @endif
 
-    <!-- Filtres de recherche -->
+    <!-- Carte pour la recherche et le filtrage -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Recherche et Filtrage</h6>
         </div>
         <div class="card-body">
             <form action="{{ route('teachers.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label for="search" class="form-label">Recherche</label>
                     <input type="text" class="form-control" id="search" name="search" 
                            placeholder="Nom, email..." value="{{ request('search') }}">
@@ -38,10 +38,9 @@
                     <label for="department" class="form-label">Département</label>
                     <select class="form-select" id="department" name="department">
                         <option value="">Tous les départements</option>
-                        @foreach($departments ?? [] as $department)
-                            <option value="{{ $department->id }}" 
-                                {{ request('department') == $department->id ? 'selected' : '' }}>
-                                {{ $department->name }}
+                        @foreach($departments ?? [] as $dept)
+                            <option value="{{ $dept->id }}" {{ request('department') == $dept->id ? 'selected' : '' }}>
+                                {{ $dept->name }}
                             </option>
                         @endforeach
                     </select>
@@ -50,23 +49,23 @@
                     <label for="status" class="form-label">Statut</label>
                     <select class="form-select" id="status" name="status">
                         <option value="">Tous les statuts</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Actif</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactif</option>
+                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Actif</option>
+                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactif</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="fas fa-search"></i> Rechercher
                     </button>
                     <a href="{{ route('teachers.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> Réinitialiser
+                        <i class="fas fa-redo"></i>
                     </a>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Statistiques des enseignants -->
+    <!-- Statistiques -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -108,7 +107,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Départements</div>
+                                Total des Départements</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalDepartments ?? 0 }}</div>
                         </div>
                         <div class="col-auto">
@@ -129,7 +128,7 @@
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingClaims ?? 0 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -137,13 +136,10 @@
         </div>
     </div>
 
-    <!-- Tableau des enseignants -->
+    <!-- Liste des enseignants -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Liste des Enseignants</h6>
-            <button class="btn btn-sm btn-success" onclick="window.print()">
-                <i class="fas fa-print"></i> Imprimer
-            </button>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -164,20 +160,19 @@
                             <tr>
                                 <td>{{ $teacher->id }}</td>
                                 <td>
-                                    <img src="{{ $teacher->photo ? asset('storage/' . $teacher->photo) : asset('images/default-avatar.png') }}" 
-                                         alt="Photo" class="rounded-circle" width="40" height="40">
+                                    @if($teacher->photo)
+                                        <img src="{{ asset('storage/' . $teacher->photo) }}" 
+                                             alt="Photo" class="rounded-circle" width="40" height="40">
+                                    @else
+                                        <img src="{{ asset('images/default-avatar.png') }}" 
+                                             alt="Default" class="rounded-circle" width="40" height="40">
+                                    @endif
                                 </td>
                                 <td>{{ $teacher->first_name }} {{ $teacher->last_name }}</td>
                                 <td>{{ $teacher->email }}</td>
+                                <td>{{ $teacher->department->name ?? 'N/A' }}</td>
                                 <td>
-                                    @if($teacher->department)
-                                        <span class="badge bg-info">{{ $teacher->department->name }}</span>
-                                    @else
-                                        <span class="badge bg-secondary">Non assigné</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($teacher->status == 'active')
+                                    @if($teacher->is_active)
                                         <span class="badge bg-success">Actif</span>
                                     @else
                                         <span class="badge bg-danger">Inactif</span>
@@ -189,113 +184,37 @@
                                            class="btn btn-sm btn-info" title="Voir">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('timetable.teacher', $teacher->id) }}" 
-                                           class="btn btn-sm btn-primary" title="Emploi du temps">
+                                        <a href="{{ route('teachers.schedule', $teacher->id) }}" 
+                                           class="btn btn-sm btn-success" title="Emploi du temps">
                                             <i class="fas fa-calendar-alt"></i>
                                         </a>
-                                        @if(auth()->user()->hasRole('admin'))
-                                            <button type="button" class="btn btn-sm btn-warning" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editTeacherModal{{ $teacher->id }}" 
-                                                    title="Modifier">
+                                        @if(auth()->check() && auth()->user()->role === 'admin')
+                                            <a href="{{ route('teachers.edit', $teacher->id) }}" 
+                                               class="btn btn-sm btn-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-danger" 
                                                     data-bs-toggle="modal" 
-                                                    data-bs-target="#deleteTeacherModal{{ $teacher->id }}" 
+                                                    data-bs-target="#deleteModal{{ $teacher->id }}"
                                                     title="Supprimer">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @endif
                                     </div>
 
-                                    <!-- Modal de modification -->
-                                    @if(auth()->user()->hasRole('admin'))
-                                        <div class="modal fade" id="editTeacherModal{{ $teacher->id }}" tabindex="-1" aria-labelledby="editTeacherModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="editTeacherModalLabel">Modifier l'Enseignant</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{{ route('teachers.update', $teacher->id) }}" method="POST" enctype="multipart/form-data">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <div class="modal-body">
-                                                            <div class="row mb-3">
-                                                                <div class="col-md-6">
-                                                                    <label for="first_name{{ $teacher->id }}" class="form-label">Prénom</label>
-                                                                    <input type="text" class="form-control" id="first_name{{ $teacher->id }}" 
-                                                                           name="first_name" value="{{ $teacher->first_name }}" required>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label for="last_name{{ $teacher->id }}" class="form-label">Nom</label>
-                                                                    <input type="text" class="form-control" id="last_name{{ $teacher->id }}" 
-                                                                           name="last_name" value="{{ $teacher->last_name }}" required>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row mb-3">
-                                                                <div class="col-md-6">
-                                                                    <label for="email{{ $teacher->id }}" class="form-label">Email</label>
-                                                                    <input type="email" class="form-control" id="email{{ $teacher->id }}" 
-                                                                           name="email" value="{{ $teacher->email }}" required>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label for="phone{{ $teacher->id }}" class="form-label">Téléphone</label>
-                                                                    <input type="tel" class="form-control" id="phone{{ $teacher->id }}" 
-                                                                           name="phone" value="{{ $teacher->phone }}">
-                                                                </div>
-                                                            </div>
-                                                            <div class="row mb-3">
-                                                                <div class="col-md-6">
-                                                                    <label for="department_id{{ $teacher->id }}" class="form-label">Département</label>
-                                                                    <select class="form-select" id="department_id{{ $teacher->id }}" name="department_id">
-                                                                        <option value="">Sélectionner un département</option>
-                                                                        @foreach($departments ?? [] as $department)
-                                                                            <option value="{{ $department->id }}" 
-                                                                                {{ $teacher->department_id == $department->id ? 'selected' : '' }}>
-                                                                                {{ $department->name }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <label for="status{{ $teacher->id }}" class="form-label">Statut</label>
-                                                                    <select class="form-select" id="status{{ $teacher->id }}" name="status">
-                                                                        <option value="active" {{ $teacher->status == 'active' ? 'selected' : '' }}>Actif</option>
-                                                                        <option value="inactive" {{ $teacher->status == 'inactive' ? 'selected' : '' }}>Inactif</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="photo{{ $teacher->id }}" class="form-label">Photo</label>
-                                                                <input type="file" class="form-control" id="photo{{ $teacher->id }}" 
-                                                                       name="photo" accept="image/*">
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="submit" class="btn btn-primary">Enregistrer</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Modal de suppression -->
-                                        <div class="modal fade" id="deleteTeacherModal{{ $teacher->id }}" tabindex="-1" aria-labelledby="deleteTeacherModalLabel" aria-hidden="true">
+                                    <!-- Modal de suppression -->
+                                    @if(auth()->check() && auth()->user()->role === 'admin')
+                                        <div class="modal fade" id="deleteModal{{ $teacher->id }}" tabindex="-1">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="deleteTeacherModalLabel">Confirmer la suppression</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <h5 class="modal-title">Confirmer la suppression</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <p>Êtes-vous sûr de vouloir supprimer l'enseignant <strong>{{ $teacher->first_name }} {{ $teacher->last_name }}</strong> ?</p>
-                                                        <div class="alert alert-warning">
-                                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                                            Cette action est irréversible.
-                                                        </div>
+                                                        <p>Êtes-vous sûr de vouloir supprimer l'enseignant : 
+                                                           <strong>{{ $teacher->first_name }} {{ $teacher->last_name }}</strong> ?</p>
+                                                        <p class="text-danger">Cette action est irréversible.</p>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -329,19 +248,18 @@
         </div>
     </div>
 
-    <!-- Section des réclamations d'emploi du temps -->
-    @if(auth()->user()->hasRole('teacher'))
+    <!-- Section des réclamations (visible uniquement pour les enseignants) -->
+    @if(auth()->check() && auth()->user()->role === 'teacher')
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Mes Réclamations d'Emploi du Temps</h6>
-            </div>
-            <div class="card-body">
-                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createClaimModal">
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newClaimModal">
                     <i class="fas fa-plus-circle"></i> Nouvelle Réclamation
                 </button>
-
+            </div>
+            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered">
                         <thead class="table-light">
                             <tr>
                                 <th>Date</th>
@@ -354,15 +272,15 @@
                         <tbody>
                             @forelse($claims ?? [] as $claim)
                                 <tr>
-                                    <td>{{ $claim->created_at->format('d/m/Y H:i') }}</td>
+                                    <td>{{ $claim->created_at->format('d/m/Y') }}</td>
                                     <td>{{ $claim->subject }}</td>
                                     <td>{{ $claim->description }}</td>
                                     <td>
-                                        @if($claim->status == 'pending')
+                                        @if($claim->status === 'pending')
                                             <span class="badge bg-warning">En attente</span>
-                                        @elseif($claim->status == 'approved')
+                                        @elseif($claim->status === 'approved')
                                             <span class="badge bg-success">Approuvée</span>
-                                        @elseif($claim->status == 'rejected')
+                                        @elseif($claim->status === 'rejected')
                                             <span class="badge bg-danger">Rejetée</span>
                                         @endif
                                     </td>
@@ -379,15 +297,15 @@
             </div>
         </div>
 
-        <!-- Modal de création de réclamation -->
-        <div class="modal fade" id="createClaimModal" tabindex="-1" aria-labelledby="createClaimModalLabel" aria-hidden="true">
+        <!-- Modal pour nouvelle réclamation -->
+        <div class="modal fade" id="newClaimModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createClaimModalLabel">Nouvelle Réclamation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title">Nouvelle Réclamation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <form action="{{ route('claims.store') }}" method="POST">
+                    <form action="{{ route('schedule-claims.store') }}" method="POST">
                         @csrf
                         <div class="modal-body">
                             <div class="mb-3">
@@ -401,81 +319,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Envoyer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Modal d'ajout d'enseignant -->
-    @if(auth()->user()->hasRole('admin'))
-        <div class="modal fade" id="createTeacherModal" tabindex="-1" aria-labelledby="createTeacherModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="createTeacherModalLabel">Ajouter un Enseignant</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="{{ route('teachers.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="modal-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="first_name" class="form-label">Prénom</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="last_name" class="form-label">Nom</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="phone" class="form-label">Téléphone</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone">
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="department_id" class="form-label">Département</label>
-                                    <select class="form-select" id="department_id" name="department_id">
-                                        <option value="">Sélectionner un département</option>
-                                        @foreach($departments ?? [] as $department)
-                                            <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="status" class="form-label">Statut</label>
-                                    <select class="form-select" id="status" name="status">
-                                        <option value="active">Actif</option>
-                                        <option value="inactive">Inactif</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="photo" class="form-label">Photo</label>
-                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Mot de passe</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password_confirmation" class="form-label">Confirmer le mot de passe</label>
-                                <input type="password" class="form-control" id="password_confirmation" 
-                                       name="password_confirmation" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Ajouter</button>
+                            <button type="submit" class="btn btn-primary">Soumettre</button>
                         </div>
                     </form>
                 </div>
