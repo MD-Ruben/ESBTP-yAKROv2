@@ -167,41 +167,132 @@
                                 <i class="fas fa-tachometer-alt nav-icon"></i> Tableau de bord
                             </a>
                         </li>
+                        
+                        @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
                         <li class="nav-item">
                             <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
                                 <i class="fas fa-user-graduate nav-icon"></i> Étudiants
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
                         <li class="nav-item">
                             <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
                                 <i class="fas fa-chalkboard-teacher nav-icon"></i> Enseignants
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin())
+                        <li class="nav-item">
+                            <a href="{{ route('classes.index') }}" class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                                <i class="fas fa-school nav-icon"></i> Classes
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin() || Auth::user()->isTeacher())
                         <li class="nav-item">
                             <a href="{{ route('attendances.index') }}" class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                                 <i class="fas fa-clipboard-check nav-icon"></i> Présences
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isStudent() && Auth::user()->student)
+                        <li class="nav-item">
+                            <a href="{{ route('attendance.student', Auth::user()->student->id) }}" class="nav-link {{ request()->routeIs('attendance.student') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-check nav-icon"></i> Mes présences
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isStudent())
+                        <li class="nav-item">
+                            <a href="{{ route('justifications.index') }}" class="nav-link {{ request()->routeIs('justifications.*') ? 'active' : '' }}">
+                                <i class="fas fa-file-medical nav-icon"></i> Justifications d'absence
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+                        <li class="nav-item">
+                            <a href="{{ route('justifications.index') }}" class="nav-link {{ request()->routeIs('justifications.*') ? 'active' : '' }}">
+                                <i class="fas fa-file-medical nav-icon"></i> Justifications d'absence
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin() || Auth::user()->isTeacher())
                         <li class="nav-item">
                             <a href="{{ route('grades.index') }}" class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
                                 <i class="fas fa-graduation-cap nav-icon"></i> Notes
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isStudent() && Auth::user()->student)
+                        <li class="nav-item">
+                            <a href="{{ route('grades.report', [Auth::user()->student->id]) }}" class="nav-link {{ request()->routeIs('grades.report') ? 'active' : '' }}">
+                                <i class="fas fa-graduation-cap nav-icon"></i> Mes notes
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin())
                         <li class="nav-item">
                             <a href="{{ route('timetables.index') }}" class="nav-link {{ request()->routeIs('timetables.*') ? 'active' : '' }}">
                                 <i class="fas fa-calendar-alt nav-icon"></i> Emplois du temps
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isStudent())
+                        <li class="nav-item">
+                            <a href="{{ route('student.timetable') }}" class="nav-link {{ request()->routeIs('student.timetable') ? 'active' : '' }}">
+                                <i class="fas fa-calendar-alt nav-icon"></i> Mon emploi du temps
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isTeacher() && Auth::user()->teacher)
+                        <li class="nav-item">
+                            <a href="{{ route('timetable.teacher', Auth::user()->teacher->id) }}" class="nav-link {{ request()->routeIs('timetable.teacher') ? 'active' : '' }}">
+                                <i class="fas fa-calendar-alt nav-icon"></i> Mon emploi du temps
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(Auth::user()->isSuperAdmin())
                         <li class="nav-item">
                             <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
                                 <i class="fas fa-bell nav-icon"></i> Notifications
                             </a>
                         </li>
+                        @endif
+                        
+                        <li class="nav-item">
+                            <a href="{{ route('messages.inbox') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}">
+                                <i class="fas fa-envelope nav-icon"></i> Messagerie
+                            </a>
+                        </li>
+                        
+                        @if(Auth::user()->isSuperAdmin())
                         <li class="nav-item">
                             <a href="{{ route('certificates.index') }}" class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
                                 <i class="fas fa-certificate nav-icon"></i> Certificats
                             </a>
                         </li>
+                        @endif
+                        
+                        @if(Auth::user()->isStudent())
+                        <li class="nav-item">
+                            <a href="{{ route('student.certificates') }}" class="nav-link {{ request()->routeIs('student.certificates') ? 'active' : '' }}">
+                                <i class="fas fa-certificate nav-icon"></i> Mes certificats
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -244,5 +335,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @yield('scripts')
+    @stack('scripts')
 </body>
 </html> 

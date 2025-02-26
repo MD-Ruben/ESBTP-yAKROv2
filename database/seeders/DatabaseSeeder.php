@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // Appeler les seeders individuels
         $this->call([
             UserSeeder::class,
+            StudentSeeder::class,
         ]);
     }
 }

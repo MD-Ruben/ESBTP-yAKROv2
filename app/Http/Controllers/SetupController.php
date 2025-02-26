@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class SetupController extends Controller
 {
@@ -17,12 +18,11 @@ class SetupController extends Controller
      */
     public function index()
     {
-        // Vérifier si l'installation a déjà été effectuée
-        if ($this->isInstalled()) {
-            return redirect('/');
-        }
-
-        return view('setup.index');
+        $dbStatus = $this->checkDatabaseConnection();
+        
+        return view('setup.index', [
+            'dbStatus' => $dbStatus
+        ]);
     }
 
     /**
@@ -230,9 +230,17 @@ class SetupController extends Controller
     {
         try {
             DB::connection()->getPdo();
-            return true;
-        } catch (\Exception $e) {
-            return false;
+            
+            return [
+                'connected' => true,
+                'name' => DB::connection()->getDatabaseName(),
+                'tables_count' => count(Schema::getAllTables())
+            ];
+        } catch (Exception $e) {
+            return [
+                'connected' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
 
@@ -285,5 +293,64 @@ class SetupController extends Controller
     {
         // Créer un fichier pour indiquer que l'installation est terminée
         file_put_contents(storage_path('app/installed'), date('Y-m-d H:i:s'));
+    }
+
+    public function setup(Request $request)
+    {
+        $request->validate([
+            'db_connection' => 'required|in:mysql,pgsql,sqlite',
+            'db_host' => 'required_unless:db_connection,sqlite',
+            'db_port' => 'required_unless:db_connection,sqlite',
+            'db_database' => 'required',
+            'db_username' => 'required_unless:db_connection,sqlite',
+            'db_password' => 'nullable',
+        ]);
+        
+        try {
+            // Mettre à jour le fichier .env
+            $this->updateEnvironmentFile($request);
+            
+            // Tester la connexion
+            DB::connection()->getPdo();
+            
+            // Exécuter les migrations
+            if ($request->has('run_migrations')) {
+                Artisan::call('migrate', ['--force' => true]);
+            }
+            
+            // Exécuter les seeders si demandé
+            if ($request->has('run_seeders')) {
+                Artisan::call('db:seed', ['--force' => true]);
+            }
+            
+            return redirect()->route('setup.index')
+                ->with('success', 'Configuration de la base de données réussie!');
+        } catch (Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erreur de connexion à la base de données: ' . $e->getMessage());
+        }
+    }
+    
+    private function updateEnvironmentFile(Request $request)
+    {
+        $path = base_path('.env');
+        
+        if (file_exists($path)) {
+            $env = file_get_contents($path);
+            
+            $env = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=' . $request->db_connection, $env);
+            
+            if ($request->db_connection !== 'sqlite') {
+                $env = preg_replace('/DB_HOST=.*/', 'DB_HOST=' . $request->db_host, $env);
+                $env = preg_replace('/DB_PORT=.*/', 'DB_PORT=' . $request->db_port, $env);
+                $env = preg_replace('/DB_USERNAME=.*/', 'DB_USERNAME=' . $request->db_username, $env);
+                $env = preg_replace('/DB_PASSWORD=.*/', 'DB_PASSWORD=' . $request->db_password, $env);
+            }
+            
+            $env = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $request->db_database, $env);
+            
+            file_put_contents($path, $env);
+        }
     }
 } 

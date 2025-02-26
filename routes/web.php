@@ -12,8 +12,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GradeController;
-use App\Http\Controllers\ExamController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\AbsenceJustificationController;
+use App\Http\Controllers\ClassController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,11 +29,14 @@ use App\Http\Controllers\SetupController;
 */
 
 // Routes d'installation
-Route::get('/setup', [SetupController::class, 'index'])->name('setup');
 Route::post('/setup/migrate', [SetupController::class, 'migrate'])->name('setup.migrate');
 Route::post('/setup/create-admin', [SetupController::class, 'createAdmin'])->name('setup.create-admin');
 Route::post('/setup/finalize', [SetupController::class, 'finalize'])->name('setup.finalize');
 Route::get('/setup/check-requirements', [SetupController::class, 'checkRequirements']);
+
+// Routes pour la configuration de la base de données
+Route::get('/setup', [App\Http\Controllers\SetupController::class, 'index'])->name('setup.index');
+Route::post('/setup', [App\Http\Controllers\SetupController::class, 'setup'])->name('setup.setup');
 
 // Route d'accueil
 Route::get('/', function () {
@@ -75,6 +80,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teacher/profile', [TeacherController::class, 'profile'])->name('teacher.profile');
     Route::get('/teacher/classes', [TeacherController::class, 'classes'])->name('teacher.classes');
     
+    // Routes pour les classes (réservées aux superadmins)
+    Route::resource('classes', ClassController::class);
+    Route::post('/classes/{class}/assign-teacher', [ClassController::class, 'assignTeacher'])->name('classes.assign-teacher');
+    Route::post('/classes/{class}/unassign-teacher', [ClassController::class, 'unassignTeacher'])->name('classes.unassign-teacher');
+    
     // Routes pour les présences
     Route::resource('attendances', AttendanceController::class);
     Route::get('/attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
@@ -82,6 +92,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance/mark-all', [AttendanceController::class, 'markAll'])->name('attendance.mark-all');
     Route::get('/attendance/mark-page', [AttendanceController::class, 'markPage'])->name('attendance.mark-page');
     Route::get('/attendance/student/{student}', [AttendanceController::class, 'studentDetails'])->name('attendance.student');
+    
+    // Routes pour les justifications d'absence
+    Route::resource('absences/justifications', AbsenceJustificationController::class)->except(['edit', 'update']);
+    Route::post('/absences/justifications/{justification}/process', [AbsenceJustificationController::class, 'process'])->name('absences.justifications.process');
+    
+    // Routes alternatives pour les justifications d'absence (plus simples)
+    Route::get('/justifications', [AbsenceJustificationController::class, 'index'])->name('justifications.index');
+    Route::get('/justifications/create', [AbsenceJustificationController::class, 'create'])->name('justifications.create');
+    Route::post('/justifications', [AbsenceJustificationController::class, 'store'])->name('justifications.store');
+    Route::get('/justifications/{justification}', [AbsenceJustificationController::class, 'show'])->name('justifications.show');
+    Route::delete('/justifications/{justification}', [AbsenceJustificationController::class, 'destroy'])->name('justifications.destroy');
+    Route::post('/justifications/{justification}/process', [AbsenceJustificationController::class, 'process'])->name('justifications.process');
     
     // Routes pour les présences des enseignants
     Route::resource('teacher-attendances', TeacherAttendanceController::class);
@@ -101,15 +123,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
     Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     
+    // Routes pour la messagerie interne
+    Route::resource('messages', MessageController::class);
+    Route::get('/messages/inbox', [MessageController::class, 'inbox'])->name('messages.inbox');
+    Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
+    Route::post('/messages/send-to-group', [MessageController::class, 'sendToGroup'])->name('messages.send-to-group');
+    Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->name('messages.reply');
+    Route::post('/messages/{message}/mark-as-read', [MessageController::class, 'markAsRead'])->name('messages.mark-as-read');
+    
     // Routes pour les notes
     Route::resource('grades', GradeController::class);
     Route::get('/grades/report/{student}/{semester?}', [GradeController::class, 'report'])->name('grades.report');
     Route::post('/grades/calculate', [GradeController::class, 'calculate'])->name('grades.calculate');
     Route::get('/grades/bulletin/{student}/{semester}', [GradeController::class, 'bulletin'])->name('grades.bulletin');
-    
-    // Routes pour les examens
-    Route::resource('exams', ExamController::class);
-    Route::get('/exam/schedule', [ExamController::class, 'schedule'])->name('exam.schedule');
     
     // Routes pour les emplois du temps
     Route::resource('timetables', TimetableController::class);

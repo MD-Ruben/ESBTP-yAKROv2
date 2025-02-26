@@ -19,7 +19,7 @@ class Attendance extends Model
         'class_id',
         'section_id',
         'date',
-        'status', // present, absent, late
+        'status', // present, absent, late, justified
         'remark',
         'taken_by',
     ];
@@ -111,5 +111,37 @@ class Attendance extends Model
     public function scopeLate($query)
     {
         return $query->where('status', 'late');
+    }
+
+    /**
+     * Scope a query to only include justified absences.
+     */
+    public function scopeJustified($query)
+    {
+        return $query->where('status', 'justified');
+    }
+
+    /**
+     * Get the justifications for this attendance.
+     */
+    public function justifications()
+    {
+        return $this->hasMany(AbsenceJustification::class);
+    }
+
+    /**
+     * Check if this attendance has any justification.
+     */
+    public function hasJustification()
+    {
+        return $this->justifications()->exists();
+    }
+
+    /**
+     * Check if this attendance has an approved justification.
+     */
+    public function hasApprovedJustification()
+    {
+        return $this->justifications()->where('status', 'approved')->exists();
     }
 } 
