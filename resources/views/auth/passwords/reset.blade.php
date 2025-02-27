@@ -8,71 +8,152 @@
     <title>{{ config('app.name', 'ESBTP') }} - Réinitialisation du mot de passe</title>
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Animation CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
     <style>
         :root {
             --esbtp-orange: #f29400;
             --esbtp-green: #01632f;
             --esbtp-white: #ffffff;
+            --esbtp-light-green: rgba(1, 99, 47, 0.05);
+            --esbtp-light-orange: rgba(242, 148, 0, 0.1);
         }
         
         body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f8f9fa;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url('/images/school-bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--esbtp-light-green), var(--esbtp-light-orange));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        body::before {
+            background: radial-gradient(var(--esbtp-light-orange), transparent 70%);
+            top: -100px;
+            right: -100px;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        body::after {
+            background: radial-gradient(var(--esbtp-light-green), transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
         }
         
         .reset-container {
+            width: 100%;
             max-width: 500px;
-            margin: 80px auto;
+            perspective: 1000px;
         }
         
         .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             border: none;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
         
         .card-header {
-            background-color: var(--esbtp-green);
+            background: linear-gradient(135deg, var(--esbtp-green), #014a23);
             color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 25px 20px;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 30px 20px;
             text-align: center;
-            border-bottom: 4px solid var(--esbtp-orange);
+            border-bottom: 5px solid var(--esbtp-orange);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            transform: rotate(30deg);
+        }
+        
+        .card-body {
+            padding: 30px;
         }
         
         .btn-primary {
-            background-color: var(--esbtp-orange);
-            border-color: var(--esbtp-orange);
-            padding: 10px 20px;
+            background: linear-gradient(to right, var(--esbtp-orange), #f2a730);
+            border: none;
+            padding: 12px 25px;
             font-weight: 600;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(242, 148, 0, 0.3);
             transition: all 0.3s ease;
         }
         
         .btn-primary:hover {
-            background-color: var(--esbtp-green);
-            border-color: var(--esbtp-green);
-            transform: translateY(-2px);
+            background: linear-gradient(to right, var(--esbtp-green), #018a42);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(1, 99, 47, 0.4);
         }
         
         .form-control {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
         }
         
         .form-control:focus {
             border-color: var(--esbtp-orange);
-            box-shadow: 0 0 0 0.2rem rgba(242, 148, 0, 0.25);
+            box-shadow: 0 0 0 3px rgba(242, 148, 0, 0.1);
+            background-color: white;
+        }
+        
+        .input-group-text {
+            border-radius: 10px 0 0 10px;
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-right: none;
+            color: var(--esbtp-green);
+        }
+        
+        .form-control {
+            border-radius: 0 10px 10px 0;
         }
         
         .login-link {
@@ -81,6 +162,7 @@
             align-items: center;
             font-weight: 600;
             transition: all 0.3s ease;
+            text-decoration: none;
         }
         
         .login-link:hover {
@@ -91,19 +173,113 @@
         .login-link i {
             margin-right: 8px;
         }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-success {
+            background-color: rgba(25, 135, 84, 0.1);
+            color: #198754;
+        }
+        
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        /* Animation pour les champs du formulaire */
+        .animate__animated {
+            animation-duration: 0.6s;
+        }
+        
+        .animate__delay-1 {
+            animation-delay: 0.1s;
+        }
+        
+        .animate__delay-2 {
+            animation-delay: 0.2s;
+        }
+        
+        .animate__delay-3 {
+            animation-delay: 0.3s;
+        }
+        
+        /* Effet de particules */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: particleFloat 15s infinite linear;
+        }
+        
+        @keyframes particleFloat {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+        
+        /* Animation de l'icône de clé */
+        .key-icon {
+            display: inline-block;
+            font-size: 2.5rem;
+            color: var(--esbtp-orange);
+            margin-bottom: 15px;
+            animation: shake 3s infinite;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+            20%, 40%, 60%, 80% { transform: rotate(10deg); }
+        }
+        
+        /* Effet de force du mot de passe */
+        .password-strength {
+            height: 5px;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            background-color: #e2e8f0;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body>
+    <!-- Particules d'arrière-plan -->
+    <div class="particles" id="particles"></div>
+
     <div class="container">
-        <div class="reset-container">
+        <div class="reset-container animate__animated animate__fadeIn">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0">Réinitialisation du mot de passe</h3>
-                    <p class="mb-0 mt-2">ESBTP - Système de Gestion Universitaire</p>
+                    <div class="key-icon animate__animated animate__bounceIn">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h3 class="mb-0 animate__animated animate__fadeInDown">Réinitialisation du mot de passe</h3>
+                    <p class="mb-0 mt-2 animate__animated animate__fadeInUp">ESBTP - Système de Gestion Universitaire</p>
                 </div>
                 <div class="card-body p-4">
                     @if ($errors->any())
-                        <div class="alert alert-danger mb-3">
+                        <div class="alert alert-danger mb-3 animate__animated animate__fadeIn">
+                            <i class="fas fa-exclamation-circle me-2"></i>
                             <ul class="mb-0">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -112,12 +288,12 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('password.update') }}">
+                    <form method="POST" action="{{ route('password.update') }}" id="resetForm">
                         @csrf
 
                         <input type="hidden" name="token" value="{{ $token }}">
 
-                        <div class="mb-3">
+                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-1">
                             <label for="email" class="form-label">Adresse e-mail</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
@@ -125,23 +301,33 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-2">
                             <label for="password" class="form-label">Nouveau mot de passe</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" placeholder="••••••••">
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
+                            <div class="password-strength mt-2">
+                                <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                            </div>
+                            <small class="text-muted mt-1" id="passwordFeedback">Entrez un mot de passe fort</small>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4 animate__animated animate__fadeInUp animate__delay-3">
                             <label for="password-confirm" class="form-label">Confirmer le mot de passe</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password" placeholder="••••••••">
+                                <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 animate__animated animate__fadeInUp animate__delay-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-key me-2"></i> Réinitialiser le mot de passe
                             </button>
@@ -149,7 +335,7 @@
                     </form>
                 </div>
             </div>
-            <div class="text-center mt-4">
+            <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-3">
                 <a href="{{ route('login') }}" class="login-link">
                     <i class="fas fa-arrow-left"></i> Retour à la connexion
                 </a>
@@ -159,5 +345,97 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Création des particules d'arrière-plan
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.getElementById('particles');
+            const colors = ['#01632f33', '#f2940033', '#01632f22', '#f2940022'];
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Taille aléatoire
+                const size = Math.random() * 30 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Position aléatoire
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Couleur aléatoire
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Durée d'animation aléatoire
+                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                
+                // Délai d'animation aléatoire
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            // Fonctionnalité pour afficher/masquer le mot de passe
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            const confirmPassword = document.getElementById('password-confirm');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+            
+            toggleConfirmPassword.addEventListener('click', function() {
+                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPassword.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+            
+            // Vérification de la force du mot de passe
+            const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+            const passwordFeedback = document.getElementById('passwordFeedback');
+            
+            password.addEventListener('input', function() {
+                const value = password.value;
+                let strength = 0;
+                
+                if (value.length >= 8) strength += 25;
+                if (value.match(/[a-z]/)) strength += 25;
+                if (value.match(/[A-Z]/)) strength += 25;
+                if (value.match(/[0-9]/)) strength += 25;
+                
+                passwordStrengthBar.style.width = strength + '%';
+                
+                if (strength <= 25) {
+                    passwordStrengthBar.style.backgroundColor = '#dc3545';
+                    passwordFeedback.textContent = 'Mot de passe faible';
+                } else if (strength <= 50) {
+                    passwordStrengthBar.style.backgroundColor = '#ffc107';
+                    passwordFeedback.textContent = 'Mot de passe moyen';
+                } else if (strength <= 75) {
+                    passwordStrengthBar.style.backgroundColor = '#0dcaf0';
+                    passwordFeedback.textContent = 'Mot de passe bon';
+                } else {
+                    passwordStrengthBar.style.backgroundColor = '#198754';
+                    passwordFeedback.textContent = 'Mot de passe excellent';
+                }
+            });
+            
+            // Vérification de la correspondance des mots de passe
+            const resetForm = document.getElementById('resetForm');
+            
+            resetForm.addEventListener('submit', function(e) {
+                if (password.value !== confirmPassword.value) {
+                    e.preventDefault();
+                    alert('Les mots de passe ne correspondent pas.');
+                }
+            });
+        });
+    </script>
 </body>
 </html> 
