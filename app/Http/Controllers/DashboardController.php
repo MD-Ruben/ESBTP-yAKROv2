@@ -333,4 +333,77 @@ class DashboardController extends Controller
         
         return view('parent.children', compact('children'));
     }
+    
+    /**
+     * Affiche la page de profil du parent.
+     */
+    public function parentProfile()
+    {
+        $user = Auth::user();
+        $parent = \App\Models\ParentModel::where('user_id', $user->id)->first();
+        
+        // Si le parent n'a pas encore de profil complet, afficher une vue de configuration
+        if (!$parent) {
+            return view('dashboard.parent_setup', [
+                'user' => $user
+            ]);
+        }
+        
+        // Récupérer les enfants associés à ce parent
+        $children = Student::whereHas('parents', function($query) use ($parent) {
+            $query->where('parent_id', $parent->id);
+        })->with(['user', 'class'])->get();
+        
+        return view('parent.profile', [
+            'user' => $user,
+            'parent' => $parent,
+            'children' => $children
+        ]);
+    }
+    
+    /**
+     * Met à jour le profil de l'utilisateur.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Validation des données
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+        
+        // Mise à jour des informations de base
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        
+        // Traitement de l'image de profil si fournie
+        if ($request->hasFile('profile_image')) {
+            $imagePath = $request->file('profile_image')->store('profile-images', 'public');
+            $user->profile_image = $imagePath;
+        }
+        
+        // Mise à jour du mot de passe si fourni
+        if ($request->filled('password')) {
+            $user->password = $request->password;
+        }
+        
+        $user->save();
+        
+        // Redirection en fonction du rôle
+        if ($user->isParent()) {
+            return redirect()->route('parent.profile')->with('success', 'Profil mis à jour avec succès.');
+        } elseif ($user->isTeacher()) {
+            return redirect()->route('teacher.profile')->with('success', 'Profil mis à jour avec succès.');
+        } elseif ($user->isStudent()) {
+            return redirect()->route('student.profile')->with('success', 'Profil mis à jour avec succès.');
+        } else {
+            return redirect()->route('dashboard')->with('success', 'Profil mis à jour avec succès.');
+        }
+    }
 } 

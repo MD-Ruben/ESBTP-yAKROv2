@@ -65,6 +65,9 @@ Route::middleware(['auth'])->group(function () {
     // Tableau de bord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // Routes pour le profil utilisateur
+    Route::put('/profile/update', [DashboardController::class, 'updateProfile'])->name('profile.update');
+    
     // Routes pour les étudiants
     Route::resource('students', StudentController::class);
     Route::get('/students/{student}/attendance', [StudentController::class, 'attendance'])->name('students.attendance');
@@ -147,6 +150,7 @@ Route::middleware(['auth'])->group(function () {
 // Routes pour les parents (accès limité)
 Route::middleware(['auth', 'role:parent'])->prefix('parent')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'parentDashboard'])->name('parent.dashboard');
+    Route::get('/profile', [DashboardController::class, 'parentProfile'])->name('parent.profile');
     Route::get('/children', [DashboardController::class, 'children'])->name('parent.children');
     Route::get('/child/{student}/grades', [StudentController::class, 'parentViewGrades'])->name('parent.child.grades');
     Route::get('/child/{student}/attendance', [StudentController::class, 'parentViewAttendance'])->name('parent.child.attendance');
