@@ -106,7 +106,7 @@
                             <a class="nav-link" href="#contact">Contact</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-primary text-white ms-lg-3 px-4" href="/login">Connexion</a>
+                            <a class="nav-link btn btn-primary text-white ms-lg-3 px-4" href="{{ route('login') }}">Connexion</a>
                         </li>
                     </ul>
                 </div>
@@ -424,7 +424,7 @@
                                 <li><a href="#about"><i class="fas fa-angle-right me-2"></i>À propos</a></li>
                                 <li><a href="#programs"><i class="fas fa-angle-right me-2"></i>Formations</a></li>
                                 <li><a href="#contact"><i class="fas fa-angle-right me-2"></i>Contact</a></li>
-                                <li><a href="/login"><i class="fas fa-angle-right me-2"></i>Connexion</a></li>
+                                <li><a href="{{ route('login') }}"><i class="fas fa-angle-right me-2"></i>Connexion</a></li>
                             </ul>
                         </div>
                     </div>

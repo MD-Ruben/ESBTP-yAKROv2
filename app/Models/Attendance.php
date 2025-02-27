@@ -10,31 +10,44 @@ class Attendance extends Model
     use HasFactory;
 
     /**
-     * The attributes that are mass assignable.
+     * La table associée au modèle.
+     * 
+     * @var string
+     */
+    protected $table = 'attendances';
+
+    /**
+     * Les attributs qui sont assignables en masse.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'student_id',
-        'class_id',
-        'section_id',
-        'date',
-        'status', // present, absent, late, justified
-        'remark',
-        'taken_by',
+        'course_session_id',
+        'status',
+        'arrival_time',
+        'departure_time',
+        'excuse_reason',
+        'has_supporting_document',
+        'supporting_document_path',
+        'comments',
+        'recorded_by',
+        'updated_by',
     ];
 
     /**
-     * The attributes that should be cast.
+     * Les attributs qui doivent être convertis.
      *
      * @var array<string, string>
      */
     protected $casts = [
-        'date' => 'date',
+        'arrival_time' => 'datetime',
+        'departure_time' => 'datetime',
+        'has_supporting_document' => 'boolean',
     ];
 
     /**
-     * Get the student that owns the attendance.
+     * Relation avec l'étudiant concerné par cette présence.
      */
     public function student()
     {
@@ -42,106 +55,138 @@ class Attendance extends Model
     }
 
     /**
-     * Get the class that owns the attendance.
+     * Relation avec la session de cours concernée.
      */
-    public function class()
+    public function courseSession()
     {
-        return $this->belongsTo(ClassModel::class, 'class_id');
+        return $this->belongsTo(CourseSession::class);
     }
 
     /**
-     * Get the section that owns the attendance.
+     * Relation avec l'utilisateur qui a enregistré cette présence.
      */
-    public function section()
+    public function recordedBy()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 
     /**
-     * Get the user who took the attendance.
+     * Relation avec l'utilisateur qui a mis à jour cette présence.
      */
-    public function takenBy()
+    public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'taken_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
-     * Scope a query to only include attendances for a specific date.
+     * Vérifier si l'étudiant était présent.
+     * 
+     * @return bool
      */
-    public function scopeForDate($query, $date)
+    public function isPresent()
     {
-        return $query->whereDate('date', $date);
+        return $this->status === 'present';
     }
 
     /**
-     * Scope a query to only include attendances for a specific class.
+     * Vérifier si l'étudiant était absent.
+     * 
+     * @return bool
      */
-    public function scopeForClass($query, $classId)
+    public function isAbsent()
     {
-        return $query->where('class_id', $classId);
+        return $this->status === 'absent';
     }
 
     /**
-     * Scope a query to only include attendances for a specific section.
+     * Vérifier si l'étudiant était excusé.
+     * 
+     * @return bool
      */
-    public function scopeForSection($query, $sectionId)
+    public function isExcused()
     {
-        return $query->where('section_id', $sectionId);
+        return $this->status === 'excused';
     }
 
     /**
-     * Scope a query to only include present attendances.
+     * Vérifier si l'étudiant était en retard.
+     * 
+     * @return bool
      */
-    public function scopePresent($query)
+    public function isLate()
     {
-        return $query->where('status', 'present');
+        return $this->status === 'late';
     }
 
     /**
-     * Scope a query to only include absent attendances.
+     * Calculer la durée de présence en minutes.
+     * 
+     * @return int|null
      */
-    public function scopeAbsent($query)
+    public function getDurationInMinutes()
     {
-        return $query->where('status', 'absent');
+        if (!$this->arrival_time || !$this->departure_time) {
+            return null;
+        }
+        
+        return $this->departure_time->diffInMinutes($this->arrival_time);
     }
 
     /**
-     * Scope a query to only include late attendances.
+     * Scope pour filtrer les présences par statut.
      */
-    public function scopeLate($query)
+    public function scopeWithStatus($query, $status)
     {
-        return $query->where('status', 'late');
+        return $query->where('status', $status);
     }
 
     /**
-     * Scope a query to only include justified absences.
+     * Scope pour filtrer les présences par date.
      */
-    public function scopeJustified($query)
+    public function scopeOnDate($query, $date)
     {
-        return $query->where('status', 'justified');
+        return $query->whereHas('courseSession', function($q) use ($date) {
+            $q->whereDate('date', $date);
+        });
     }
 
     /**
-     * Get the justifications for this attendance.
+     * Scope pour filtrer les présences par période.
      */
-    public function justifications()
+    public function scopeBetweenDates($query, $startDate, $endDate)
     {
-        return $this->hasMany(AbsenceJustification::class);
+        return $query->whereHas('courseSession', function($q) use ($startDate, $endDate) {
+            $q->whereBetween('date', [$startDate, $endDate]);
+        });
     }
 
     /**
-     * Check if this attendance has any justification.
+     * Scope pour filtrer les présences par élément constitutif.
      */
-    public function hasJustification()
+    public function scopeForEC($query, $ecId)
     {
-        return $this->justifications()->exists();
+        return $query->whereHas('courseSession', function($q) use ($ecId) {
+            $q->where('element_constitutif_id', $ecId);
+        });
     }
 
     /**
-     * Check if this attendance has an approved justification.
+     * Scope pour filtrer les présences par unité d'enseignement.
      */
-    public function hasApprovedJustification()
+    public function scopeForUE($query, $ueId)
     {
-        return $this->justifications()->where('status', 'approved')->exists();
+        return $query->whereHas('courseSession.elementConstitutif', function($q) use ($ueId) {
+            $q->where('unite_enseignement_id', $ueId);
+        });
+    }
+
+    /**
+     * Scope pour filtrer les présences par enseignant.
+     */
+    public function scopeWithTeacher($query, $teacherId)
+    {
+        return $query->whereHas('courseSession', function($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+        });
     }
 } 

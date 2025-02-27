@@ -13,17 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Seeders pour les structures administratives
+        // Appel des seeders dans l'ordre approprié
+        // D'abord les rôles et permissions, puis les utilisateurs
         $this->call([
-            UFRsSeeder::class,
-            FormationsSeeder::class,
-            ParcoursSeeder::class,
-            UniteEnseignementSeeder::class,
-            ElementConstitutifSeeder::class,
-            ClassroomSeeder::class,
-            CourseSessionSeeder::class,
-            EvaluationSeeder::class,
-            DocumentSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

@@ -25,7 +25,7 @@ class DashboardController extends Controller
         
         if ($user->isSuperAdmin()) {
             return $this->superAdminDashboard();
-        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
+        } elseif ($user->user_type === 'admin') {
             return $this->adminDashboard();
         } elseif ($user->isTeacher()) {
             return $this->teacherDashboard();

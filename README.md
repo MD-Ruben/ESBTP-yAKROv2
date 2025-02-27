@@ -88,3 +88,107 @@ Pour toute question concernant ce projet, veuillez contacter:
 - Téléphone: +225 27 30 64 66 75 / +225 07 07 43 43 75
 - Email: info@esbtp-ci.net
 - Site web: www.esbtp-ci.net
+
+# Smart School Management System
+
+A comprehensive school management system built with Laravel.
+
+## Requirements
+
+- PHP 7.4 or higher
+- MySQL 5.7 or higher
+- Composer
+- Node.js and NPM (for frontend assets)
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/smart_school_new.git
+   cd smart_school_new
+   ```
+
+2. Install PHP dependencies:
+   ```
+   composer install
+   ```
+
+3. Copy the `.env.example` file to `.env` and configure your database:
+   ```
+   cp .env.example .env
+   ```
+
+4. Generate an application key:
+   ```
+   php artisan key:generate
+   ```
+
+5. Run database migrations and seed the database:
+   ```
+   php artisan migrate --seed
+   ```
+
+6. Create a symbolic link for storage:
+   ```
+   php artisan storage:link
+   ```
+
+7. Install and compile frontend assets:
+   ```
+   npm install
+   npm run dev
+   ```
+
+## Running the Application
+
+### Using the PHP Development Server
+
+The easiest way to run the application during development is to use the PHP built-in server:
+
+```
+php -S localhost:8000 -t public
+```
+
+You can then access the application at http://localhost:8000
+
+### Using WAMP/XAMPP
+
+If you're using WAMP or XAMPP, you can access the application at:
+
+```
+http://localhost/smart_school_new/public
+```
+
+### Using the Utility Scripts
+
+We've provided several utility scripts in the `scripts` directory to make development easier:
+
+- For PowerShell (Windows 10+):
+  ```
+  cd scripts
+  .\serve.ps1
+  ```
+
+- For Command Prompt:
+  ```
+  cd scripts
+  serve.bat
+  ```
+
+See the [scripts README](scripts/README.md) for more information.
+
+## Features
+
+- User Management (Admin, Teachers, Students, Parents)
+- Course Management
+- Attendance Tracking
+- Grade Management
+- Timetable Management
+- Announcements and Notifications
+- Messaging System
+- Certificate Generation
+- Reports and Analytics
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

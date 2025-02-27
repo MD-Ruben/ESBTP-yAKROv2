@@ -4,52 +4,73 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * La table associée au modèle.
+     * 
+     * @var string
+     */
+    protected $table = 'students';
+
+    /**
+     * Les attributs qui sont assignables en masse.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'user_id',
-        'admission_no',
-        'roll_no',
-        'class_id',
-        'section_id',
-        'session_id',
-        'father_name',
-        'mother_name',
-        'date_of_birth',
-        'gender',
-        'address',
-        'city',
-        'state',
-        'country',
-        'pincode',
-        'religion',
-        'admission_date',
-        'blood_group',
-        'height',
-        'weight',
-        'guardian_id',
+        'student_id', // Numéro étudiant
+        'parcours_id',
+        'promotion', // Année d'entrée
+        'current_year', // L1, L2, L3, M1, M2, etc.
+        'status', // Actif, en congé, diplômé, etc.
+        'registration_date',
+        'expected_graduation_date',
+        'actual_graduation_date',
+        'scholarship_status',
+        'scholarship_details',
+        'special_needs',
+        'international_student',
+        'country_of_origin',
+        'visa_status',
+        'visa_expiry_date',
+        'emergency_contact_name',
+        'emergency_contact_relationship',
+        'emergency_contact_phone',
+        'previous_institution',
+        'previous_qualification',
+        'admission_score',
+        'notes',
+        'created_by',
+        'updated_by',
     ];
 
     /**
-     * The attributes that should be cast.
+     * Les attributs qui doivent être convertis.
      *
      * @var array<string, string>
      */
     protected $casts = [
-        'date_of_birth' => 'date',
-        'admission_date' => 'date',
+        'registration_date' => 'date',
+        'expected_graduation_date' => 'date',
+        'actual_graduation_date' => 'date',
+        'visa_expiry_date' => 'date',
+        'scholarship_details' => 'array',
+        'special_needs' => 'array',
+        'notes' => 'array',
     ];
 
     /**
-     * Get the user that owns the student.
+     * Relation avec l'utilisateur.
+     * 
+     * Un étudiant est lié à un utilisateur.
+     * Imaginez l'utilisateur comme une personne, et l'étudiant comme son "rôle" 
+     * à l'université avec des informations spécifiques à ce rôle.
      */
     public function user()
     {
@@ -57,39 +78,31 @@ class Student extends Model
     }
 
     /**
-     * Get the class that the student belongs to.
+     * Relation avec le parcours auquel l'étudiant est inscrit.
      */
-    public function class()
+    public function parcours()
     {
-        return $this->belongsTo(ClassModel::class, 'class_id');
+        return $this->belongsTo(Parcours::class);
     }
 
     /**
-     * Get the section that the student belongs to.
+     * Relation avec les inscriptions aux UEs.
      */
-    public function section()
+    public function ueEnrollments()
     {
-        return $this->belongsTo(Section::class);
+        return $this->hasMany(UEEnrollment::class);
     }
 
     /**
-     * Get the session that the student belongs to.
+     * Relation avec les inscriptions aux ECs.
      */
-    public function session()
+    public function ecEnrollments()
     {
-        return $this->belongsTo(Session::class);
+        return $this->hasMany(ECEnrollment::class);
     }
 
     /**
-     * Get the guardian that the student belongs to.
-     */
-    public function guardian()
-    {
-        return $this->belongsTo(Guardian::class);
-    }
-
-    /**
-     * Get the attendances for the student.
+     * Relation avec les présences aux sessions de cours.
      */
     public function attendances()
     {
@@ -97,54 +110,227 @@ class Student extends Model
     }
 
     /**
-     * Get the grades for the student.
+     * Relation avec les notes d'évaluation.
      */
-    public function grades()
+    public function evaluationResults()
     {
-        return $this->hasMany(Grade::class);
+        return $this->hasMany(EvaluationResult::class);
     }
 
     /**
-     * Get the certificates for the student.
+     * Relation avec les documents soumis par l'étudiant.
      */
-    public function certificates()
+    public function submittedDocuments()
     {
-        return $this->hasMany(Certificate::class);
+        return $this->hasMany(Document::class, 'submitted_by');
     }
 
     /**
-     * Calculate attendance percentage for a specific period
+     * Relation avec l'utilisateur qui a créé ce profil.
      */
-    public function calculateAttendancePercentage($startDate, $endDate)
+    public function createdBy()
     {
-        $totalDays = $this->attendances()
-            ->whereBetween('date', [$startDate, $endDate])
-            ->count();
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
-        if ($totalDays === 0) {
-            return 0;
+    /**
+     * Relation avec l'utilisateur qui a mis à jour ce profil.
+     */
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Obtenir le nom complet de l'étudiant.
+     * 
+     * @return string
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->user->full_name;
+    }
+
+    /**
+     * Obtenir l'adresse email de l'étudiant.
+     * 
+     * @return string
+     */
+    public function getEmailAttribute()
+    {
+        return $this->user->email;
+    }
+
+    /**
+     * Obtenir le numéro de téléphone de l'étudiant.
+     * 
+     * @return string|null
+     */
+    public function getPhoneAttribute()
+    {
+        return $this->user->phone;
+    }
+
+    /**
+     * Calculer la moyenne générale de l'étudiant pour une année spécifique.
+     * 
+     * @param string $year L'année académique (ex: "2023-2024")
+     * @return float|null
+     */
+    public function calculateGPA($year = null)
+    {
+        // Si aucune année n'est spécifiée, utiliser l'année en cours
+        if (!$year) {
+            $year = date('Y') . '-' . (date('Y') + 1);
         }
 
-        $presentDays = $this->attendances()
-            ->whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'present')
-            ->count();
+        $ueEnrollments = $this->ueEnrollments()
+            ->where('academic_year', $year)
+            ->with('evaluationResults')
+            ->get();
 
-        return ($presentDays / $totalDays) * 100;
+        if ($ueEnrollments->isEmpty()) {
+            return null;
+        }
+
+        $totalCredits = 0;
+        $weightedSum = 0;
+
+        foreach ($ueEnrollments as $enrollment) {
+            $ueGrade = $enrollment->final_grade;
+            $ueCredits = $enrollment->ue->credits;
+
+            if ($ueGrade !== null && $ueCredits > 0) {
+                $weightedSum += $ueGrade * $ueCredits;
+                $totalCredits += $ueCredits;
+            }
+        }
+
+        if ($totalCredits === 0) {
+            return null;
+        }
+
+        return round($weightedSum / $totalCredits, 2);
     }
 
     /**
-     * Calculate average grade for a specific semester
+     * Vérifier si l'étudiant a validé une UE spécifique.
+     * 
+     * @param int $ueId L'ID de l'UE
+     * @return bool
      */
-    public function calculateAverageGrade($semesterId)
+    public function hasPassedUE($ueId)
     {
-        $grades = $this->grades()->where('semester_id', $semesterId)->get();
+        $enrollment = $this->ueEnrollments()
+            ->where('unite_enseignement_id', $ueId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$enrollment) {
+            return false;
+        }
+
+        // La note de passage est généralement 10/20 en France
+        return $enrollment->final_grade >= 10;
+    }
+
+    /**
+     * Vérifier si l'étudiant a validé un EC spécifique.
+     * 
+     * @param int $ecId L'ID de l'EC
+     * @return bool
+     */
+    public function hasPassedEC($ecId)
+    {
+        $enrollment = $this->ecEnrollments()
+            ->where('element_constitutif_id', $ecId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$enrollment) {
+            return false;
+        }
+
+        // La note de passage est généralement 10/20 en France
+        return $enrollment->final_grade >= 10;
+    }
+
+    /**
+     * Calculer le taux de présence aux cours pour une période donnée.
+     * 
+     * @param string|null $startDate Date de début (format Y-m-d)
+     * @param string|null $endDate Date de fin (format Y-m-d)
+     * @return float Pourcentage de présence
+     */
+    public function calculateAttendanceRate($startDate = null, $endDate = null)
+    {
+        $query = $this->attendances();
         
-        if ($grades->isEmpty()) {
+        if ($startDate) {
+            $query->where('date', '>=', $startDate);
+        }
+        
+        if ($endDate) {
+            $query->where('date', '<=', $endDate);
+        }
+        
+        $attendances = $query->get();
+        
+        if ($attendances->isEmpty()) {
             return 0;
         }
+        
+        $totalSessions = $attendances->count();
+        $presentSessions = $attendances->where('status', 'present')->count();
+        
+        return round(($presentSessions / $totalSessions) * 100, 2);
+    }
 
-        $sum = $grades->sum('grade_value');
-        return $sum / $grades->count();
+    /**
+     * Scope pour filtrer les étudiants par parcours.
+     */
+    public function scopeInParcours($query, $parcoursId)
+    {
+        return $query->where('parcours_id', $parcoursId);
+    }
+
+    /**
+     * Scope pour filtrer les étudiants par année d'étude.
+     */
+    public function scopeInYear($query, $year)
+    {
+        return $query->where('current_year', $year);
+    }
+
+    /**
+     * Scope pour filtrer les étudiants par statut.
+     */
+    public function scopeWithStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Scope pour filtrer les étudiants internationaux.
+     */
+    public function scopeInternational($query, $isInternational = true)
+    {
+        return $query->where('international_student', $isInternational);
+    }
+
+    /**
+     * Scope pour filtrer les étudiants boursiers.
+     */
+    public function scopeWithScholarship($query, $hasScholarship = true)
+    {
+        if ($hasScholarship) {
+            return $query->whereNotNull('scholarship_status')
+                         ->where('scholarship_status', '!=', 'none');
+        }
+        
+        return $query->where(function($q) {
+            $q->whereNull('scholarship_status')
+              ->orWhere('scholarship_status', 'none');
+        });
     }
 } 

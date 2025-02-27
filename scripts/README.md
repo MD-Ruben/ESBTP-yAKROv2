@@ -1,8 +1,176 @@
-# Scripts utilitaires pour la gestion des structures administratives
+# Smart School Scripts
 
-Ce dossier contient des scripts utilitaires pour la gestion des structures administratives de l'application Smart School.
+This directory contains utility scripts to help with development and maintenance of the Smart School application.
+
+## PowerShell Scripts (Recommended for Windows)
+
+These scripts are designed to work with PowerShell, which is the default shell in Windows 10 and later.
+
+- `serve.ps1` - Starts the PHP development server at http://localhost:8000
+- `clear_cache.ps1` - Clears all Laravel caches (config, application, route, view)
+- `migrate.ps1` - Runs database migrations
+- `migrate_seed.ps1` - Runs database migrations with seed data
+- `optimize.ps1` - Optimizes the application for production
+- `storage_link.ps1` - Creates a symbolic link for storage
+- `check_env.ps1` - Checks the Laravel environment (PHP version, Laravel version, database connection, etc.)
+
+To run these scripts, right-click on the script file and select "Run with PowerShell", or open PowerShell and run:
+
+```powershell
+cd C:\wamp64\www\smart_school_new\scripts
+.\serve.ps1
+```
+
+## Batch Scripts (Alternative)
+
+These scripts are designed to work with the Windows Command Prompt.
+
+- `serve.bat` - Starts the Laravel development server at http://127.0.0.1:8000
+- `clear_cache.bat` - Clears all Laravel caches
+- `migrate.bat` - Runs database migrations
+- `migrate_seed.bat` - Runs database migrations with seed data
+- `optimize.bat` - Optimizes the application for production
+- `storage_link.bat` - Creates a symbolic link for storage
+- `check_env.bat` - Checks the Laravel environment (PHP version, Laravel version, database connection, etc.)
+
+To run these scripts, double-click on the script file, or open Command Prompt and run:
+
+```cmd
+cd C:\wamp64\www\smart_school_new\scripts
+serve.bat
+```
+
+## Accessing the Application
+
+You can access the application in several ways:
+
+1. Using the PHP development server: http://localhost:8000
+2. Using WAMP: http://localhost/smart_school_new/public
+3. Using the redirect files: http://localhost/smart_school.php or http://localhost/smart_school.html
 
 ## Liste des scripts
+
+### 1. display_users.php
+
+**Description :** Affiche la liste des utilisateurs avec leurs rôles.
+
+**Utilisation :**
+```bash
+php scripts/display_users.php
+```
+
+**Résultat :** Affiche une liste de tous les utilisateurs avec leurs noms, emails, rôles et un mot de passe par défaut.
+
+### 2. fix_url_config.php
+
+**Description :** Corrige les problèmes de configuration d'URL dans l'application.
+
+**Utilisation :**
+```bash
+php scripts/fix_url_config.php
+```
+
+**Résultat :** 
+- Met à jour le fichier `.env` avec l'URL correcte
+- Vérifie et corrige le fichier `.htaccess` à la racine
+- Configure l'`AppServiceProvider` pour forcer l'URL de base correcte
+
+### 3. fix_hardcoded_links.php
+
+**Description :** Corrige les liens codés en dur dans les fichiers de vue.
+
+**Utilisation :**
+```bash
+php scripts/fix_hardcoded_links.php
+```
+
+**Résultat :** Remplace les liens codés en dur (comme `href="/login"`) par des fonctions Laravel comme `route()` ou `asset()`.
+
+### 4. clear_cache.php
+
+**Description :** Vide tous les caches de l'application Laravel.
+
+**Utilisation :**
+```bash
+php scripts/clear_cache.php
+```
+
+**Résultat :** Exécute les commandes Artisan suivantes :
+- `php artisan config:clear` - Vide le cache de configuration
+- `php artisan cache:clear` - Vide le cache de l'application
+- `php artisan route:clear` - Vide le cache des routes
+- `php artisan view:clear` - Vide le cache des vues
+- `php artisan optimize:clear` - Vide tous les caches d'optimisation
+
+### 5. clear_cache.bat
+
+**Description :** Script batch Windows pour vider tous les caches de l'application Laravel.
+
+**Utilisation :**
+Double-cliquez sur le fichier `clear_cache.bat` dans l'explorateur Windows ou exécutez-le depuis une invite de commande :
+```cmd
+scripts\clear_cache.bat
+```
+
+**Résultat :** Exécute les mêmes commandes que `clear_cache.php` mais dans un environnement Windows.
+
+### 6. check_app_status.php
+
+**Description :** Vérifie l'état de l'application et sa configuration.
+
+**Utilisation :**
+```bash
+php scripts/check_app_status.php
+```
+
+**Résultat :** Affiche un rapport détaillé sur l'état de l'application, incluant :
+- Vérification de la connexion à la base de données
+- Vérification des tables requises
+- Nombre d'utilisateurs et de rôles
+- Configuration de l'application (URL, environnement, mode debug)
+- Vérification des fichiers importants
+- Vérification des permissions des dossiers
+- Vérification des packages installés
+
+## Identifiants de connexion
+
+Voici les identifiants pour se connecter à l'application avec différents rôles :
+
+### Super Admin
+- Email: super-admin@example.com
+- Mot de passe: password123
+
+### Admin
+- Email: admin@example.com
+- Mot de passe: password123
+
+### Directeur
+- Email: directeur@example.com
+- Mot de passe: password123
+
+### Enseignants
+- Email: enseignant1@example.com
+- Mot de passe: password123
+- Email: enseignant2@example.com
+- Mot de passe: password123
+
+### Parents
+- Email: parent1@example.com
+- Mot de passe: password123
+- Email: parent2@example.com
+- Mot de passe: password123
+
+### Secrétaire
+- Email: secretaire@example.com
+- Mot de passe: password123
+
+### Comptable
+- Email: comptable@example.com
+- Mot de passe: password123
+
+### Bibliothécaire
+- Email: bibliothecaire@example.com
+- Mot de passe: password123
 
 ### 1. run_seeders.php
 

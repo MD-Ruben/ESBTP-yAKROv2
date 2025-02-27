@@ -26,20 +26,23 @@ class CheckRole
             return redirect('login');
         }
 
+        // Récupérer l'utilisateur connecté
+        $user = Auth::user();
+
         // Vérifier si l'utilisateur a le rôle requis
-        if ($role === 'admin' && !Auth::user()->isAdmin()) {
+        if ($role === 'admin' && $user->user_type !== 'admin' && $user->user_type !== 'superadmin') {
             abort(403, 'Accès non autorisé. Rôle d\'administrateur requis.');
         }
 
-        if ($role === 'teacher' && !Auth::user()->isTeacher()) {
+        if ($role === 'teacher' && !$user->isTeacher()) {
             abort(403, 'Accès non autorisé. Rôle d\'enseignant requis.');
         }
 
-        if ($role === 'student' && !Auth::user()->isStudent()) {
+        if ($role === 'student' && !$user->isStudent()) {
             abort(403, 'Accès non autorisé. Rôle d\'étudiant requis.');
         }
 
-        if ($role === 'parent' && !Auth::user()->isParent()) {
+        if ($role === 'parent' && !$user->isParent()) {
             abort(403, 'Accès non autorisé. Rôle de parent requis.');
         }
 

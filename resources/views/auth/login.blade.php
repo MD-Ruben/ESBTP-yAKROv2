@@ -268,7 +268,7 @@
             <div class="card">
                 <div class="card-header">
                     <!-- Si vous avez un logo, vous pouvez l'ajouter ici -->
-                    <!-- <img src="/images/esbtp-logo.png" alt="ESBTP Logo" class="school-logo"> -->
+                    <!-- <img src="{{ asset('images/esbtp-logo.png') }}" alt="ESBTP Logo" class="school-logo"> -->
                     <h3 class="mb-0 animate__animated animate__fadeInDown">École Supérieure du Bâtiment et des Travaux Publics</h3>
                     <p class="mb-0 mt-2 animate__animated animate__fadeInUp">Système de Gestion Universitaire</p>
                 </div>

@@ -47,7 +47,7 @@ return new class extends Migration
             $table->boolean('is_optional')->default(false)->comment('Si l\'UE est optionnelle');
             $table->timestamps();
             
-            $table->unique(['parcours_id', 'unite_enseignement_id', 'semester']);
+            $table->unique(['parcours_id', 'unite_enseignement_id', 'semester'], 'parcours_ue_semester_unique');
         });
 
         // Table pivot pour la relation many-to-many entre enseignants et UE
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->integer('hours')->default(0)->comment('Nombre d\'heures assurées');
             $table->timestamps();
             
-            $table->unique(['teacher_id', 'unite_enseignement_id']);
+            $table->unique(['teacher_id', 'unite_enseignement_id'], 'teacher_ue_unique');
         });
     }
 

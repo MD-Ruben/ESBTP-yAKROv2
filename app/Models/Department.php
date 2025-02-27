@@ -4,23 +4,71 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Department extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * La table associée au modèle.
+     * 
+     * @var string
+     */
+    protected $table = 'departments';
+
+    /**
+     * Les attributs qui sont assignables en masse.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'name',
+        'code',
         'description',
+        'ufr_id',
+        'director_id', // ID de l'utilisateur (enseignant) qui dirige le département
+        'creation_date',
+        'website',
+        'email',
+        'phone',
+        'location',
+        'logo',
+        'status', // actif, inactif
+        'created_by',
+        'updated_by',
     ];
 
     /**
-     * Get the teachers for the department.
+     * Les attributs qui doivent être convertis.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'creation_date' => 'date',
+    ];
+
+    /**
+     * Relation avec l'UFR auquel appartient le département.
+     * 
+     * Un département est comme une division spécialisée au sein d'une UFR.
+     * Par exemple, le département d'informatique au sein de l'UFR Sciences.
+     */
+    public function ufr()
+    {
+        return $this->belongsTo(UFR::class);
+    }
+
+    /**
+     * Relation avec l'enseignant qui dirige le département.
+     */
+    public function director()
+    {
+        return $this->belongsTo(User::class, 'director_id');
+    }
+
+    /**
+     * Relation avec les enseignants rattachés à ce département.
      */
     public function teachers()
     {
@@ -28,20 +76,96 @@ class Department extends Model
     }
 
     /**
-     * Get the number of teachers in the department.
+     * Relation avec les formations proposées par ce département.
      */
-    public function getTeacherCount()
+    public function formations()
+    {
+        return $this->hasMany(Formation::class);
+    }
+
+    /**
+     * Relation avec les parcours proposés par ce département.
+     */
+    public function parcours()
+    {
+        return $this->hasMany(Parcours::class);
+    }
+
+    /**
+     * Relation avec les secrétaires affectées à ce département.
+     */
+    public function secretaries()
+    {
+        return $this->hasMany(Secretary::class);
+    }
+
+    /**
+     * Relation avec les laboratoires associés à ce département.
+     */
+    public function laboratories()
+    {
+        return $this->hasMany(Laboratory::class);
+    }
+
+    /**
+     * Relation avec l'utilisateur qui a créé ce département.
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relation avec l'utilisateur qui a mis à jour ce département.
+     */
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Obtenir le nombre d'enseignants dans ce département.
+     * 
+     * @return int
+     */
+    public function getTeacherCountAttribute()
     {
         return $this->teachers()->count();
     }
 
     /**
-     * Get the list of teacher names in the department.
+     * Obtenir le nombre d'étudiants inscrits dans les parcours de ce département.
+     * 
+     * @return int
      */
-    public function getTeacherNames()
+    public function getStudentCountAttribute()
     {
-        return $this->teachers()->with('user')->get()->map(function ($teacher) {
-            return $teacher->user->name;
-        })->implode(', ');
+        return Student::whereHas('parcours', function($query) {
+            $query->where('department_id', $this->id);
+        })->count();
+    }
+
+    /**
+     * Scope pour filtrer les départements par UFR.
+     */
+    public function scopeInUfr($query, $ufrId)
+    {
+        return $query->where('ufr_id', $ufrId);
+    }
+
+    /**
+     * Scope pour filtrer les départements actifs.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'actif');
+    }
+
+    /**
+     * Scope pour filtrer les départements inactifs.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactif');
     }
 } 

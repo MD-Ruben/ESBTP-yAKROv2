@@ -31,7 +31,7 @@ class AbsenceJustificationController extends Controller
                 ->get();
                 
             return view('absences.justifications.index', compact('justifications'));
-        } elseif ($user->isAdmin() || $user->isSuperAdmin()) {
+        } elseif ($user->user_type === 'admin' || $user->user_type === 'superadmin') {
             $justifications = AbsenceJustification::with(['student.user', 'attendance'])
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -136,7 +136,7 @@ class AbsenceJustificationController extends Controller
                 return redirect()->route('dashboard')
                     ->with('error', 'Vous n\'avez pas accès à cette justification.');
             }
-        } elseif (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        } elseif ($user->user_type !== 'admin' && $user->user_type !== 'superadmin') {
             return redirect()->route('dashboard')
                 ->with('error', 'Vous n\'avez pas accès à cette justification.');
         }
@@ -151,7 +151,7 @@ class AbsenceJustificationController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        if ($user->user_type !== 'admin' && $user->user_type !== 'superadmin') {
             return redirect()->route('dashboard')
                 ->with('error', 'Vous n\'avez pas les droits pour traiter les justifications.');
         }
@@ -198,7 +198,7 @@ class AbsenceJustificationController extends Controller
                 return redirect()->route('justifications.index')
                     ->with('error', 'Vous ne pouvez pas supprimer une justification déjà traitée.');
             }
-        } elseif (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        } elseif ($user->user_type !== 'admin' && $user->user_type !== 'superadmin') {
             return redirect()->route('dashboard')
                 ->with('error', 'Vous n\'avez pas accès à cette justification.');
         }
