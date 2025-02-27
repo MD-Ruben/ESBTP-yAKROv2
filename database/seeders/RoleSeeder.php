@@ -15,6 +15,19 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
+        // Créer les rôles de base
+        $roles = [
+            'super-admin',
+            'admin',
+            'teacher',
+            'student',
+            'parent'
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
+
         // Création des rôles principaux
         $roles = [
             'super-admin' => 'Accès complet à toutes les fonctionnalités',

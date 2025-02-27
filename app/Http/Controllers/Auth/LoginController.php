@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -187,21 +188,28 @@ class LoginController extends Controller
      */
     private function isInstalled()
     {
-        // Vérifier si le fichier d'installation existe
-        if (file_exists(storage_path('app/installed'))) {
-            return true;
-        }
-
-        // Vérifier si un administrateur existe
+        // Vérifier si le fichier .env existe
+        $envExists = file_exists(base_path('.env'));
+        
+        // Vérifier si la connexion à la base de données fonctionne
+        $dbConnected = false;
         try {
-            if (Schema::hasTable('users')) {
-                return \App\Models\User::where('role', 'admin')->exists();
-            }
+            DB::connection()->getPdo();
+            $dbConnected = true;
         } catch (\Exception $e) {
-            // En cas d'erreur, considérer que l'application n'est pas installée
-            return false;
+            $dbConnected = false;
         }
-
-        return false;
+        
+        // Vérifier si des utilisateurs existent dans la base de données
+        $usersExist = false;
+        if ($dbConnected && Schema::hasTable('users')) {
+            try {
+                $usersExist = DB::table('users')->count() > 0;
+            } catch (\Exception $e) {
+                $usersExist = false;
+            }
+        }
+        
+        return $envExists && $dbConnected && $usersExist;
     }
 } 

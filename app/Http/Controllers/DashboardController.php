@@ -48,49 +48,81 @@ class DashboardController extends Controller
     {
         $totalStudents = Student::count();
         $totalTeachers = Teacher::count();
-        $totalAdmins = User::where('role', 'admin')->count();
+        $totalAdmins = User::role('super-admin')->count();
         $totalUsers = User::count();
         
         $recentUsers = User::orderBy('created_at', 'desc')
             ->take(5)
             ->get();
             
-        $recentCertificates = Certificate::with(['student.user', 'certificateType'])
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
+        // Récupérer les certificats récents seulement si la table existe
+        try {
+            $recentCertificates = Certificate::with(['student.user', 'certificateType'])
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            $recentCertificates = collect(); // Collection vide si erreur
+        }
             
-        $recentNotifications = Notification::orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
+        // Récupérer les notifications récentes seulement si la table existe
+        try {
+            $recentNotifications = Notification::orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            $recentNotifications = collect(); // Collection vide si erreur
+        }
             
-        // Récupérer les messages récents
-        $recentMessages = Message::where(function($query) {
-                $query->where('recipient_type', 'admins')
-                    ->whereNull('recipient_group');
-            })
-            ->orWhere(function($query) {
-                $query->where('recipient_type', 'all')
-                    ->whereNull('recipient_group');
-            })
-            ->orWhere('recipient_id', Auth::id())
-            ->whereNull('parent_id')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
+        // Récupérer les messages récents seulement si la table existe
+        try {
+            $recentMessages = Message::where(function($query) {
+                    $query->where('recipient_type', 'admins')
+                        ->whereNull('recipient_group');
+                })
+                ->orWhere(function($query) {
+                    $query->where('recipient_type', 'all')
+                        ->whereNull('recipient_group');
+                })
+                ->orWhere('recipient_id', Auth::id())
+                ->whereNull('parent_id')
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            $recentMessages = collect(); // Collection vide si erreur
+        }
         
-        // Statistiques de présence
-        $attendanceStats = Attendance::selectRaw('DATE(date) as attendance_date, COUNT(*) as total, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present')
-            ->groupBy('attendance_date')
-            ->orderBy('attendance_date', 'desc')
-            ->take(7)
-            ->get();
+        // Statistiques de présence seulement si la table existe
+        try {
+            $attendanceStats = Attendance::selectRaw('DATE(date) as attendance_date, COUNT(*) as total, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present')
+                ->groupBy('attendance_date')
+                ->orderBy('attendance_date', 'desc')
+                ->take(7)
+                ->get();
+        } catch (\Exception $e) {
+            $attendanceStats = collect([
+                [
+                    'attendance_date' => now()->format('Y-m-d'),
+                    'total' => 0,
+                    'present' => 0
+                ]
+            ]); // Collection avec des données vides pour éviter les erreurs d'affichage
+        }
             
         // Récupérer toutes les classes pour le formulaire de messagerie
-        $classes = \App\Models\SchoolClass::all();
+        try {
+            $classes = \App\Models\SchoolClass::all();
+        } catch (\Exception $e) {
+            $classes = collect();
+        }
         
         // Récupérer tous les étudiants pour le formulaire de messagerie
-        $students = Student::with('user')->get();
+        try {
+            $students = Student::with('user')->get();
+        } catch (\Exception $e) {
+            $students = collect();
+        }
         
         return view('dashboard.superadmin', compact(
             'totalStudents', 
@@ -115,11 +147,16 @@ class DashboardController extends Controller
         $totalStudents = Student::count();
         $totalTeachers = Teacher::count();
         
-        // Récupérer les présences d'aujourd'hui
-        $todayAttendances = Attendance::whereDate('date', today())->count();
-        $pendingAttendances = Attendance::whereDate('date', today())
-            ->whereNull('status')
-            ->count();
+        // Récupérer les présences d'aujourd'hui seulement si la table existe
+        try {
+            $todayAttendances = Attendance::whereDate('date', today())->count();
+            $pendingAttendances = Attendance::whereDate('date', today())
+                ->whereNull('status')
+                ->count();
+        } catch (\Exception $e) {
+            $todayAttendances = 0;
+            $pendingAttendances = 0;
+        }
         
         // Récupérer les notifications récentes
         $recentNotifications = Notification::orderBy('created_at', 'desc')

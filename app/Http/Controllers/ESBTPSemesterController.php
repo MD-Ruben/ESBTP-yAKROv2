@@ -16,7 +16,7 @@ class ESBTPSemesterController extends Controller
     public function index()
     {
         // Récupérer tous les semestres, y compris les supprimés
-        $semesters = ESBTPSemester::withTrashed()->with('studyYear')->latest()->get();
+        $semesters = ESBTPSemester::withTrashed()->with('studyYear')->latest()->paginate(15);
         
         return view('esbtp.semesters.index', compact('semesters'));
     }

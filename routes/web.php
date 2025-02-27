@@ -40,6 +40,33 @@ Route::post('/setup', [App\Http\Controllers\SetupController::class, 'setup'])->n
 
 // Route d'accueil
 Route::get('/', function () {
+    // Vérifier si le fichier .env existe
+    $envExists = file_exists(base_path('.env'));
+    
+    // Vérifier si la connexion à la base de données fonctionne
+    $dbConnected = false;
+    try {
+        \DB::connection()->getPdo();
+        $dbConnected = true;
+    } catch (\Exception $e) {
+        $dbConnected = false;
+    }
+    
+    // Vérifier si des utilisateurs existent dans la base de données
+    $usersExist = false;
+    if ($dbConnected && \Schema::hasTable('users')) {
+        try {
+            $usersExist = \DB::table('users')->count() > 0;
+        } catch (\Exception $e) {
+            $usersExist = false;
+        }
+    }
+    
+    // Si l'installation n'est pas complète, rediriger vers la page setup
+    if (!$envExists || !$dbConnected || !$usersExist) {
+        return redirect()->route('setup.index');
+    }
+    
     return view('welcome');
 })->name('welcome');
 

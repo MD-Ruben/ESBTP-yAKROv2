@@ -41,7 +41,6 @@ class User extends Authenticatable
         'birth_date',
         'gender',
         'profile_photo',
-        'user_type', // superadmin, secretary, teacher, student, parent
         'is_active',
         'last_login_at',
         'last_login_ip',
@@ -88,7 +87,7 @@ class User extends Authenticatable
      */
     public function isSuperAdmin()
     {
-        return $this->user_type === 'superadmin';
+        return $this->hasRole('super-admin');
     }
 
     /**
@@ -98,7 +97,7 @@ class User extends Authenticatable
      */
     public function isSecretary()
     {
-        return $this->user_type === 'secretary';
+        return $this->hasRole('secretary');
     }
 
     /**
@@ -108,7 +107,7 @@ class User extends Authenticatable
      */
     public function isTeacher()
     {
-        return $this->user_type === 'teacher';
+        return $this->hasRole('teacher');
     }
 
     /**
@@ -118,7 +117,7 @@ class User extends Authenticatable
      */
     public function isStudent()
     {
-        return $this->user_type === 'student';
+        return $this->hasRole('student');
     }
 
     /**
@@ -128,7 +127,7 @@ class User extends Authenticatable
      */
     public function isParent()
     {
-        return $this->user_type === 'parent';
+        return $this->hasRole('parent');
     }
 
     /**
@@ -138,8 +137,7 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        // Vérifier si l'utilisateur a le type 'admin' ou 'superadmin'
-        return $this->user_type === 'admin' || $this->user_type === 'superadmin';
+        return $this->hasAnyRole(['admin', 'super-admin']);
     }
 
     /**
