@@ -53,7 +53,7 @@ class LoginController extends Controller
     {
         // Vérifier si l'application est installée
         if (!$this->isInstalled()) {
-            return redirect()->route('setup');
+            return redirect()->route('setup.index');
         }
 
         return view('auth.login');

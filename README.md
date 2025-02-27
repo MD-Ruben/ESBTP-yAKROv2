@@ -1,194 +1,150 @@
-# ESBTP - École Supérieure du Bâtiment et des Travaux Publics
+# ESBTP School Management System
 
-![Logo ESBTP](public/img/esbtp_logo.png)
+## À propos
 
-## À propos du projet
+ESBTP School Management System est une application web complète pour la gestion des écoles, spécialement conçue pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP). Cette application permet de gérer les départements, les cycles de formation, les spécialités, les années d'études, les semestres, les partenariats et la formation continue.
 
-Ce projet est une application web pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro, Côte d'Ivoire. L'application permet de gérer les étudiants, les enseignants, les cours, les emplois du temps et d'autres aspects administratifs de l'école.
+## Prérequis
 
-## Améliorations récentes
-
-### Refonte de la page d'accueil
-- Design moderne avec Bootstrap 5
-- Animations au défilement avec AOS
-- Sections structurées (À propos, Formations, Contact)
-- Navigation améliorée et responsive
-
-### Mise à jour des informations de contact
-- Coordonnées réelles de l'ESBTP Yamoussoukro
-- Intégration d'une carte Google Maps interactive
-- Formulaire de contact fonctionnel
-
-### Optimisation multi-plateforme
-- Compatibilité Windows et Linux
-- Scripts de maintenance et de sauvegarde
-- Documentation complète du projet
-
-## Structure du projet
-
-```
-smart_school_new/
-├── app/                  # Code source Laravel
-├── bootstrap/            # Fichiers d'initialisation Laravel
-├── config/               # Configuration de l'application
-├── database/             # Migrations et seeders
-├── public/               # Fichiers accessibles publiquement
-│   ├── css/              # Feuilles de style CSS
-│   ├── img/              # Images et logos
-│   └── js/               # Scripts JavaScript
-├── resources/            # Ressources non compilées
-│   ├── views/            # Templates Blade
-│   │   └── welcome.blade.php  # Page d'accueil
-│   ├── js/               # JavaScript source
-│   └── css/              # CSS source
-├── routes/               # Définition des routes
-├── scripts_projet_esbtp/ # Scripts de maintenance
-│   ├── backup_projet.ps1     # Sauvegarde des fichiers
-│   ├── check_integrity.ps1   # Vérification d'intégrité
-│   ├── create_logos.ps1      # Création des logos
-│   ├── README.md             # Documentation des scripts
-│   └── documentation.md      # Documentation complète
-└── storage/              # Fichiers générés par l'application
-```
-
-## Technologies utilisées
-
-- **Backend**: Laravel (PHP)
-- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
-- **Base de données**: MySQL
-- **Outils**: PowerShell (scripts de maintenance)
-
-## Installation
-
-1. Cloner le dépôt
-2. Installer les dépendances avec Composer: `composer install`
-3. Configurer le fichier `.env` avec les informations de la base de données
-4. Exécuter les migrations: `php artisan migrate`
-5. Lancer les seeders: `php artisan db:seed`
-6. Démarrer le serveur: `php artisan serve`
-
-## Maintenance
-
-Pour maintenir l'application:
-
-1. Exécuter régulièrement le script de sauvegarde: `.\scripts_projet_esbtp\backup_projet.ps1`
-2. Vérifier l'intégrité des fichiers: `.\scripts_projet_esbtp\check_integrity.ps1`
-3. Consulter la documentation complète dans `scripts_projet_esbtp/documentation.md`
-
-## Licence
-
-Ce projet est la propriété de l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro.
-
-## Contact
-
-Pour toute question concernant ce projet, veuillez contacter:
-
-- **ESBTP Yamoussoukro**
-- Quartier Millionnaire, Yamoussoukro, Côte d'Ivoire
-- Téléphone: +225 27 30 64 66 75 / +225 07 07 43 43 75
-- Email: info@esbtp-ci.net
-- Site web: www.esbtp-ci.net
-
-# Smart School Management System
-
-A comprehensive school management system built with Laravel.
-
-## Requirements
-
-- PHP 7.4 or higher
-- MySQL 5.7 or higher
+- PHP 7.4 ou supérieur
 - Composer
-- Node.js and NPM (for frontend assets)
+- MySQL 5.7 ou supérieur
+- Node.js et NPM (pour la compilation des assets)
+- Serveur web (Apache, Nginx, etc.)
 
 ## Installation
 
-1. Clone the repository:
+1. Clonez le dépôt :
    ```
-   git clone https://github.com/yourusername/smart_school_new.git
-   cd smart_school_new
+   git clone https://github.com/votre-utilisateur/esbtp-school-management.git
+   cd esbtp-school-management
    ```
 
-2. Install PHP dependencies:
+2. Installez les dépendances PHP :
    ```
    composer install
    ```
 
-3. Copy the `.env.example` file to `.env` and configure your database:
+3. Installez les dépendances JavaScript :
+   ```
+   npm install && npm run dev
+   ```
+
+4. Copiez le fichier d'environnement :
    ```
    cp .env.example .env
    ```
 
-4. Generate an application key:
+5. Configurez votre base de données dans le fichier `.env` :
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=esbtp_school
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+6. Générez une clé d'application :
    ```
    php artisan key:generate
    ```
 
-5. Run database migrations and seed the database:
+7. Exécutez les migrations et les seeders :
    ```
    php artisan migrate --seed
    ```
 
-6. Create a symbolic link for storage:
+8. Créez un lien symbolique pour le stockage :
    ```
    php artisan storage:link
    ```
 
-7. Install and compile frontend assets:
-   ```
-   npm install
-   npm run dev
-   ```
+## Scripts utilitaires
 
-## Running the Application
+Le dossier `scripts_esbtp` contient plusieurs scripts utilitaires pour faciliter la gestion de l'application :
 
-### Using the PHP Development Server
+### Réinitialisation de l'application
 
-The easiest way to run the application during development is to use the PHP built-in server:
+Pour réinitialiser l'application à son état initial :
 
-```
-php -S localhost:8000 -t public
-```
+- Sur Windows : exécutez `scripts_esbtp/reset_app.bat`
+- Sur Linux/Mac : exécutez `scripts_esbtp/reset_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/reset_app.sh`)
 
-You can then access the application at http://localhost:8000
+### Démarrage de l'application
 
-### Using WAMP/XAMPP
+Pour démarrer le serveur de développement :
 
-If you're using WAMP or XAMPP, you can access the application at:
+- Sur Windows : exécutez `scripts_esbtp/start_app.bat`
+- Sur Linux/Mac : exécutez `scripts_esbtp/start_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/start_app.sh`)
 
-```
-http://localhost/smart_school_new/public
-```
+### Mise à jour de l'application
 
-### Using the Utility Scripts
+Pour mettre à jour l'application avec les dernières modifications :
 
-We've provided several utility scripts in the `scripts` directory to make development easier:
+- Sur Windows : exécutez `scripts_esbtp/update_app.bat`
+- Sur Linux/Mac : exécutez `scripts_esbtp/update_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/update_app.sh`)
 
-- For PowerShell (Windows 10+):
-  ```
-  cd scripts
-  .\serve.ps1
-  ```
+### Sauvegarde de la base de données
 
-- For Command Prompt:
-  ```
-  cd scripts
-  serve.bat
-  ```
+Pour créer une sauvegarde de la base de données :
 
-See the [scripts README](scripts/README.md) for more information.
+- Sur Windows : exécutez `scripts_esbtp/backup_db.bat`
+- Sur Linux/Mac : exécutez `scripts_esbtp/backup_db.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/backup_db.sh`)
 
-## Features
+Les sauvegardes sont stockées dans le dossier `storage/app/backups` avec un horodatage dans le nom du fichier.
 
-- User Management (Admin, Teachers, Students, Parents)
-- Course Management
-- Attendance Tracking
-- Grade Management
-- Timetable Management
-- Announcements and Notifications
-- Messaging System
-- Certificate Generation
-- Reports and Analytics
+### Création d'un package d'installation
 
-## License
+Pour créer un package d'installation léger et épuré de l'application :
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Sur Windows : exécutez `scripts_esbtp/create_package.bat`
+- Sur Linux/Mac : exécutez `scripts_esbtp/create_package.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/create_package.sh`)
+
+Le package créé contiendra :
+- Le code source de l'application (sans les dossiers vendor et node_modules)
+- Des scripts d'installation pour Windows et Linux/Mac
+- Un guide d'installation rapide
+- Les identifiants par défaut
+
+Ce package peut être facilement distribué aux clients ou stocké sur une clé USB ou en ligne.
+
+Pour plus d'informations sur ces scripts, consultez le fichier `scripts_esbtp/README.md`.
+
+## Identifiants par défaut
+
+### Superadmin
+- Email : admin@esbtp.ci
+- Mot de passe : admin123
+
+## Fonctionnalités
+
+- Gestion des départements
+- Gestion des cycles de formation
+- Gestion des spécialités
+- Gestion des années d'études
+- Gestion des semestres
+- Gestion des partenariats
+- Gestion de la formation continue
+- Gestion des utilisateurs et des rôles
+- Et bien plus encore...
+
+## Structure du projet
+
+- `app/` - Contient les modèles, contrôleurs et autres classes PHP
+- `config/` - Contient les fichiers de configuration
+- `database/` - Contient les migrations et les seeders
+- `public/` - Contient les fichiers accessibles publiquement
+- `resources/` - Contient les vues, les assets et les fichiers de traduction
+- `routes/` - Contient les définitions de routes
+- `storage/` - Contient les fichiers téléchargés, les logs, etc.
+- `tests/` - Contient les tests automatisés
+- `scripts_esbtp/` - Contient les scripts utilitaires pour l'application
+
+## Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou à soumettre une pull request.
+
+## Licence
+
+Ce projet est sous licence [MIT](LICENSE).

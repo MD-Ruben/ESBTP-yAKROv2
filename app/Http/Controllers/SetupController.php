@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\Process\Process;
 use Exception;
 
 class SetupController extends Controller
@@ -175,6 +176,24 @@ class SetupController extends Controller
         try {
             // Exécuter les seeders
             Artisan::call('db:seed', ['--force' => true]);
+            
+            // Installer les dépendances via Composer si nécessaire
+            if (!file_exists(base_path('vendor/autoload.php')) || request()->has('run_composer')) {
+                // Utiliser Process pour exécuter composer install
+                $process = new \Symfony\Component\Process\Process(['composer', 'install', '--no-interaction', '--no-dev', '--prefer-dist']);
+                $process->setWorkingDirectory(base_path());
+                $process->setTimeout(300); // 5 minutes
+                $process->run();
+                
+                if (!$process->isSuccessful()) {
+                    throw new \Exception('Erreur lors de l\'installation des dépendances: ' . $process->getErrorOutput());
+                }
+            }
+            
+            // Vérifier si une clé d'application existe, sinon en générer une
+            if (empty(config('app.key'))) {
+                Artisan::call('key:generate', ['--force' => true]);
+            }
             
             // Optimiser l'application
             Artisan::call('optimize:clear');

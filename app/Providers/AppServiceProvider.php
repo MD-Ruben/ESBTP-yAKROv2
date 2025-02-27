@@ -32,11 +32,17 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') !== 'local') {
             URL::forceScheme('https');
         } else {
-            // Pour le développement local, si l'application est dans un sous-dossier
+            // Pour le développement local
             $rootUrl = request()->getSchemeAndHttpHost();
             
-            // Forcer l'URL de base pour le sous-dossier smart_school_new/public
-            URL::forceRootUrl($rootUrl . '/smart_school_new/public');
+            // Vérifier si nous sommes sur le serveur de développement Laravel (port 8000)
+            $isArtisanServe = (request()->getPort() == 8000);
+            
+            if (!$isArtisanServe) {
+                // Si nous sommes sur Apache/WAMP, forcer l'URL de base pour le sous-dossier
+                URL::forceRootUrl($rootUrl . '/smart_school_new/public');
+            }
+            
             URL::forceScheme('http');
         }
     }

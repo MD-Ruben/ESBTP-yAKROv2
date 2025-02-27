@@ -49,60 +49,20 @@
             font-family: 'Poppins', sans-serif;
             background-color: var(--esbtp-gray);
             color: var(--esbtp-text);
-            overflow-x: hidden;
-        }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-        
-        /* Layout */
-        .main-wrapper {
-            display: flex;
             min-height: 100vh;
+            display: flex;
         }
         
-        .content-wrapper {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            transition: margin-left var(--transition-speed);
-        }
-        
-        @media (max-width: 992px) {
-            .content-wrapper {
-                margin-left: 0;
-            }
-            
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-            }
-        }
-        
-        /* Sidebar styles */
+        /* Sidebar Styles */
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
             width: var(--sidebar-width);
-            background: var(--esbtp-white);
-            box-shadow: var(--card-shadow);
-            z-index: 1000;
+            background-color: var(--esbtp-white);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
             transition: transform var(--transition-speed);
             overflow-y: auto;
         }
@@ -110,82 +70,82 @@
         .sidebar-header {
             padding: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
             flex-direction: column;
+            align-items: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: linear-gradient(135deg, var(--esbtp-green), var(--esbtp-green-dark));
-            color: var(--esbtp-white);
-            padding-top: 30px;
-            padding-bottom: 30px;
         }
         
         .sidebar-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
             margin-bottom: 10px;
         }
         
         .sidebar-brand {
-            font-weight: 600;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--esbtp-green);
             margin-bottom: 5px;
         }
         
         .sidebar-subtitle {
-            font-size: 0.8rem;
-            opacity: 0.8;
+            font-size: 0.9rem;
+            color: var(--esbtp-orange);
+            font-weight: 500;
         }
         
         .sidebar-menu {
-            padding: 15px 0;
+            padding: 20px;
         }
         
         .menu-category {
-            padding: 0 20px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #a0a0a0;
+            color: var(--esbtp-text);
+            opacity: 0.6;
+            margin: 20px 0 10px;
             font-weight: 600;
         }
         
         .nav-item {
-            margin: 2px 15px;
-            border-radius: var(--border-radius);
-            transition: all var(--transition-speed);
+            margin-bottom: 5px;
         }
         
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 12px 15px;
+            padding: 10px 15px;
             color: var(--esbtp-text);
             border-radius: var(--border-radius);
             transition: all var(--transition-speed);
-            font-weight: 500;
         }
         
         .nav-link:hover {
-            background-color: var(--esbtp-green-light);
+            background-color: var(--esbtp-light-green);
             color: var(--esbtp-green);
         }
         
         .nav-link.active {
-            background: linear-gradient(135deg, var(--esbtp-green), var(--esbtp-green-dark));
+            background-color: var(--esbtp-green);
             color: var(--esbtp-white);
-            box-shadow: 0 5px 15px rgba(1, 99, 47, 0.2);
         }
         
         .nav-icon {
-            margin-right: 12px;
-            font-size: 1.1rem;
+            margin-right: 10px;
             width: 20px;
             text-align: center;
-            transition: all var(--transition-speed);
         }
         
-        /* Topbar */
+        /* Main Content Styles */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            transition: margin var(--transition-speed);
+        }
+        
         .topbar {
             height: var(--topbar-height);
             background-color: var(--esbtp-white);
@@ -195,44 +155,47 @@
             padding: 0 30px;
             position: sticky;
             top: 0;
-            z-index: 999;
+            z-index: 99;
         }
         
         .toggle-sidebar {
+            display: none;
             background: none;
             border: none;
+            font-size: 1.5rem;
             color: var(--esbtp-text);
-            font-size: 1.3rem;
             cursor: pointer;
-            margin-right: 20px;
-            display: none;
+            margin-right: 15px;
         }
         
-        @media (max-width: 992px) {
-            .toggle-sidebar {
-                display: block;
-            }
-        }
-        
-        .topbar-title {
+        .page-title {
+            font-size: 1.2rem;
             font-weight: 600;
-            color: var(--esbtp-green);
-            margin-bottom: 0;
-            font-size: 1.3rem;
+            color: var(--esbtp-dark);
+            flex: 1;
         }
         
-        .topbar-right {
-            margin-left: auto;
+        .topbar-actions {
             display: flex;
             align-items: center;
         }
         
-        .notification-bell {
+        .action-item {
+            margin-left: 20px;
             position: relative;
-            margin-right: 20px;
-            color: var(--esbtp-text);
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
             font-size: 1.2rem;
+            color: var(--esbtp-text);
             cursor: pointer;
+            transition: color var(--transition-speed);
+        }
+        
+        .action-btn:hover {
+            color: var(--esbtp-green);
         }
         
         .notification-badge {
@@ -240,17 +203,17 @@
             top: -5px;
             right: -5px;
             background-color: var(--esbtp-orange);
-            color: white;
-            border-radius: 50%;
+            color: var(--esbtp-white);
+            font-size: 0.7rem;
             width: 18px;
             height: 18px;
-            font-size: 0.7rem;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        .user-profile {
+        .user-dropdown {
             display: flex;
             align-items: center;
             cursor: pointer;
@@ -260,12 +223,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: var(--esbtp-green-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--esbtp-green);
-            font-weight: 600;
+            object-fit: cover;
             margin-right: 10px;
         }
         
@@ -275,225 +233,252 @@
         }
         
         .user-name {
-            font-weight: 600;
             font-size: 0.9rem;
+            font-weight: 600;
             color: var(--esbtp-dark);
         }
         
         .user-role {
-            font-size: 0.75rem;
-            color: #888;
-        }
-        
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            padding: 10px 0;
-        }
-        
-        .dropdown-item {
-            padding: 10px 20px;
+            font-size: 0.8rem;
             color: var(--esbtp-text);
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            opacity: 0.8;
         }
         
-        .dropdown-item:hover {
-            background-color: var(--esbtp-green-light);
-            color: var(--esbtp-green);
-        }
-        
-        .dropdown-divider {
-            margin: 5px 0;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Content area */
         .content {
             padding: 30px;
+            flex: 1;
         }
         
-        /* Cards */
+        /* Responsive Styles */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(0);
+            }
+            
+            .main-wrapper {
+                margin-left: 0;
+            }
+            
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+        
+        /* Card Styles */
         .card {
-            border: none;
+            background-color: var(--esbtp-white);
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            border: none;
+            margin-bottom: 30px;
             overflow: hidden;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
             background-color: var(--esbtp-white);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--esbtp-dark);
+            margin: 0;
         }
         
         .card-body {
             padding: 20px;
         }
         
-        /* Buttons */
-        .btn {
-            border-radius: 8px;
-            padding: 8px 20px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
+        /* Button Styles */
         .btn-primary {
             background-color: var(--esbtp-green);
             border-color: var(--esbtp-green);
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover, .btn-primary:focus {
             background-color: var(--esbtp-green-dark);
             border-color: var(--esbtp-green-dark);
-            box-shadow: 0 5px 15px rgba(1, 99, 47, 0.2);
         }
         
         .btn-secondary {
             background-color: var(--esbtp-orange);
             border-color: var(--esbtp-orange);
-            color: white;
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover, .btn-secondary:focus {
             background-color: var(--esbtp-orange-dark);
             border-color: var(--esbtp-orange-dark);
-            box-shadow: 0 5px 15px rgba(242, 148, 0, 0.2);
-        }
-        
-        /* Page transitions */
-        .fade-enter-active, .fade-leave-active {
-            transition: opacity 0.3s;
-        }
-        
-        .fade-enter, .fade-leave-to {
-            opacity: 0;
         }
     </style>
 </head>
 <body>
-    <div class="main-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="img-fluid" style="max-height: 60px;">
-                </div>
-                <div class="sidebar-brand">ESBTP-yAKRO</div>
-                <div class="sidebar-subtitle">Gestion Universitaire</div>
-            </div>
-            
-            <div class="sidebar-menu">
-                <div class="menu-category">Navigation principale</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <i class="fas fa-tachometer-alt nav-icon"></i>
-                            <span>Tableau de bord</span>
-                        </a>
-                    </li>
-                    
-                    <div class="menu-category">Gestion académique</div>
-                    <li class="nav-item">
-                        <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                            <i class="fas fa-user-graduate nav-icon"></i>
-                            <span>Étudiants</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                            <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                            <span>Enseignants</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('attendances.index') }}" class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
-                            <i class="fas fa-clipboard-check nav-icon"></i>
-                            <span>Présences</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('grades.index') }}" class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
-                            <i class="fas fa-graduation-cap nav-icon"></i>
-                            <span>Notes</span>
-                        </a>
-                    </li>
-                    
-                    <div class="menu-category">Organisation</div>
-                    <li class="nav-item">
-                        <a href="{{ route('timetables.index') }}" class="nav-link {{ request()->routeIs('timetables.*') ? 'active' : '' }}">
-                            <i class="fas fa-calendar-alt nav-icon"></i>
-                            <span>Emplois du temps</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-                            <i class="fas fa-bell nav-icon"></i>
-                            <span>Notifications</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('certificates.index') }}" class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
-                            <i class="fas fa-certificate nav-icon"></i>
-                            <span>Certificats</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </aside>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ asset('images/logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
+            <div class="sidebar-brand">ESBTP-yAKRO</div>
+            <div class="sidebar-subtitle">Gestion Universitaire</div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-category">Navigation principale</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                </li>
+                
+                <div class="menu-category">Gestion académique</div>
+                <li class="nav-item">
+                    <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-graduate nav-icon"></i>
+                        <span>Étudiants</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                        <span>Enseignants</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('attendances.index') }}" class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-check nav-icon"></i>
+                        <span>Présences</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('grades.index') }}" class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
+                        <i class="fas fa-graduation-cap nav-icon"></i>
+                        <span>Notes</span>
+                    </a>
+                </li>
+                
+                <div class="menu-category">Organisation</div>
+                <li class="nav-item">
+                    <a href="{{ route('timetables.index') }}" class="nav-link {{ request()->routeIs('timetables.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span>Emplois du temps</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+                        <i class="fas fa-bell nav-icon"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('certificates.index') }}" class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
+                        <i class="fas fa-certificate nav-icon"></i>
+                        <span>Certificats</span>
+                    </a>
+                </li>
+                
+                <div class="menu-category">ESBTP-YAKRO</div>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.cycles.index') }}" class="nav-link {{ request()->routeIs('esbtp.cycles.*') ? 'active' : '' }}">
+                        <i class="fas fa-sync-alt nav-icon"></i>
+                        <span>Cycles de Formation</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.specialties.index') }}" class="nav-link {{ request()->routeIs('esbtp.specialties.*') ? 'active' : '' }}">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span>Spécialités</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.partnerships.index') }}" class="nav-link {{ request()->routeIs('esbtp.partnerships.*') ? 'active' : '' }}">
+                        <i class="fas fa-handshake nav-icon"></i>
+                        <span>Partenariats</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.continuing-education.index') }}" class="nav-link {{ request()->routeIs('esbtp.continuing-education.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-tie nav-icon"></i>
+                        <span>Formation Continue</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.departments.index') }}" class="nav-link {{ request()->routeIs('esbtp.departments.*') ? 'active' : '' }}">
+                        <i class="fas fa-building nav-icon"></i>
+                        <span>Départements</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.study-years.index') }}" class="nav-link {{ request()->routeIs('esbtp.study-years.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-day nav-icon"></i>
+                        <span>Années d'études</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.semesters.index') }}" class="nav-link {{ request()->routeIs('esbtp.semesters.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-week nav-icon"></i>
+                        <span>Semestres</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-        <!-- Main content -->
-        <div class="content-wrapper">
-            <!-- Topbar -->
-            <header class="topbar">
-                <button class="toggle-sidebar" id="toggle-sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <h4 class="topbar-title">@yield('title', 'Tableau de bord')</h4>
-                
-                <div class="topbar-right">
-                    <div class="notification-bell">
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="toggle-sidebar" class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <h1 class="page-title">@yield('page_title', 'Tableau de bord')</h1>
+            
+            <div class="topbar-actions">
+                <div class="action-item">
+                    <button class="action-btn">
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge">3</span>
-                    </div>
-                    
-                    <div class="dropdown">
-                        <div class="user-profile" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="user-avatar">
-                                {{ Auth::user() ? substr(Auth::user()->name, 0, 1) : 'U' }}
-                            </div>
-                            <div class="user-info">
-                                <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
-                                <div class="user-role">{{ Auth::user()->role ?? 'Rôle' }}</div>
-                            </div>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Mon profil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    </button>
                 </div>
-            </header>
-
-            <div class="content">
-                @yield('content')
+                
+                <div class="action-item">
+                    <button class="action-btn">
+                        <i class="fas fa-envelope"></i>
+                        <span class="notification-badge">5</span>
+                    </button>
+                </div>
+                
+                <div class="action-item dropdown">
+                    <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
+                        <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
+                        <div class="user-info">
+                            <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
+                            <div class="user-role">{{ Auth::user()->role ?? 'Rôle' }}</div>
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Mon profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
+        </header>
+
+        <div class="content">
+            @yield('content')
         </div>
     </div>
 

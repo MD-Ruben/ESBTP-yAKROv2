@@ -6,20 +6,43 @@ This directory contains utility scripts to help with development and maintenance
 
 These scripts are designed to work with PowerShell, which is the default shell in Windows 10 and later.
 
+### Main Application Script
+- `start_app.ps1` - **NEW!** Interactive menu to manage all aspects of the application
+
+### Server Management
 - `serve.ps1` - Starts the PHP development server at http://localhost:8000
+
+### Database Management
+- `migrate.ps1` - Interactive menu for database migrations
+- `seed_database.ps1` - **NEW!** Interactive menu for seeding the database with test data
+- `check_database.ps1` - **NEW!** Checks database status, tables, and record counts
+
+### Cache Management
 - `clear_cache.ps1` - Clears all Laravel caches (config, application, route, view)
-- `migrate.ps1` - Runs database migrations
-- `migrate_seed.ps1` - Runs database migrations with seed data
+
+### Application Optimization
 - `optimize.ps1` - Optimizes the application for production
 - `storage_link.ps1` - Creates a symbolic link for storage
+
+### Environment Management
 - `check_env.ps1` - Checks the Laravel environment (PHP version, Laravel version, database connection, etc.)
+
+### Project Completion
+- `project_completion.ps1` - **NEW!** Helps with project completion tasks (cleanup, optimization, backup)
+
+## How to Run PowerShell Scripts
 
 To run these scripts, right-click on the script file and select "Run with PowerShell", or open PowerShell and run:
 
 ```powershell
 cd C:\wamp64\www\smart_school_new\scripts
-.\serve.ps1
+.\start_app.ps1
 ```
+
+> **Note:** In PowerShell, use semicolons (`;`) instead of ampersands (`&&`) to chain commands:
+> ```powershell
+> cd C:\wamp64\www\smart_school_new ; php artisan serve
+> ```
 
 ## Batch Scripts (Alternative)
 
@@ -47,6 +70,39 @@ You can access the application in several ways:
 1. Using the PHP development server: http://localhost:8000
 2. Using WAMP: http://localhost/smart_school_new/public
 3. Using the redirect files: http://localhost/smart_school.php or http://localhost/smart_school.html
+
+## Troubleshooting
+
+If you encounter issues with the scripts:
+
+1. Make sure PHP is in your system PATH
+2. Check that you're running the scripts from the correct directory
+3. Verify that your database configuration in `.env` is correct
+4. Try running the commands manually to see detailed error messages
+
+## Default Login Credentials
+
+The application comes with several default user accounts for testing:
+
+### Super Admin
+- Email: super-admin@example.com
+- Password: password123
+
+### Admin
+- Email: admin@example.com
+- Password: password123
+
+### Teacher
+- Email: teacher@example.com
+- Password: password123
+
+### Student
+- Email: student@example.com
+- Password: password123
+
+### Parent
+- Email: parent@example.com
+- Password: password123
 
 ## Liste des scripts
 

@@ -1,7 +1,16 @@
 <IfModule mod_rewrite.c>
+    # Activer le moteur de réécriture
     RewriteEngine On
     
+    # Définir la base de réécriture (chemin relatif depuis la racine du serveur)
+    # RewriteBase /smart_school_new
+    
     # Rediriger toutes les requêtes vers le dossier public
+    # Condition: si l'URI ne commence pas déjà par /public/
     RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_URI} !^/smart_school_new/public/
+    
+    # Règle: rediriger vers le dossier public en conservant le reste de l'URI
+    # [L] = Last rule, arrête le traitement des règles
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule> 

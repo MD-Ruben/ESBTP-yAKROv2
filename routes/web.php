@@ -32,7 +32,7 @@ use App\Http\Controllers\ClassController;
 Route::post('/setup/migrate', [SetupController::class, 'migrate'])->name('setup.migrate');
 Route::post('/setup/create-admin', [SetupController::class, 'createAdmin'])->name('setup.create-admin');
 Route::post('/setup/finalize', [SetupController::class, 'finalize'])->name('setup.finalize');
-Route::get('/setup/check-requirements', [SetupController::class, 'checkRequirements']);
+Route::get('/setup/check-requirements', [SetupController::class, 'checkRequirements'])->name('setup.check-requirements');
 
 // Routes pour la configuration de la base de données
 Route::get('/setup', [App\Http\Controllers\SetupController::class, 'index'])->name('setup.index');
@@ -145,6 +145,44 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('timetables', TimetableController::class);
     Route::get('/timetable/class/{class}', [TimetableController::class, 'showByClass'])->name('timetable.class');
     Route::get('/timetable/teacher/{teacher}', [TimetableController::class, 'showByTeacher'])->name('timetable.teacher');
+    
+    // Routes pour les fonctionnalités ESBTP
+    Route::prefix('esbtp')->name('esbtp.')->group(function () {
+        // Routes pour les cycles de formation
+        Route::resource('cycles', App\Http\Controllers\ESBTPCycleController::class);
+        Route::post('/cycles/{cycle}/restore', [App\Http\Controllers\ESBTPCycleController::class, 'restore'])->name('cycles.restore');
+        Route::delete('/cycles/{cycle}/force-delete', [App\Http\Controllers\ESBTPCycleController::class, 'forceDelete'])->name('cycles.force-delete');
+        
+        // Routes pour les spécialités
+        Route::resource('specialties', App\Http\Controllers\ESBTPSpecialtyController::class);
+        Route::post('/specialties/{specialty}/restore', [App\Http\Controllers\ESBTPSpecialtyController::class, 'restore'])->name('specialties.restore');
+        Route::delete('/specialties/{specialty}/force-delete', [App\Http\Controllers\ESBTPSpecialtyController::class, 'forceDelete'])->name('specialties.force-delete');
+        
+        // Routes pour les partenariats
+        Route::resource('partnerships', App\Http\Controllers\ESBTPPartnershipController::class);
+        Route::post('/partnerships/{partnership}/restore', [App\Http\Controllers\ESBTPPartnershipController::class, 'restore'])->name('partnerships.restore');
+        Route::delete('/partnerships/{partnership}/force-delete', [App\Http\Controllers\ESBTPPartnershipController::class, 'forceDelete'])->name('partnerships.force-delete');
+        
+        // Routes pour la formation continue
+        Route::resource('continuing-education', App\Http\Controllers\ESBTPContinuingEducationController::class);
+        Route::post('/continuing-education/{continuingEducation}/restore', [App\Http\Controllers\ESBTPContinuingEducationController::class, 'restore'])->name('continuing-education.restore');
+        Route::delete('/continuing-education/{continuingEducation}/force-delete', [App\Http\Controllers\ESBTPContinuingEducationController::class, 'forceDelete'])->name('continuing-education.force-delete');
+        
+        // Routes pour les départements
+        Route::resource('departments', App\Http\Controllers\ESBTPDepartmentController::class);
+        Route::post('/departments/{department}/restore', [App\Http\Controllers\ESBTPDepartmentController::class, 'restore'])->name('departments.restore');
+        Route::delete('/departments/{department}/force-delete', [App\Http\Controllers\ESBTPDepartmentController::class, 'forceDelete'])->name('departments.force-delete');
+        
+        // Routes pour les années d'études
+        Route::resource('study-years', App\Http\Controllers\ESBTPStudyYearController::class);
+        Route::post('/study-years/{studyYear}/restore', [App\Http\Controllers\ESBTPStudyYearController::class, 'restore'])->name('study-years.restore');
+        Route::delete('/study-years/{studyYear}/force-delete', [App\Http\Controllers\ESBTPStudyYearController::class, 'forceDelete'])->name('study-years.force-delete');
+        
+        // Routes pour les semestres
+        Route::resource('semesters', App\Http\Controllers\ESBTPSemesterController::class);
+        Route::post('/semesters/{semester}/restore', [App\Http\Controllers\ESBTPSemesterController::class, 'restore'])->name('semesters.restore');
+        Route::delete('/semesters/{semester}/force-delete', [App\Http\Controllers\ESBTPSemesterController::class, 'forceDelete'])->name('semesters.force-delete');
+    });
 });
 
 // Routes pour les parents (accès limité)
