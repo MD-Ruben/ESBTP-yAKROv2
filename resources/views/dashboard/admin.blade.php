@@ -7,14 +7,14 @@
     <!-- Hero Section -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card border-0 bg-gradient-primary text-white overflow-hidden" 
+            <div class="card border-0 bg-gradient-primary text-white overflow-hidden animate__animated animate__fadeIn" 
                  style="background: linear-gradient(135deg, var(--esbtp-green), var(--esbtp-green-dark)); border-radius: 15px;">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-6">
-                            <h2 class="display-5 fw-bold mb-3">Bienvenue, {{ Auth::user()->name }}</h2>
-                            <p class="lead mb-4">Gérez efficacement votre établissement depuis votre tableau de bord administrateur.</p>
-                            <div class="d-flex gap-2">
+                            <h2 class="display-5 fw-bold mb-3 animate__animated animate__fadeInUp">Bienvenue, {{ Auth::user()->name }}</h2>
+                            <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1">Gérez efficacement votre établissement depuis votre tableau de bord administrateur.</p>
+                            <div class="d-flex gap-2 animate__animated animate__fadeInUp animate__delay-2">
                                 <a href="{{ route('students.index') }}" class="btn btn-light px-4 py-2">
                                     <i class="fas fa-user-graduate me-2"></i> Gérer les étudiants
                                 </a>
@@ -24,7 +24,7 @@
                             </div>
                         </div>
                         <div class="col-md-6 d-none d-md-block position-relative">
-                            <div class="position-absolute top-0 end-0 mt-3 me-4">
+                            <div class="position-absolute top-0 end-0 mt-3 me-4 animate__animated animate__fadeInRight">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-white rounded-circle p-3 me-3 shadow-sm">
                                         <i class="fas fa-calendar-alt text-success fa-2x"></i>
@@ -36,7 +36,7 @@
                                 </div>
                             </div>
                             <img src="https://img.freepik.com/free-vector/college-university-students-group-young-happy-people-standing-isolated-white-background_575670-66.jpg" 
-                                 alt="Education" class="img-fluid rounded-3 mt-3" style="max-height: 200px; opacity: 0.9;">
+                                 alt="Education" class="img-fluid rounded-3 mt-3 animate__animated animate__fadeInUp" style="max-height: 200px; opacity: 0.9;">
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
     <!-- Statistiques -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp">
                 <div class="card-body position-relative">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
@@ -77,7 +77,7 @@
         </div>
         
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-1">
                 <div class="card-body position-relative">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
@@ -102,7 +102,7 @@
         </div>
         
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-2">
                 <div class="card-body position-relative">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
@@ -127,7 +127,7 @@
         </div>
         
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-3">
                 <div class="card-body position-relative">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
