@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Certificate;
 use App\Models\Grade;
+use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Timetable;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,7 +23,9 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->isAdmin()) {
+        if ($user->isSuperAdmin()) {
+            return $this->superAdminDashboard();
+        } elseif ($user->isAdmin() && !$user->isSuperAdmin()) {
             return $this->adminDashboard();
         } elseif ($user->isTeacher()) {
             return $this->teacherDashboard();
@@ -31,22 +35,47 @@ class DashboardController extends Controller
             return $this->parentDashboard();
         }
         
-        // Redirection par défaut
-        return view('dashboard.default');
+        // Vue par défaut si aucun rôle spécifique n'est trouvé
+        return view('dashboard.index', [
+            'user' => $user
+        ]);
     }
     
     /**
-     * Tableau de bord pour les administrateurs.
+     * Tableau de bord pour les super administrateurs.
      */
-    private function adminDashboard()
+    private function superAdminDashboard()
     {
         $totalStudents = Student::count();
         $totalTeachers = Teacher::count();
+        $totalAdmins = User::where('role', 'admin')->count();
+        $totalUsers = User::count();
+        
+        $recentUsers = User::orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+            
         $recentCertificates = Certificate::with(['student.user', 'certificateType'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
+            
         $recentNotifications = Notification::orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+            
+        // Récupérer les messages récents
+        $recentMessages = Message::where(function($query) {
+                $query->where('recipient_type', 'admins')
+                    ->whereNull('recipient_group');
+            })
+            ->orWhere(function($query) {
+                $query->where('recipient_type', 'all')
+                    ->whereNull('recipient_group');
+            })
+            ->orWhere('recipient_id', Auth::id())
+            ->whereNull('parent_id')
+            ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
         
@@ -56,13 +85,69 @@ class DashboardController extends Controller
             ->orderBy('attendance_date', 'desc')
             ->take(7)
             ->get();
+            
+        // Récupérer toutes les classes pour le formulaire de messagerie
+        $classes = \App\Models\SchoolClass::all();
+        
+        // Récupérer tous les étudiants pour le formulaire de messagerie
+        $students = Student::with('user')->get();
+        
+        return view('dashboard.superadmin', compact(
+            'totalStudents', 
+            'totalTeachers',
+            'totalAdmins',
+            'totalUsers',
+            'recentUsers',
+            'recentCertificates', 
+            'recentNotifications',
+            'recentMessages',
+            'attendanceStats',
+            'classes',
+            'students'
+        ));
+    }
+    
+    /**
+     * Tableau de bord pour les administrateurs.
+     */
+    private function adminDashboard()
+    {
+        $totalStudents = Student::count();
+        $totalTeachers = Teacher::count();
+        
+        // Récupérer les présences d'aujourd'hui
+        $todayAttendances = Attendance::whereDate('date', today())->count();
+        $pendingAttendances = Attendance::whereDate('date', today())
+            ->whereNull('status')
+            ->count();
+        
+        // Récupérer les notifications récentes
+        $recentNotifications = Notification::orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+            
+        // Récupérer les messages récents
+        $recentMessages = Message::where(function($query) {
+                $query->where('recipient_type', 'admins')
+                    ->whereNull('recipient_group');
+            })
+            ->orWhere(function($query) {
+                $query->where('recipient_type', 'all')
+                    ->whereNull('recipient_group');
+            })
+            ->orWhere('recipient_id', Auth::id())
+            ->whereNull('parent_id')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
         
         return view('dashboard.admin', compact(
             'totalStudents', 
-            'totalTeachers', 
-            'recentCertificates', 
+            'totalTeachers',
+            'todayAttendances',
+            'pendingAttendances',
             'recentNotifications',
-            'attendanceStats'
+            'recentMessages'
         ));
     }
     
@@ -75,24 +160,69 @@ class DashboardController extends Controller
         $teacher = Teacher::where('user_id', $user->id)->first();
         
         if (!$teacher) {
-            return redirect()->route('dashboard.default')
-                ->with('error', 'Profil enseignant non trouvé.');
+            // Au lieu de rediriger, afficher une vue spéciale pour les enseignants sans profil
+            return view('dashboard.teacher_setup', [
+                'user' => $user
+            ]);
         }
         
-        $todayClasses = Timetable::where('teacher_id', $teacher->id)
+        // Récupérer l'emploi du temps d'aujourd'hui
+        $todayTimetable = Timetable::where('teacher_id', $teacher->id)
             ->where('day', strtolower(date('l')))
             ->orderBy('start_time')
+            ->with(['subject', 'class', 'section'])
             ->get();
         
-        $recentAttendances = Attendance::where('teacher_id', $teacher->id)
-            ->orderBy('date', 'desc')
+        // Récupérer les notifications récentes
+        $recentNotifications = Notification::where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere(function($q) {
+                        $q->whereNull('user_id')
+                          ->where(function($sq) {
+                              $sq->where('type', 'info')
+                                ->orWhere('type', 'warning')
+                                ->orWhere('type', 'success');
+                          });
+                    });
+            })
+            ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
         
+        // Compter les notifications non lues
+        $unreadNotifications = Notification::where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere(function($q) {
+                        $q->whereNull('user_id')
+                          ->where(function($sq) {
+                              $sq->where('type', 'info')
+                                ->orWhere('type', 'warning')
+                                ->orWhere('type', 'success');
+                          });
+                    });
+            })
+            ->where('is_read', false)
+            ->count();
+        
+        // Compter le nombre de classes enseignées
+        $classesTaught = Timetable::where('teacher_id', $teacher->id)
+            ->distinct('class_id')
+            ->count('class_id');
+        
+        // Compter le nombre total d'étudiants dans les classes enseignées
+        $classIds = Timetable::where('teacher_id', $teacher->id)
+            ->distinct()
+            ->pluck('class_id');
+        
+        $totalStudents = Student::whereIn('class_id', $classIds)->count();
+        
         return view('dashboard.teacher', compact(
             'teacher',
-            'todayClasses',
-            'recentAttendances'
+            'todayTimetable',
+            'recentNotifications',
+            'unreadNotifications',
+            'classesTaught',
+            'totalStudents'
         ));
     }
     
@@ -105,8 +235,10 @@ class DashboardController extends Controller
         $student = Student::where('user_id', $user->id)->first();
         
         if (!$student) {
-            return redirect()->route('dashboard.default')
-                ->with('error', 'Profil étudiant non trouvé.');
+            // Au lieu de rediriger, afficher une vue spéciale pour les étudiants sans profil
+            return view('dashboard.student_setup', [
+                'user' => $user
+            ]);
         }
         
         $todayClasses = Timetable::where('class_id', $student->class_id)
@@ -159,8 +291,10 @@ class DashboardController extends Controller
         $guardian = $user->guardian;
         
         if (!$guardian) {
-            return redirect()->route('dashboard.default')
-                ->with('error', 'Profil parent non trouvé.');
+            // Au lieu de rediriger, afficher une vue spéciale pour les parents sans profil
+            return view('dashboard.parent_setup', [
+                'user' => $user
+            ]);
         }
         
         $children = Student::where('guardian_id', $guardian->id)->get();
@@ -189,7 +323,7 @@ class DashboardController extends Controller
         $guardian = $user->guardian;
         
         if (!$guardian) {
-            return redirect()->route('dashboard.default')
+            return redirect()->route('dashboard')
                 ->with('error', 'Profil parent non trouvé.');
         }
         

@@ -22,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // admin, teacher, student, parent
+        'role', // superadmin, admin, teacher, student, parent
         'is_active',
         'profile_image',
         'phone',
@@ -65,7 +65,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is admin
+     * Vérifier si l'utilisateur est un super administrateur.
+     */
+    public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
+    /**
+     * Vérifier si l'utilisateur est un administrateur.
      */
     public function isAdmin()
     {
@@ -73,7 +81,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is teacher
+     * Vérifier si l'utilisateur est un enseignant.
      */
     public function isTeacher()
     {
@@ -81,7 +89,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is student
+     * Vérifier si l'utilisateur est un étudiant.
      */
     public function isStudent()
     {
@@ -89,7 +97,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is parent
+     * Vérifier si l'utilisateur est un parent.
      */
     public function isParent()
     {
