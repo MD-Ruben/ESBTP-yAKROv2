@@ -4,5 +4,4 @@
  * Redirect to the public directory
  */
 
-header('Location: public/');
-exit; 
+require_once __DIR__.'/public/index.php'; 
