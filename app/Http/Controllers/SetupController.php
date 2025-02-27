@@ -174,13 +174,24 @@ class SetupController extends Controller
         }
 
         try {
+            // Vérifier si la connexion à la base de données fonctionne
+            $dbStatus = $this->checkDatabaseConnection();
+            if (!$dbStatus['connected']) {
+                throw new \Exception("Impossible de se connecter à la base de données. Veuillez vérifier vos paramètres de connexion.");
+            }
+            
+            // Vérifier si les tables nécessaires existent, sinon exécuter les migrations
+            if (!Schema::hasTable('users')) {
+                Artisan::call('migrate', ['--force' => true]);
+            }
+            
             // Exécuter les seeders
             Artisan::call('db:seed', ['--force' => true]);
             
             // Installer les dépendances via Composer si nécessaire
             if (!file_exists(base_path('vendor/autoload.php')) || request()->has('run_composer')) {
                 // Utiliser Process pour exécuter composer install
-                $process = new \Symfony\Component\Process\Process(['composer', 'install', '--no-interaction', '--no-dev', '--prefer-dist']);
+                $process = new Process(['composer', 'install', '--no-interaction', '--no-dev', '--prefer-dist']);
                 $process->setWorkingDirectory(base_path());
                 $process->setTimeout(300); // 5 minutes
                 $process->run();
@@ -198,6 +209,9 @@ class SetupController extends Controller
             // Optimiser l'application
             Artisan::call('optimize:clear');
             
+            // Marquer l'application comme installée
+            $this->markAsInstalled();
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Installation terminée avec succès',
@@ -206,9 +220,39 @@ class SetupController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la finalisation: ' . $e->getMessage()
+                'message' => 'Erreur lors de la finalisation: ' . $e->getMessage(),
+                'details' => $this->getDetailedErrorInfo($e)
             ], 500);
         }
+    }
+
+    /**
+     * Obtient des informations détaillées sur l'erreur
+     */
+    private function getDetailedErrorInfo(\Exception $e)
+    {
+        $details = [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ];
+        
+        // Vérifier si c'est une erreur de base de données
+        if (strpos($e->getMessage(), 'SQLSTATE') !== false) {
+            try {
+                $dbStatus = $this->checkDatabaseConnection();
+                $details['database_status'] = $dbStatus;
+                
+                // Vérifier si la base de données existe
+                if ($dbStatus['connected']) {
+                    $details['tables'] = Schema::getAllTables();
+                }
+            } catch (\Exception $dbException) {
+                $details['database_error'] = $dbException->getMessage();
+            }
+        }
+        
+        return $details;
     }
 
     /**
@@ -329,6 +373,17 @@ class SetupController extends Controller
             // Mettre à jour le fichier .env
             $this->updateEnvironmentFile($request);
             
+            // Créer la base de données si elle n'existe pas
+            if ($request->db_connection === 'mysql') {
+                $this->createDatabaseIfNotExists(
+                    $request->db_host,
+                    $request->db_port,
+                    $request->db_username,
+                    $request->db_password,
+                    $request->db_database
+                );
+            }
+            
             // Tester la connexion
             DB::connection()->getPdo();
             
@@ -370,6 +425,33 @@ class SetupController extends Controller
             $env = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $request->db_database, $env);
             
             file_put_contents($path, $env);
+        }
+    }
+    
+    /**
+     * Crée la base de données si elle n'existe pas
+     */
+    private function createDatabaseIfNotExists($host, $port, $username, $password, $database)
+    {
+        try {
+            // Connexion à MySQL sans spécifier de base de données
+            $pdo = new \PDO(
+                "mysql:host={$host};port={$port};charset=utf8",
+                $username,
+                $password,
+                [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
+            );
+            
+            // Vérifier si la base de données existe
+            $stmt = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{$database}'");
+            $dbExists = $stmt->fetchColumn();
+            
+            // Créer la base de données si elle n'existe pas
+            if (!$dbExists) {
+                $pdo->exec("CREATE DATABASE `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            }
+        } catch (\Exception $e) {
+            throw new \Exception("Impossible de créer la base de données: " . $e->getMessage());
         }
     }
 } 
