@@ -1,330 +1,294 @@
 @extends('layouts.app')
 
-@section('title', 'Gestion des Enseignants')
+@section('title', 'Gestion des enseignants')
 
 @section('content')
 <div class="container-fluid">
-    <!-- En-tête avec bouton d'ajout -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Gestion des Enseignants</h1>
-        @if(auth()->check() && auth()->user()->role === 'admin')
-            <a href="{{ route('teachers.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Ajouter un Enseignant
-            </a>
-        @endif
+    <!-- Hero Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-8 p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="fw-bold mb-0">Gestion des enseignants</h2>
+                                <a href="{{ route('teachers.create') }}" class="btn btn-success px-4">
+                                    <i class="fas fa-plus-circle me-2"></i> Ajouter un enseignant
+                                </a>
+                            </div>
+                            <p class="text-muted mb-4">Gérez efficacement votre équipe pédagogique, consultez les informations des enseignants et attribuez des cours.</p>
+                            
+                            <div class="d-flex gap-3 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-primary-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-chalkboard-teacher text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $totalTeachers ?? 0 }}</h6>
+                                        <small class="text-muted">Total</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-success-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-user-check text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $activeTeachers ?? 0 }}</h6>
+                                        <small class="text-muted">Actifs</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-warning-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-book text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $totalCourses ?? 0 }}</h6>
+                                        <small class="text-muted">Cours</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-none d-md-block" style="background: linear-gradient(135deg, var(--esbtp-green-light), var(--esbtp-green)); min-height: 220px;">
+                            <div class="h-100 d-flex align-items-center justify-content-center">
+                                <img src="https://img.freepik.com/free-vector/teacher-concept-illustration_114360-2166.jpg" alt="Teachers" class="img-fluid" style="max-height: 200px; opacity: 0.9;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Messages de notification -->
+    <!-- Notifications -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     @endif
 
-    <!-- Carte pour la recherche et le filtrage -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Recherche et Filtrage</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('teachers.index') }}" method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <label for="search" class="form-label">Recherche</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           placeholder="Nom, email..." value="{{ request('search') }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="department" class="form-label">Département</label>
-                    <select class="form-select" id="department" name="department">
-                        <option value="">Tous les départements</option>
-                        @foreach($departments ?? [] as $dept)
-                            <option value="{{ $dept->id }}" {{ request('department') == $dept->id ? 'selected' : '' }}>
-                                {{ $dept->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="status" class="form-label">Statut</label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="">Tous les statuts</option>
-                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Actif</option>
-                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactif</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search"></i> Rechercher
-                    </button>
-                    <a href="{{ route('teachers.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    @endif
 
-    <!-- Statistiques -->
+    <!-- Search and Filter Card -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total des Enseignants</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalTeachers ?? 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Enseignants Actifs</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $activeTeachers ?? 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Total des Départements</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalDepartments ?? 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-building fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Réclamations en Attente</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingClaims ?? 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Liste des enseignants -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Liste des Enseignants</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Photo</th>
-                            <th>Nom Complet</th>
-                            <th>Email</th>
-                            <th>Département</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($teachers ?? [] as $teacher)
-                            <tr>
-                                <td>{{ $teacher->id }}</td>
-                                <td>
-                                    @if($teacher->photo)
-                                        <img src="{{ asset('storage/' . $teacher->photo) }}" 
-                                             alt="Photo" class="rounded-circle" width="40" height="40">
-                                    @else
-                                        <img src="{{ asset('images/default-avatar.png') }}" 
-                                             alt="Default" class="rounded-circle" width="40" height="40">
-                                    @endif
-                                </td>
-                                <td>{{ $teacher->first_name }} {{ $teacher->last_name }}</td>
-                                <td>{{ $teacher->email }}</td>
-                                <td>{{ $teacher->department->name ?? 'N/A' }}</td>
-                                <td>
-                                    @if($teacher->is_active)
-                                        <span class="badge bg-success">Actif</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactif</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('teachers.show', $teacher->id) }}" 
-                                           class="btn btn-sm btn-info" title="Voir">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('teachers.schedule', $teacher->id) }}" 
-                                           class="btn btn-sm btn-success" title="Emploi du temps">
-                                            <i class="fas fa-calendar-alt"></i>
-                                        </a>
-                                        @if(auth()->check() && auth()->user()->role === 'admin')
-                                            <a href="{{ route('teachers.edit', $teacher->id) }}" 
-                                               class="btn btn-sm btn-primary" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-danger" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#deleteModal{{ $teacher->id }}"
-                                                    title="Supprimer">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endif
-                                    </div>
-
-                                    <!-- Modal de suppression -->
-                                    @if(auth()->check() && auth()->user()->role === 'admin')
-                                        <div class="modal fade" id="deleteModal{{ $teacher->id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Confirmer la suppression</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p>Êtes-vous sûr de vouloir supprimer l'enseignant : 
-                                                           <strong>{{ $teacher->first_name }} {{ $teacher->last_name }}</strong> ?</p>
-                                                        <p class="text-danger">Cette action est irréversible.</p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                        <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">Supprimer</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center">Aucun enseignant trouvé</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            @if(isset($teachers) && $teachers->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $teachers->links() }}
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Section des réclamations (visible uniquement pour les enseignants) -->
-    @if(auth()->check() && auth()->user()->role === 'teacher')
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Mes Réclamations d'Emploi du Temps</h6>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newClaimModal">
-                    <i class="fas fa-plus-circle"></i> Nouvelle Réclamation
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Sujet</th>
-                                <th>Description</th>
-                                <th>Statut</th>
-                                <th>Réponse</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($claims ?? [] as $claim)
-                                <tr>
-                                    <td>{{ $claim->created_at->format('d/m/Y') }}</td>
-                                    <td>{{ $claim->subject }}</td>
-                                    <td>{{ $claim->description }}</td>
-                                    <td>
-                                        @if($claim->status === 'pending')
-                                            <span class="badge bg-warning">En attente</span>
-                                        @elseif($claim->status === 'approved')
-                                            <span class="badge bg-success">Approuvée</span>
-                                        @elseif($claim->status === 'rejected')
-                                            <span class="badge bg-danger">Rejetée</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $claim->response ?? 'Pas encore de réponse' }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">Aucune réclamation trouvée</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal pour nouvelle réclamation -->
-        <div class="modal fade" id="newClaimModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Nouvelle Réclamation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form action="{{ route('schedule-claims.store') }}" method="POST">
-                        @csrf
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="subject" class="form-label">Sujet</label>
-                                <input type="text" class="form-control" id="subject" name="subject" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <form action="{{ route('teachers.index') }}" method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 bg-light" name="search" placeholder="Rechercher un enseignant..." value="{{ request('search') }}">
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Soumettre</button>
+                        <div class="col-md-3">
+                            <select class="form-select border-0 bg-light" name="status">
+                                <option value="">Tous les statuts</option>
+                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Actifs</option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactifs</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select border-0 bg-light" name="sort">
+                                <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Nom (A-Z)</option>
+                                <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Nom (Z-A)</option>
+                                <option value="created_at_desc" {{ request('sort') == 'created_at_desc' ? 'selected' : '' }}>Plus récents</option>
+                                <option value="created_at_asc" {{ request('sort') == 'created_at_asc' ? 'selected' : '' }}>Plus anciens</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-2"></i> Filtrer
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-    @endif
+    </div>
+
+    <!-- Teachers List -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-white py-3 d-flex align-items-center">
+                    <i class="fas fa-list text-primary me-2"></i>
+                    <h5 class="card-title mb-0 fw-bold">Liste des enseignants</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">#</th>
+                                    <th scope="col">Nom</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Téléphone</th>
+                                    <th scope="col">Spécialité</th>
+                                    <th scope="col">Statut</th>
+                                    <th scope="col" class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($teachers as $teacher)
+                                <tr>
+                                    <td class="ps-4">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary-light text-primary me-2">
+                                                {{ strtoupper(substr($teacher->name, 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{ $teacher->name }}</h6>
+                                                <small class="text-muted">ID: {{ $teacher->id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ $teacher->email }}</td>
+                                    <td>{{ $teacher->phone ?? 'N/A' }}</td>
+                                    <td>{{ $teacher->specialty ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($teacher->is_active)
+                                            <span class="badge bg-success-light text-success">Actif</span>
+                                        @else
+                                            <span class="badge bg-danger-light text-danger">Inactif</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('teachers.show', $teacher) }}">
+                                                        <i class="fas fa-eye text-primary me-2"></i> Voir
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('teachers.schedule', $teacher) }}">
+                                                        <i class="fas fa-calendar-alt text-success me-2"></i> Emploi du temps
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('teachers.edit', $teacher) }}">
+                                                        <i class="fas fa-edit text-warning me-2"></i> Modifier
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('teachers.destroy', $teacher) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?')">
+                                                            <i class="fas fa-trash-alt me-2"></i> Supprimer
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <div class="mb-3">
+                                                <i class="fas fa-user-slash fa-3x text-muted"></i>
+                                            </div>
+                                            <h5 class="text-muted">Aucun enseignant trouvé</h5>
+                                            <p class="text-muted small mb-0">Ajoutez des enseignants ou modifiez vos critères de recherche</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-0">Affichage de {{ $teachers->firstItem() ?? 0 }} à {{ $teachers->lastItem() ?? 0 }} sur {{ $teachers->total() ?? 0 }} enseignants</p>
+                        </div>
+                        <div>
+                            {{ $teachers->withQueryString()->links() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    /* Styles pour les badges et icônes */
+    .bg-primary-light {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .bg-success-light {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    .icon-box {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Style pour les avatars */
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    /* Style pour la pagination */
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--esbtp-green);
+        border-color: var(--esbtp-green);
+    }
+    
+    .page-link {
+        color: var(--esbtp-green);
+    }
+    
+    /* Animation pour les lignes du tableau */
+    tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+</style>
 @endsection 

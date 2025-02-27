@@ -455,4 +455,15 @@ class GradeController extends Controller
         
         return $pdf->download('bulletin_' . $student->user->name . '_' . $semester->name . '.pdf');
     }
+
+    /**
+     * Affiche le formulaire de sélection pour générer un bulletin.
+     */
+    public function selectBulletin()
+    {
+        $students = Student::with('user', 'class')->get();
+        $semesters = Semester::all();
+        
+        return view('grades.select_bulletin', compact('students', 'semesters'));
+    }
 } 

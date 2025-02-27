@@ -4,301 +4,418 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- En-tête avec bouton d'ajout -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Gestion des Présences</h1>
-        <a href="{{ route('attendance.mark-page') }}" class="btn btn-primary">
-            <i class="fas fa-clipboard-check"></i> Marquer les Présences
-        </a>
+    <!-- Hero Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-8 p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="fw-bold mb-0">Gestion des présences</h2>
+                                <a href="{{ route('attendance.mark-page') }}" class="btn btn-success px-4">
+                                    <i class="fas fa-clipboard-check me-2"></i> Marquer les présences
+                                </a>
+                            </div>
+                            <p class="text-muted mb-4">Suivez la présence des étudiants, consultez les statistiques et gérez les justificatifs d'absence.</p>
+                            
+                            <div class="d-flex gap-3 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-primary-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-users text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $totalStudents ?? 0 }}</h6>
+                                        <small class="text-muted">Étudiants</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-success-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $presentCount ?? 0 }}</h6>
+                                        <small class="text-muted">Présents</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-danger-light rounded-circle p-2 me-2">
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ $absentCount ?? 0 }}</h6>
+                                        <small class="text-muted">Absents</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-none d-md-block" style="background: linear-gradient(135deg, var(--esbtp-green-light), var(--esbtp-green)); min-height: 220px;">
+                            <div class="h-100 d-flex align-items-center justify-content-center">
+                                <img src="https://img.freepik.com/free-vector/time-management-concept-illustration_114360-1013.jpg" alt="Attendance" class="img-fluid" style="max-height: 200px; opacity: 0.9;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Carte pour la recherche et le filtrage -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Recherche et Filtrage</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('attendances.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="class_id" class="form-label">Classe</label>
-                    <select class="form-select" id="class_id" name="class_id">
-                        <option value="">Toutes les classes</option>
-                        @foreach($classes ?? [] as $class)
-                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                {{ $class->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="section_id" class="form-label">Section</label>
-                    <select class="form-select" id="section_id" name="section_id">
-                        <option value="">Toutes les sections</option>
-                        @foreach($sections ?? [] as $section)
-                            <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
-                                {{ $section->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="date" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="date" name="date" value="{{ request('date', date('Y-m-d')) }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search"></i> Rechercher
-                    </button>
-                    <a href="{{ route('attendances.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> Réinitialiser
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Messages de notification -->
+    <!-- Notifications -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     @endif
+
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    <!-- Search and Filter Card -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <form action="{{ route('attendances.index') }}" method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="class_id" class="form-label small text-muted">Classe</label>
+                            <select class="form-select border-0 bg-light" id="class_id" name="class_id">
+                                <option value="">Toutes les classes</option>
+                                @foreach($classes ?? [] as $class)
+                                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                        {{ $class->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="section_id" class="form-label small text-muted">Section</label>
+                            <select class="form-select border-0 bg-light" id="section_id" name="section_id">
+                                <option value="">Toutes les sections</option>
+                                @foreach($sections ?? [] as $section)
+                                    <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
+                                        {{ $section->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date" class="form-label small text-muted">Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">
+                                    <i class="fas fa-calendar-alt text-muted"></i>
+                                </span>
+                                <input type="date" class="form-control border-0 bg-light" id="date" name="date" value="{{ request('date', date('Y-m-d')) }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="d-grid w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-2"></i> Filtrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Statistiques de présence -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total des Étudiants</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents ?? 0 }}</div>
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+                <div class="card-body position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Total étudiants</h6>
+                            <h2 class="mb-0 display-5 fw-bold">{{ $totalStudents ?? 0 }}</h2>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        <div class="stat-icon bg-primary-light rounded-circle p-3">
+                            <i class="fas fa-users text-primary fa-2x"></i>
                         </div>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Présents</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $presentCount ?? 0 }}</div>
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+                <div class="card-body position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Présents</h6>
+                            <h2 class="mb-0 display-5 fw-bold">{{ $presentCount ?? 0 }}</h2>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        <div class="stat-icon bg-success-light rounded-circle p-3">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
                         </div>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ ($presentCount ?? 0) > 0 ? (($presentCount ?? 0) / ($totalStudents ?? 1)) * 100 : 0 }}%"></div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Taux de présence: {{ ($totalStudents ?? 0) > 0 ? round((($presentCount ?? 0) / ($totalStudents ?? 1)) * 100) : 0 }}%</small>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Absents</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $absentCount ?? 0 }}</div>
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+                <div class="card-body position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Absents</h6>
+                            <h2 class="mb-0 display-5 fw-bold">{{ $absentCount ?? 0 }}</h2>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        <div class="stat-icon bg-danger-light rounded-circle p-3">
+                            <i class="fas fa-times-circle text-danger fa-2x"></i>
                         </div>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ ($absentCount ?? 0) > 0 ? (($absentCount ?? 0) / ($totalStudents ?? 1)) * 100 : 0 }}%"></div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Taux d'absence: {{ ($totalStudents ?? 0) > 0 ? round((($absentCount ?? 0) / ($totalStudents ?? 1)) * 100) : 0 }}%</small>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Taux de Présence</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ isset($presentCount, $totalStudents) && $totalStudents > 0 
-                                   ? number_format(($presentCount / $totalStudents) * 100, 1) . '%' 
-                                   : 'N/A' }}
-                            </div>
+            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
+                <div class="card-body position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Justifiés</h6>
+                            <h2 class="mb-0 display-5 fw-bold">{{ $justifiedCount ?? 0 }}</h2>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        <div class="stat-icon bg-warning-light rounded-circle p-3">
+                            <i class="fas fa-file-alt text-warning fa-2x"></i>
                         </div>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ ($absentCount ?? 0) > 0 ? (($justifiedCount ?? 0) / ($absentCount ?? 1)) * 100 : 0 }}%"></div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Absences justifiées: {{ ($absentCount ?? 0) > 0 ? round((($justifiedCount ?? 0) / ($absentCount ?? 1)) * 100) : 0 }}%</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tableau des présences -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Registre des Présences</h6>
-            <div>
-                <a href="{{ route('attendance.report') }}" class="btn btn-sm btn-info">
-                    <i class="fas fa-file-alt"></i> Rapport Détaillé
-                </a>
-                <button class="btn btn-sm btn-success" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimer
-                </button>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Étudiant</th>
-                            <th>Classe</th>
-                            <th>Section</th>
-                            <th>Date</th>
-                            <th>Statut</th>
-                            <th>Remarque</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($attendances ?? [] as $attendance)
-                            <tr>
-                                <td>{{ $attendance->id }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if($attendance->student->photo)
-                                            <img src="{{ asset('storage/' . $attendance->student->photo) }}" 
-                                                 alt="Photo" class="rounded-circle me-2" width="40" height="40">
-                                        @else
-                                            <img src="{{ asset('images/default-avatar.png') }}" 
-                                                 alt="Default" class="rounded-circle me-2" width="40" height="40">
-                                        @endif
-                                        <div>
-                                            <div>{{ $attendance->student->first_name }} {{ $attendance->student->last_name }}</div>
-                                            <small class="text-muted">{{ $attendance->student->admission_no }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $attendance->student->class->name ?? 'N/A' }}</td>
-                                <td>{{ $attendance->student->section->name ?? 'N/A' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
-                                <td>
-                                    @if($attendance->status == 'present')
-                                        <span class="badge bg-success">Présent</span>
-                                    @elseif($attendance->status == 'absent')
-                                        <span class="badge bg-danger">Absent</span>
-                                    @elseif($attendance->status == 'late')
-                                        <span class="badge bg-warning">En retard</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ $attendance->status }}</span>
-                                    @endif
-                                </td>
-                                <td>{{ $attendance->remark ?? 'Aucune remarque' }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('attendance.student', $attendance->student_id) }}" 
-                                           class="btn btn-sm btn-info" title="Historique">
-                                            <i class="fas fa-history"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-primary" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editModal{{ $attendance->id }}" 
-                                                title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-
-                                    <!-- Modal de modification -->
-                                    <div class="modal fade" id="editModal{{ $attendance->id }}" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="editModalLabel">Modifier la Présence</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form action="{{ route('attendances.update', $attendance->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label for="status{{ $attendance->id }}" class="form-label">Statut</label>
-                                                            <select class="form-select" id="status{{ $attendance->id }}" name="status" required>
-                                                                <option value="present" {{ $attendance->status == 'present' ? 'selected' : '' }}>Présent</option>
-                                                                <option value="absent" {{ $attendance->status == 'absent' ? 'selected' : '' }}>Absent</option>
-                                                                <option value="late" {{ $attendance->status == 'late' ? 'selected' : '' }}>En retard</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="remark{{ $attendance->id }}" class="form-label">Remarque</label>
-                                                            <textarea class="form-control" id="remark{{ $attendance->id }}" name="remark" rows="3">{{ $attendance->remark }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                                                    </div>
-                                                </form>
+    <!-- Liste des présences -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-white py-3 d-flex align-items-center">
+                    <i class="fas fa-list text-primary me-2"></i>
+                    <h5 class="card-title mb-0 fw-bold">Liste des présences</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">#</th>
+                                    <th scope="col">Étudiant</th>
+                                    <th scope="col">Classe</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Statut</th>
+                                    <th scope="col">Justification</th>
+                                    <th scope="col" class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($attendances ?? [] as $attendance)
+                                <tr>
+                                    <td class="ps-4">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary-light text-primary me-2">
+                                                {{ strtoupper(substr($attendance->student->name ?? 'E', 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{ $attendance->student->name ?? 'N/A' }}</h6>
+                                                <small class="text-muted">ID: {{ $attendance->student->student_id ?? 'N/A' }}</small>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center">Aucune donnée de présence trouvée</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            @if(isset($attendances) && $attendances->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $attendances->links() }}
+                                    </td>
+                                    <td>{{ $attendance->class->name ?? 'N/A' }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
+                                    <td>
+                                        @if($attendance->status == 'present')
+                                            <span class="badge bg-success-light text-success">Présent</span>
+                                        @elseif($attendance->status == 'absent')
+                                            <span class="badge bg-danger-light text-danger">Absent</span>
+                                        @elseif($attendance->status == 'late')
+                                            <span class="badge bg-warning-light text-warning">En retard</span>
+                                        @else
+                                            <span class="badge bg-secondary-light text-secondary">Inconnu</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($attendance->is_justified)
+                                            <span class="badge bg-info-light text-info">Justifié</span>
+                                        @elseif($attendance->status == 'absent')
+                                            <span class="badge bg-light text-dark">Non justifié</span>
+                                        @else
+                                            <span class="badge bg-light text-dark">N/A</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('attendances.show', $attendance->id) }}">
+                                                        <i class="fas fa-eye text-primary me-2"></i> Voir
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('attendances.edit', $attendance->id) }}">
+                                                        <i class="fas fa-edit text-warning me-2"></i> Modifier
+                                                    </a>
+                                                </li>
+                                                @if($attendance->status == 'absent' && !$attendance->is_justified)
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('attendances.justify', $attendance->id) }}">
+                                                        <i class="fas fa-file-alt text-info me-2"></i> Justifier
+                                                    </a>
+                                                </li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <div class="mb-3">
+                                                <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+                                            </div>
+                                            <h5 class="text-muted">Aucune présence trouvée</h5>
+                                            <p class="text-muted small mb-0">Ajustez vos filtres ou marquez les présences pour aujourd'hui</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            @endif
+                <div class="card-footer bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-0">Affichage de {{ $attendances->firstItem() ?? 0 }} à {{ $attendances->lastItem() ?? 0 }} sur {{ $attendances->total() ?? 0 }} présences</p>
+                        </div>
+                        <div>
+                            {{ $attendances->withQueryString()->links() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Script pour le sélecteur de sections dépendant de la classe -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const classSelect = document.getElementById('class_id');
-        const sectionSelect = document.getElementById('section_id');
-        
-        if (classSelect && sectionSelect) {
-            classSelect.addEventListener('change', function() {
-                const classId = this.value;
-                
-                // Réinitialiser le sélecteur de sections
-                sectionSelect.innerHTML = '<option value="">Toutes les sections</option>';
-                
-                if (classId) {
-                    // Charger les sections pour cette classe
-                    fetch(`/api/sections/by-class/${classId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            data.forEach(section => {
-                                const option = document.createElement('option');
-                                option.value = section.id;
-                                option.textContent = section.name;
-                                sectionSelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => console.error('Erreur lors du chargement des sections:', error));
-                }
-            });
-        }
-    });
-</script>
+<style>
+    /* Styles pour les badges et icônes */
+    .bg-primary-light {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .bg-success-light {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    .bg-info-light {
+        background-color: rgba(13, 202, 240, 0.1);
+    }
+    
+    .bg-secondary-light {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
+    
+    .icon-box {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Style pour les cartes statistiques */
+    .stat-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    /* Style pour les avatars */
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    /* Style pour la pagination */
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--esbtp-green);
+        border-color: var(--esbtp-green);
+    }
+    
+    .page-link {
+        color: var(--esbtp-green);
+    }
+    
+    /* Animation pour les lignes du tableau */
+    tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+</style>
 @endsection 

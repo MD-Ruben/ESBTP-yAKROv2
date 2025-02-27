@@ -136,6 +136,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/grades/report/{student}/{semester?}', [GradeController::class, 'report'])->name('grades.report');
     Route::post('/grades/calculate', [GradeController::class, 'calculate'])->name('grades.calculate');
     Route::get('/grades/bulletin/{student}/{semester}', [GradeController::class, 'bulletin'])->name('grades.bulletin');
+    Route::get('/grades/bulletin-select', [GradeController::class, 'selectBulletin'])->name('grades.bulletin.select');
     
     // Routes pour les emplois du temps
     Route::resource('timetables', TimetableController::class);
