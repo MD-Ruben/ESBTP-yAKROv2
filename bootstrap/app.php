@@ -1,5 +1,10 @@
 <?php
 
+// Inclure le script de configuration d'environnement pour la compatibilité Windows/Linux
+if (file_exists(__DIR__.'/environment_setup.php')) {
+    require_once __DIR__.'/environment_setup.php';
+}
+
 /*
 |--------------------------------------------------------------------------
 | Create The Application

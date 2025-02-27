@@ -1,99 +1,90 @@
-# ESBTP School Management System
+# ESBTP - École Supérieure du Bâtiment et des Travaux Publics
 
-Un système de gestion scolaire complet pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP).
+![Logo ESBTP](public/img/esbtp_logo.png)
 
-## Fonctionnalités
+## À propos du projet
 
-- **Gestion des utilisateurs** : Administrateurs, enseignants, étudiants et parents
-- **Gestion des classes** : Création et gestion des classes et des sections
-- **Gestion des emplois du temps** : Planification des cours et des horaires
-- **Gestion des présences** : Suivi des présences des étudiants
-- **Gestion des notes** : Enregistrement et calcul des notes des étudiants
-- **Tableau de bord** : Vue d'ensemble des statistiques et des informations importantes
+Ce projet est une application web pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro, Côte d'Ivoire. L'application permet de gérer les étudiants, les enseignants, les cours, les emplois du temps et d'autres aspects administratifs de l'école.
 
-## Prérequis
+## Améliorations récentes
 
-- PHP 8.0 ou supérieur
-- MySQL 5.7 ou supérieur
-- Composer
-- Node.js et NPM (pour la compilation des assets)
-- Extensions PHP requises : PDO, mbstring, tokenizer, xml, ctype, json, bcmath
+### Refonte de la page d'accueil
+- Design moderne avec Bootstrap 5
+- Animations au défilement avec AOS
+- Sections structurées (À propos, Formations, Contact)
+- Navigation améliorée et responsive
+
+### Mise à jour des informations de contact
+- Coordonnées réelles de l'ESBTP Yamoussoukro
+- Intégration d'une carte Google Maps interactive
+- Formulaire de contact fonctionnel
+
+### Optimisation multi-plateforme
+- Compatibilité Windows et Linux
+- Scripts de maintenance et de sauvegarde
+- Documentation complète du projet
+
+## Structure du projet
+
+```
+smart_school_new/
+├── app/                  # Code source Laravel
+├── bootstrap/            # Fichiers d'initialisation Laravel
+├── config/               # Configuration de l'application
+├── database/             # Migrations et seeders
+├── public/               # Fichiers accessibles publiquement
+│   ├── css/              # Feuilles de style CSS
+│   ├── img/              # Images et logos
+│   └── js/               # Scripts JavaScript
+├── resources/            # Ressources non compilées
+│   ├── views/            # Templates Blade
+│   │   └── welcome.blade.php  # Page d'accueil
+│   ├── js/               # JavaScript source
+│   └── css/              # CSS source
+├── routes/               # Définition des routes
+├── scripts_projet_esbtp/ # Scripts de maintenance
+│   ├── backup_projet.ps1     # Sauvegarde des fichiers
+│   ├── check_integrity.ps1   # Vérification d'intégrité
+│   ├── create_logos.ps1      # Création des logos
+│   ├── README.md             # Documentation des scripts
+│   └── documentation.md      # Documentation complète
+└── storage/              # Fichiers générés par l'application
+```
+
+## Technologies utilisées
+
+- **Backend**: Laravel (PHP)
+- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
+- **Base de données**: MySQL
+- **Outils**: PowerShell (scripts de maintenance)
 
 ## Installation
 
 1. Cloner le dépôt
-   ```
-   git clone https://github.com/votre-utilisateur/esbtp-school-management.git
-   cd esbtp-school-management
-   ```
+2. Installer les dépendances avec Composer: `composer install`
+3. Configurer le fichier `.env` avec les informations de la base de données
+4. Exécuter les migrations: `php artisan migrate`
+5. Lancer les seeders: `php artisan db:seed`
+6. Démarrer le serveur: `php artisan serve`
 
-2. Installer les dépendances
-   ```
-   composer install
-   npm install
-   npm run dev
-   ```
+## Maintenance
 
-3. Configurer l'environnement
-   ```
-   cp .env.example .env
-   php artisan key:generate
-   ```
+Pour maintenir l'application:
 
-4. Configurer la base de données dans le fichier `.env`
-   ```
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=esbtp_school
-   DB_USERNAME=root
-   DB_PASSWORD=
-   ```
-
-5. Accéder à l'application
-   ```
-   php artisan serve
-   ```
-   Puis ouvrir http://localhost:8000 dans votre navigateur.
-
-6. Suivre l'assistant d'installation qui vous guidera pour configurer la base de données et créer un compte administrateur.
-
-## Structure du projet
-
-- `app/` - Contient le code principal de l'application
-- `config/` - Fichiers de configuration
-- `database/` - Migrations et seeders pour la base de données
-- `public/` - Point d'entrée et assets publics
-- `resources/` - Vues, assets non compilés et fichiers de langue
-- `routes/` - Définition des routes de l'application
-- `setup_scripts/` - Scripts utilitaires pour l'installation et la configuration
-
-## Développement
-
-### Compilation des assets
-
-```
-npm run dev    # Compilation pour le développement
-npm run watch  # Compilation avec hot-reload
-npm run prod   # Compilation pour la production
-```
-
-### Migrations de base de données
-
-```
-php artisan migrate        # Exécuter les migrations
-php artisan migrate:fresh  # Réinitialiser et exécuter toutes les migrations
-php artisan db:seed        # Remplir la base de données avec des données de test
-```
-
-## Sécurité
-
-Si vous découvrez un problème de sécurité, veuillez envoyer un e-mail à [contact@esbtp.edu](mailto:contact@esbtp.edu) au lieu d'utiliser le système d'issues.
+1. Exécuter régulièrement le script de sauvegarde: `.\scripts_projet_esbtp\backup_projet.ps1`
+2. Vérifier l'intégrité des fichiers: `.\scripts_projet_esbtp\check_integrity.ps1`
+3. Consulter la documentation complète dans `scripts_projet_esbtp/documentation.md`
 
 ## Licence
 
-Ce projet est sous licence [MIT](LICENSE.md).
+Ce projet est la propriété de l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro.
 
-## Crédits
+## Contact
 
-Développé pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP).
+Pour toute question concernant ce projet, veuillez contacter:
+
+- **ESBTP Yamoussoukro**
+- Quartier Millionnaire, Yamoussoukro, Côte d'Ivoire
+- Téléphone: +225 27 30 64 66 75 / +225 07 07 43 43 75
+- Email: info@esbtp-ci.net
+- Site web: www.esbtp-ci.net

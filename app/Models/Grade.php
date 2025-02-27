@@ -4,28 +4,53 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Grade extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * La table associée au modèle.
+     *
+     * @var string
+     */
+    protected $table = 'grades';
+
+    /**
+     * Les attributs qui sont assignables en masse.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'student_id',
-        'subject_id',
-        'exam_id',
-        'semester_id',
-        'grade_value',
-        'remarks',
-        'teacher_id',
+        'student_id', // Étudiant concerné
+        'evaluation_id', // Évaluation concernée
+        'score', // Note obtenue
+        'comments', // Commentaires sur la note
+        'is_absent', // Si l'étudiant était absent
+        'is_excused', // Si l'absence est justifiée
+        'created_by',
+        'updated_by',
     ];
 
     /**
-     * Get the student that owns the grade.
+     * Les attributs qui doivent être convertis en types natifs.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'score' => 'float',
+        'is_absent' => 'boolean',
+        'is_excused' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    /**
+     * Obtenir l'étudiant associé à cette note.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function student()
     {
@@ -33,64 +58,89 @@ class Grade extends Model
     }
 
     /**
-     * Get the subject that owns the grade.
+     * Obtenir l'évaluation associée à cette note.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function subject()
+    public function evaluation()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Evaluation::class);
     }
 
     /**
-     * Get the exam that owns the grade.
+     * Obtenir l'utilisateur qui a créé la note.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function exam()
+    public function createdBy()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
-     * Get the semester that owns the grade.
+     * Obtenir l'utilisateur qui a mis à jour la note.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function semester()
+    public function updatedBy()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
-     * Get the teacher that created the grade.
+     * Obtenir la note sur 20.
+     * 
+     * @return float|null
      */
-    public function teacher()
+    public function getScoreOn20()
     {
-        return $this->belongsTo(Teacher::class);
-    }
-
-    /**
-     * Get the letter grade based on the grade value
-     */
-    public function getLetterGrade()
-    {
-        $value = $this->grade_value;
-
-        if ($value >= 90) {
-            return 'A+';
-        } elseif ($value >= 80) {
-            return 'A';
-        } elseif ($value >= 70) {
-            return 'B';
-        } elseif ($value >= 60) {
-            return 'C';
-        } elseif ($value >= 50) {
-            return 'D';
-        } else {
-            return 'F';
+        if ($this->is_absent) {
+            return 0;
         }
+        
+        $maxScore = $this->evaluation->max_score;
+        
+        if ($maxScore == 0 || $maxScore == 20) {
+            return $this->score;
+        }
+        
+        return ($this->score / $maxScore) * 20;
     }
 
     /**
-     * Check if the student passed the subject
+     * Vérifier si la note est supérieure ou égale à la moyenne.
+     * 
+     * @param float $average La moyenne à comparer (par défaut 10)
+     * @return bool
      */
-    public function isPassed()
+    public function isAboveAverage($average = 10)
     {
-        return $this->grade_value >= 50;
+        return $this->getScoreOn20() >= $average;
+    }
+
+    /**
+     * Obtenir la mention correspondant à la note.
+     * 
+     * @return string
+     */
+    public function getMention()
+    {
+        $score = $this->getScoreOn20();
+        
+        if ($this->is_absent) {
+            return $this->is_excused ? 'Absence justifiée' : 'Absence';
+        }
+        
+        if ($score < 10) {
+            return 'Insuffisant';
+        } elseif ($score < 12) {
+            return 'Passable';
+        } elseif ($score < 14) {
+            return 'Assez bien';
+        } elseif ($score < 16) {
+            return 'Bien';
+        } else {
+            return 'Très bien';
+        }
     }
 } 

@@ -13,10 +13,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Appeler les seeders individuels
+        // Seeders pour les structures administratives
         $this->call([
-            UserSeeder::class,
-            StudentSeeder::class,
+            UFRsSeeder::class,
+            FormationsSeeder::class,
+            ParcoursSeeder::class,
+            UniteEnseignementSeeder::class,
+            ElementConstitutifSeeder::class,
+            ClassroomSeeder::class,
+            CourseSessionSeeder::class,
+            EvaluationSeeder::class,
+            DocumentSeeder::class,
         ]);
     }
 }
