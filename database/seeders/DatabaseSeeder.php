@@ -19,6 +19,15 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             SuperAdminSeeder::class,
+            // Ajout des seeders pour les tables manquantes
+            DepartmentsAndDesignationsSeeder::class,
+            ClassesAndSectionsSeeder::class,
+            SubjectsSeeder::class,
+            // Seeders pour ESBTP
+            ESBTPFiliereSeeder::class,
+            ESBTPNiveauEtudeSeeder::class,
+            ESBTPAnneeUniversitaireSeeder::class,
+            // Autres seeders si nécessaire
         ]);
     }
 }

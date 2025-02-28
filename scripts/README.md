@@ -313,4 +313,61 @@ La structure des données administratives suit le schéma suivant :
    - Peut se dérouler dans une **Salle de Classe**
 
 9. **Document**
-   - Lié à un **Élément Constitutif** 
+   - Lié à un **Élément Constitutif**
+
+# Database Management Scripts
+
+This folder contains scripts to help you manage your database for the Smart School application.
+
+## Database Reset Scripts
+
+These scripts help you reset your database completely by:
+1. Dropping all tables
+2. Running all migrations
+3. Seeding the database with initial data
+
+### Available Scripts
+
+- `reset_database.bat` - Windows batch file (easiest to use for Windows users)
+- `reset_database.ps1` - PowerShell script for Windows users
+- `reset_database.php` - PHP script (works on any platform with PHP)
+
+### How to Use
+
+#### Using the Batch File (Windows)
+
+1. Simply double-click on `reset_database.bat` in Windows Explorer
+2. Follow the on-screen instructions
+3. When prompted, enter the full path to your PHP executable (e.g., `C:\wamp64\bin\php\php8.1.31\php.exe`)
+
+#### Using the PowerShell Script (Windows)
+
+1. Right-click on `reset_database.ps1` and select "Run with PowerShell"
+2. If you get an execution policy error, you can run the batch file instead, or run this command in PowerShell:
+   ```
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+   ```
+3. Follow the on-screen instructions
+
+#### Using the PHP Script (Any Platform)
+
+1. Open a terminal or command prompt
+2. Navigate to the project root directory
+3. Run the script:
+   ```
+   php scripts/reset_database.php
+   ```
+4. Follow the on-screen instructions
+
+## Warning
+
+**These scripts will DELETE ALL DATA in your database!** Make sure you have backups of any important data before running them.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure you have the correct path to your PHP executable
+2. Ensure your database server is running
+3. Check that your database credentials in the `.env` file are correct
+4. Make sure you have sufficient permissions to drop and create tables in your database 

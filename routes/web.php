@@ -12,10 +12,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GradeController;
-use App\Http\Controllers\SetupController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AbsenceJustificationController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\InstallController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,45 +28,43 @@ use App\Http\Controllers\ClassController;
 |
 */
 
-// Routes d'installation
-Route::post('/setup/migrate', [SetupController::class, 'migrate'])->name('setup.migrate');
-Route::post('/setup/create-admin', [SetupController::class, 'createAdmin'])->name('setup.create-admin');
-Route::post('/setup/finalize', [SetupController::class, 'finalize'])->name('setup.finalize');
-Route::get('/setup/check-requirements', [SetupController::class, 'checkRequirements'])->name('setup.check-requirements');
+// Installation Routes
+Route::group(['prefix' => 'install', 'middleware' => ['web']], function () {
+    Route::get('/', [InstallController::class, 'index'])->name('install.index');
+    Route::get('/database', [InstallController::class, 'database'])->name('install.database');
+    Route::post('/database', [InstallController::class, 'setupDatabase'])->name('install.setup-database');
+    Route::get('/migration', [InstallController::class, 'migration'])->name('install.migration');
+    Route::post('/migration', [InstallController::class, 'runMigration'])->name('install.run-migration');
+    Route::get('/admin', [InstallController::class, 'admin'])->name('install.admin');
+    Route::post('/admin', [InstallController::class, 'createAdmin'])->name('install.create-admin');
+    Route::get('/complete', [InstallController::class, 'complete'])->name('install.complete');
+    Route::post('/finalize', [InstallController::class, 'finalize'])->name('install.finalize');
+});
 
-// Routes pour la configuration de la base de données
-Route::get('/setup', [App\Http\Controllers\SetupController::class, 'index'])->name('setup.index');
-Route::post('/setup', [App\Http\Controllers\SetupController::class, 'setup'])->name('setup.setup');
-
-// Route d'accueil
+// Routes d'accueil
 Route::get('/', function () {
-    // Vérifier si le fichier .env existe
-    $envExists = file_exists(base_path('.env'));
+    // Utiliser le helper d'installation pour vérifier si l'application est installée
+    $installationStatus = \App\Helpers\InstallationHelper::getInstallationStatus();
+    $hasAdminUser = \App\Helpers\InstallationHelper::hasAdminUser();
     
-    // Vérifier si la connexion à la base de données fonctionne
-    $dbConnected = false;
-    try {
-        \DB::connection()->getPdo();
-        $dbConnected = true;
-    } catch (\Exception $e) {
-        $dbConnected = false;
+    // Journaliser l'état pour le débogage
+    \Log::info("Welcome route - Installation status: " . 
+              ($installationStatus['installed'] ? "Installed" : "Not installed") . 
+              ", Match: {$installationStatus['match_percentage']}%, Admin user: " . 
+              ($hasAdminUser ? "Yes" : "No"));
+    
+    // Si l'application n'est pas installée du tout ou s'il n'y a pas d'utilisateur admin, 
+    // rediriger vers l'installation
+    if (!$installationStatus['installed'] || !$hasAdminUser) {
+        // Journaliser l'état pour le débogage
+        \Log::info("Welcome route - Redirecting to install: " . 
+                  (!$installationStatus['installed'] ? "Not installed" : "No admin user"));
+        
+        // Rediriger vers la page d'installation
+        return redirect()->route('install.index');
     }
     
-    // Vérifier si des utilisateurs existent dans la base de données
-    $usersExist = false;
-    if ($dbConnected && \Schema::hasTable('users')) {
-        try {
-            $usersExist = \DB::table('users')->count() > 0;
-        } catch (\Exception $e) {
-            $usersExist = false;
-        }
-    }
-    
-    // Si l'installation n'est pas complète, rediriger vers la page setup
-    if (!$envExists || !$dbConnected || !$usersExist) {
-        return redirect()->route('setup.index');
-    }
-    
+    // Même si les migrations ne correspondent pas à 100%, afficher la page d'accueil
     return view('welcome');
 })->name('welcome');
 

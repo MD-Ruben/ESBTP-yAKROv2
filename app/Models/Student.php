@@ -333,4 +333,72 @@ class Student extends Model
               ->orWhere('scholarship_status', 'none');
         });
     }
+
+    /**
+     * Relation avec les inscriptions ESBTP.
+     * 
+     * Un étudiant peut avoir plusieurs inscriptions ESBTP.
+     * Par exemple, un étudiant peut être inscrit en première année BTS Génie Civil,
+     * puis en deuxième année BTS Génie Civil l'année suivante.
+     */
+    public function esbtpInscriptions()
+    {
+        return $this->hasMany(ESBTPInscription::class, 'student_id');
+    }
+
+    /**
+     * Obtenir les filières ESBTP auxquelles l'étudiant est inscrit.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function esbtpFilieres()
+    {
+        return ESBTPFiliere::whereIn('id', $this->esbtpInscriptions()->pluck('filiere_id')->unique());
+    }
+
+    /**
+     * Obtenir les niveaux d'études ESBTP auxquels l'étudiant est inscrit.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function esbtpNiveauxEtudes()
+    {
+        return ESBTPNiveauEtude::whereIn('id', $this->esbtpInscriptions()->pluck('niveau_etude_id')->unique());
+    }
+
+    /**
+     * Vérifier si l'étudiant est inscrit à une filière ESBTP spécifique.
+     * 
+     * @param int $filiereId L'ID de la filière
+     * @param int|null $anneeUniversitaireId L'ID de l'année universitaire (optionnel)
+     * @return bool
+     */
+    public function isInscritFiliere($filiereId, $anneeUniversitaireId = null)
+    {
+        $query = $this->esbtpInscriptions()->where('filiere_id', $filiereId);
+        
+        if ($anneeUniversitaireId) {
+            $query->where('annee_universitaire_id', $anneeUniversitaireId);
+        }
+        
+        return $query->exists();
+    }
+
+    /**
+     * Vérifier si l'étudiant est inscrit à un niveau d'études ESBTP spécifique.
+     * 
+     * @param int $niveauEtudeId L'ID du niveau d'études
+     * @param int|null $anneeUniversitaireId L'ID de l'année universitaire (optionnel)
+     * @return bool
+     */
+    public function isInscritNiveauEtude($niveauEtudeId, $anneeUniversitaireId = null)
+    {
+        $query = $this->esbtpInscriptions()->where('niveau_etude_id', $niveauEtudeId);
+        
+        if ($anneeUniversitaireId) {
+            $query->where('annee_universitaire_id', $anneeUniversitaireId);
+        }
+        
+        return $query->exists();
+    }
 } 

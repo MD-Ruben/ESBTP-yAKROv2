@@ -46,6 +46,11 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
+                
+            // Charger les routes ESBTP
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/esbtp.php'));
         });
     }
 

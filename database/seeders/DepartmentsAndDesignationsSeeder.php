@@ -18,12 +18,12 @@ class DepartmentsAndDesignationsSeeder extends Seeder
         // Création des départements
         // Les départements sont comme les différentes branches d'un arbre de connaissances
         $departments = [
-            ['name' => 'Sciences', 'description' => 'Département des sciences naturelles et physiques'],
-            ['name' => 'Mathématiques', 'description' => 'Département de mathématiques et statistiques'],
-            ['name' => 'Langues', 'description' => 'Département des langues et littérature'],
-            ['name' => 'Histoire-Géographie', 'description' => 'Département d\'histoire et géographie'],
-            ['name' => 'Arts', 'description' => 'Département des arts et de la musique'],
-            ['name' => 'Éducation Physique', 'description' => 'Département d\'éducation physique et sportive'],
+            ['name' => 'Sciences', 'code' => 'SCI', 'description' => 'Département des sciences naturelles et physiques'],
+            ['name' => 'Mathématiques', 'code' => 'MATH', 'description' => 'Département de mathématiques et statistiques'],
+            ['name' => 'Langues', 'code' => 'LANG', 'description' => 'Département des langues et littérature'],
+            ['name' => 'Histoire-Géographie', 'code' => 'HIST-GEO', 'description' => 'Département d\'histoire et géographie'],
+            ['name' => 'Arts', 'code' => 'ART', 'description' => 'Département des arts et de la musique'],
+            ['name' => 'Éducation Physique', 'code' => 'EPS', 'description' => 'Département d\'éducation physique et sportive'],
         ];
 
         foreach ($departments as $dept) {

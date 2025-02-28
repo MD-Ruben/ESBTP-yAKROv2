@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\InstallationHelper;
 
 class LoginController extends Controller
 {
@@ -53,10 +54,28 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         // Vérifier si l'application est installée
-        if (!$this->isInstalled()) {
-            return redirect()->route('setup.index');
+        $installationStatus = InstallationHelper::getInstallationStatus();
+        $hasAdminUser = InstallationHelper::hasAdminUser();
+        
+        // Journaliser l'état pour le débogage
+        \Log::info("LoginController: Installation status: " . 
+                  ($installationStatus['installed'] ? "Installed" : "Not installed") . 
+                  ", Match: {$installationStatus['match_percentage']}%, Admin user: " . 
+                  ($hasAdminUser ? "Yes" : "No"));
+        
+        // Si l'application n'est pas installée du tout, rediriger vers l'installation
+        if (!$installationStatus['installed']) {
+            \Log::info("LoginController: Application not installed, redirecting to installation");
+            return redirect()->route('install.index');
         }
-
+        
+        // Vérifier s'il existe au moins un utilisateur admin
+        if (!$hasAdminUser) {
+            \Log::info("LoginController: No admin user found, redirecting to installation");
+            return redirect()->route('install.index');
+        }
+        
+        // Même si les migrations ne correspondent pas à 100%, permettre l'accès à la page de connexion
         return view('auth.login');
     }
 
@@ -184,32 +203,10 @@ class LoginController extends Controller
     }
 
     /**
-     * Vérifie si l'application est installée (si un administrateur existe)
+     * Vérifie si l'application est installée
      */
     private function isInstalled()
     {
-        // Vérifier si le fichier .env existe
-        $envExists = file_exists(base_path('.env'));
-        
-        // Vérifier si la connexion à la base de données fonctionne
-        $dbConnected = false;
-        try {
-            DB::connection()->getPdo();
-            $dbConnected = true;
-        } catch (\Exception $e) {
-            $dbConnected = false;
-        }
-        
-        // Vérifier si des utilisateurs existent dans la base de données
-        $usersExist = false;
-        if ($dbConnected && Schema::hasTable('users')) {
-            try {
-                $usersExist = DB::table('users')->count() > 0;
-            } catch (\Exception $e) {
-                $usersExist = false;
-            }
-        }
-        
-        return $envExists && $dbConnected && $usersExist;
+        return InstallationHelper::isInstalled();
     }
 } 

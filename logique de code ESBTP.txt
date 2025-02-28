@@ -1,0 +1,117 @@
+1- On va faire simple déjà on doit d'abord créer la section filière qu'on va ajouter à la sidebar dans le fichier app.php, on va ensuite créer les différents niveaux d'études.
+  - Tu vas créer un seeder pour créer les filières (génie civile, mine - géologie - pétrole), il y a des sous éléments à génie civile qui sont : bâtiments, travaux publics,  géomètre topographe et urbanisme
+Résumé: Génie civil option BATIMENT, Génie civil option TRAVAUX PUBLICS, Génie civil option URBANISM, Génie civil option GEOMETRE-TOPOGRAPHE, MINE - GEOLOGIE - PETROLE
+   - Tu vas créer un seeder maintenant pour les niveaux d'études :
+         * BTS: première année BTS, deuxième année BTS.
+
+
+
+
+
+
+
+        [
+         * Cycle ingénieur: première année Cycle ingénieur, deuxième année Cycle ingénieur, troisième année Cycle ingénieur
+         * Licence pro: Licence 1, Licence 2, Licence 3
+         * Master Pro: Master 1, Master 2 
+        ]
+
+
+Processus d'installation
+
+Je veux un système qui permettra facilement à un utilisateur d'installer l'application sur ta machine
+Il n'y a aucun prérequis déjà pour ouvrir déjà l'application il faudra déjà avoir une appli comme xampp et wampp donc déjà avoir php et apache and so on
+Aucun prérequis pour l'installation
+L'utilisateur devra renseigner ses infos pour la base de données, (example: host: "localhost", username: "root", password: "")
+Le backend devra ensuite recupérer ces informations, se connecter à la base de données en question
+Le backend devra faire les migrations direct sur la base de données
+Maintenant : - S'il y a une base de données, le backend nous alerte que la base de données est déjà créé donc pas besoin de créer un fichier env. pour ça ou de le modifier if exists
+             - S'il y a déjà des tables pas besoin de migration mais s'il n'y a pas toutes les tables, le système devra devra db.wipe (drop all tables) et relancer la migration like migration:fresh
+Ensuite l'utilisateur crée un utilisateur superadmin
+Génère une clé si elle n'est pas généré
+Finalise maintenant l'application
+L'utilisateur créé superadmin se connecte directement
+L'utilisateur est redirigé au /Dashboard
+
+Pour vérifier que l'installation, tu dois adapter le code pour qu'il compare le nombre de fichier de migration à faire et le nom de table si c'est égale ça veut dire que l'installation a été faite sinon ce n'est pas installé
+
+Dans la page install/migration idem, si le nombre de migration à faire est égale au nombre de table alors l'installation est faite
+"Smart School
+Smart School
+Installation
+Bienvenue
+Base de données
+3
+Migration
+4
+Administrateur
+5
+Terminé
+Migration de la base de données
+Nous allons maintenant créer les tables nécessaires dans votre base de données.
+
+État de la base de données
+Base de données : Connectée
+Tables existantes : 37
+Des tables existent déjà dans la base de données, mais certaines tables requises sont manquantes.
+
+Toutes les tables existantes seront supprimées et recréées.
+
+Console de migration
+En attente du démarrage des migrations...
+0%
+ Retour
+Démarrer la migration
+© 2025 Smart School. Tous droits réservés.">
+-Si c'est installé on doit voir alors le bouton skip migration
+
+N.B: une option de verification en plus il faut que dans le nom des tables il faut aussi ces noms dans les migrations ça veut dire que s'il y a une table "users" alors s'il y a un fichier de migration 00508080_create_users_table" vu qu'il y a users dans les deux ils sont égaux, et donc toutes les tables doivent être égaux aux fichiers de migrations et c'est bon
+
+Côté base de données 
+-Si la base de données n'existe pas tu ne mets pas connection database successful  tu mets juste succes parce que la base de données tu vas devoir la créer quand l'utilisateur va appuyer sur demarrer la migration "Smart School
+Smart School
+Installation
+Bienvenue
+2
+Base de données
+3
+Migration
+4
+Administrateur
+5
+Terminé
+Configuration de la base de données
+Veuillez saisir les informations de connexion à votre base de données.
+
+Hôte
+localhost
+Généralement "localhost" ou "127.0.0.1"
+
+Port
+3306
+Généralement "3306" pour MySQL
+
+Nom de la base de données
+smart_school
+La base de données sera créée si elle n'existe pas
+
+Nom d'utilisateur
+root
+Généralement "root" pour les installations locales
+
+Mot de passe
+Laissez vide si aucun mot de passe
+Laissez vide si aucun mot de passe n'est défini
+
+Database connection successful
+ Retour
+Tester la connexion
+© 2025 Smart School. Tous droits réservés."
+- Si la base de données exite alors tu gardes le message comme quoi la connexion est réussie vu qu'il se connecte vraiment à une base de donnée existante
+
+- Si la base de données n'existe là tu peux mettre un autre message vu que tu ne peux pas te connecter à une base de données inexistante.
+
+
+Sur l'image je veux que tous les points soient liés ça doit faire une seule droite entre les différents cercles et non un point et un segment
+
+-QUand tu demarres la migration et que la base de données n'existe ne mets pas un message d'erreur mais juste la plateforme doit créer la base de données avec le nom renseigné
