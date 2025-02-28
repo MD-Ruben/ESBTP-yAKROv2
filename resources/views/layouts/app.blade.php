@@ -386,43 +386,73 @@
                 
                 <div class="menu-category">ESBTP-YAKRO</div>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.cycles.index') }}" class="nav-link {{ request()->routeIs('esbtp.cycles.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.inscriptions.index') }}" class="nav-link {{ request()->routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-plus nav-icon"></i>
+                        <span>Inscriptions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.filieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.filieres.*') ? 'active' : '' }}">
+                        <i class="fas fa-project-diagram nav-icon"></i>
+                        <span>Filières</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.niveaux-etudes.index') }}" class="nav-link {{ request()->routeIs('esbtp.niveaux-etudes.*') ? 'active' : '' }}">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span>Niveaux d'études</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.annees-universitaires.index') }}" class="nav-link {{ request()->routeIs('esbtp.annees-universitaires.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span>Années universitaires</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.salles.index') }}" class="nav-link {{ request()->routeIs('esbtp.salles.*') ? 'active' : '' }}">
+                        <i class="fas fa-door-open nav-icon"></i>
+                        <span>Salles de classe</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.cycles.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.cycles.*') ? 'active' : '' }}">
                         <i class="fas fa-sync-alt nav-icon"></i>
                         <span>Cycles de Formation</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.specialties.index') }}" class="nav-link {{ request()->routeIs('esbtp.specialties.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.specialties.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.specialties.*') ? 'active' : '' }}">
                         <i class="fas fa-book nav-icon"></i>
                         <span>Spécialités</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.partnerships.index') }}" class="nav-link {{ request()->routeIs('esbtp.partnerships.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.partnerships.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.partnerships.*') ? 'active' : '' }}">
                         <i class="fas fa-handshake nav-icon"></i>
                         <span>Partenariats</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.continuing-education.index') }}" class="nav-link {{ request()->routeIs('esbtp.continuing-education.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.continuing-education.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.continuing-education.*') ? 'active' : '' }}">
                         <i class="fas fa-user-tie nav-icon"></i>
                         <span>Formation Continue</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.departments.index') }}" class="nav-link {{ request()->routeIs('esbtp.departments.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.departments.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.departments.*') ? 'active' : '' }}">
                         <i class="fas fa-building nav-icon"></i>
                         <span>Départements</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.study-years.index') }}" class="nav-link {{ request()->routeIs('esbtp.study-years.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.study-years.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.study-years.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-day nav-icon"></i>
                         <span>Années d'études</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.semesters.index') }}" class="nav-link {{ request()->routeIs('esbtp.semesters.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.semesters.index', [], false) }}" class="nav-link {{ request()->routeIs('esbtp.semesters.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-week nav-icon"></i>
                         <span>Semestres</span>
                     </a>
