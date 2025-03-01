@@ -1,0 +1,24 @@
+Roles : superAdmin, secretaire, etudiant
+
+Permissions: 
+    - SuperAdmin: * classes (create classe, view classes, edit classes, delete classes)
+                  * Students ( create student, views students, edit students, delete students)
+                  * Exams ( create exam, view exams, edit exams, delete exams)
+                  * Grades ( create grade, view grades, edit grades, delete grades)
+                  * timetable ( create timetable, view timetables, edit timetables, delete timetables)
+                  * Messages ( send messages )
+
+    
+     - Secretaire: * classes (view classes)
+                   * students (create students, view students)
+                   * exams (view exams)
+                   * Grades (create grades, view grades)
+                   * Timetable (create timetable, view timetables)
+                   * Messages (send messages)
+
+
+      - Student: * students (view own profile)
+                 * Exams ( view own exams)
+                 * Grades (view own grades)
+                 * timetables (view own timetable)
+                 * Messsages (receive own messages)

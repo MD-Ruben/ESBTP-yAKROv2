@@ -1,0 +1,38 @@
+ * les filières (génie civile, mine - géologie - pétrole), il y a des sous éléments à génie civile qui sont : bâtiments, travaux 		publics,  géomètre topographe et urbanisme
+		Résumé: Génie civil option BATIMENT, Génie civil option TRAVAUX PUBLICS, Génie civil option URBANISM, Génie civil option 		GEOMETRE-TOPOGRAPHE, MINE - GEOLOGIE - PETROLE
+ les niveaux d'études :
+         * BTS: première année BTS( ça dure 30 semaines), deuxième année BTS( ça dure 28 semaines). Sur chaque année il y a un nombre d'heures que doit faire chaque classe pour chaque matière que je renseignerai quand je citerais les différentes matières des différentes filières   ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù"""'(((*
+<cé+eéeéeezsa++++++++++----errrrrrrr+++++++++++++++++++++++++++++eed+rr
+		
+		La filière MINE - GEOLOGIE - PETROLE: Cet élément contient des matières subdivisé en deux groupes Formation Générale et Formation technologique et professionnelle.
+			Formation Générale: Cet élement contient comme matières -Technique d'expression écrite et orale/communication/documentation(1ère année: 40 heures/2e année: 20 heures) - Anglais technique ( - Economie et Gestion - Droit - Mathématiques - Physique (statique et résistance des matériaux) - Chimie Informatique appliqué - CAO/DAO - Entreprenariat 
+	
+
+          ( FOrmation Générale
+
+
+
+
+       les niveaux d'études :
+         * BTS: première année BTS, deuxième année BTS.
+
+
+classes: Cet élément contient, la filière et le niveau d'étude.
+	
+
+
+
+Students: Cet élément contient nom, prénom(s), date de naissance, E-mail, Téléphone(Format: +225 XX XX XXX XXX), Date de naissance (JJ/MM/AAAA), Genre (homme et femme), Adresse (Ville, Commmune), Photo de profil, date d'admission, le ou les parents, matricule de l'étudiant)
+Mot de passe, numéro d'inscription(donc l'ID de l'étudiant), l'assignation à une classe doit être géré automatiquement par le système
+On a possibilité d'ajouter un ou deux nouveaux parents ou de choisir un ou deux parents des parents existants
+On a une fiche d'un parent déjà là on doit pouvoir ajouter encore un autre parents (de nature tout le monde a deux parents)
+
+
+
+Matières 
+
+
+Timetable: Cet élément contient des matières
+
+
+Classes: On rajoute à cet élément des étudiants et un emploi du temps

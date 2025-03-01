@@ -92,6 +92,11 @@ Route::middleware(['auth'])->group(function () {
     // Tableau de bord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // Routes pour les utilisateurs
+    Route::get('/users', function () {
+        return view('admin.users.index', ['users' => \App\Models\User::with('roles')->get()]);
+    })->name('users.index')->middleware('role:superadmin');
+    
     // Routes pour les rôles et permissions
     Route::get('/roles', function () {
         return view('admin.roles.index', ['roles' => \Spatie\Permission\Models\Role::with('permissions')->get()]);

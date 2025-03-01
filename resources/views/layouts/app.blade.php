@@ -355,7 +355,7 @@
                 @role('superadmin')
                 <div class="menu-category">Administration</div>
                 <li class="nav-item">
-                    <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
+                    <a href="{{ url('/users') }}" class="nav-link {{ request()->is('users*') ? 'active' : '' }}">
                         <i class="fas fa-users nav-icon"></i>
                         <span>Utilisateurs</span>
                     </a>
@@ -435,9 +435,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('esbtp.parents.*') ? 'active' : '' }}">
+                    <a href="#" class="nav-link disabled">
                         <i class="fas fa-user-friends nav-icon"></i>
-                        <span>Parents</span>
+                        <span>Parents <small class="text-warning">(à venir)</small></span>
                     </a>
                 </li>
                 <li class="nav-item">

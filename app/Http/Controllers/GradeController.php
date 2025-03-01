@@ -67,8 +67,15 @@ class GradeController extends Controller
         $subjects = Subject::all();
         $exams = Exam::all();
         $semesters = Semester::all();
+        $classes = ClassModel::all();
+        $sections = collect();
         
-        return view('grades.create', compact('students', 'subjects', 'exams', 'semesters'));
+        // Si class_id est fourni dans la requête, charger les sections associées
+        if(request('class_id')) {
+            $sections = Section::where('class_id', request('class_id'))->get();
+        }
+        
+        return view('grades.create', compact('students', 'subjects', 'exams', 'semesters', 'classes', 'sections'));
     }
     
     /**
