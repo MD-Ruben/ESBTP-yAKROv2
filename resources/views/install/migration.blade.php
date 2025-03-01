@@ -48,6 +48,88 @@
                             <span class="text-gray-700">Correspondance : <span class="font-medium">{{ $dbStatus['match_percentage'] }}%</span></span>
                         </div>
                         
+                        <!-- Ajout de l'état des tables ESBTP -->
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-table mr-2 {{ isset($dbStatus['installation_status']['esbtp_tables_exist']) && $dbStatus['installation_status']['esbtp_tables_exist'] ? 'text-green-500' : 'text-red-500' }}"></i>
+                            <span class="text-gray-700">Tables ESBTP : 
+                                <span class="font-medium {{ isset($dbStatus['installation_status']['esbtp_tables_exist']) && $dbStatus['installation_status']['esbtp_tables_exist'] ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ isset($dbStatus['installation_status']['esbtp_tables_exist']) && $dbStatus['installation_status']['esbtp_tables_exist'] ? 'Complètes' : 'Incomplètes' }}
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <!-- Ajout de l'état des modules -->
+                        @if(isset($dbStatus['module_status']) && is_array($dbStatus['module_status']))
+                        <div class="mt-4 border-t pt-3">
+                            <h4 class="font-medium text-gray-800 mb-2">État des modules</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                @foreach($dbStatus['module_status']['categories'] as $moduleKey => $module)
+                                <div class="p-3 {{ $module['complete'] ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200' }} border rounded-md relative">
+                                    <div class="absolute top-3 right-3">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $module['complete'] ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                            {{ $module['percentage'] }}%
+                                        </span>
+                                    </div>
+                                    
+                                    <h5 class="font-medium text-gray-800">{{ ucfirst($moduleKey) }}</h5>
+                                    <p class="text-sm text-gray-600 mb-2">{{ $module['description'] ?? 'Module ' . ucfirst($moduleKey) }}</p>
+                                    
+                                    <div class="flex items-center text-sm">
+                                        <span class="text-gray-600">{{ count($module['existing']) }}/{{ $module['total'] }} tables</span>
+                                        
+                                        <div class="ml-2 flex-1 bg-gray-200 rounded-full h-1.5">
+                                            <div class="h-1.5 rounded-full {{ $module['complete'] ? 'bg-green-500' : 'bg-yellow-500' }}" 
+                                                 style="width: {{ $module['percentage'] }}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    @if(!empty($module['missing']))
+                                    <div class="mt-2">
+                                        <p class="text-xs text-gray-600">Tables manquantes :</p>
+                                        <p class="text-xs text-yellow-600">{{ implode(', ', array_slice($module['missing'], 0, 5)) }}{{ count($module['missing']) > 5 ? '...' : '' }}</p>
+                                    </div>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                        
+                        <!-- Affichage de toutes les tables manquantes -->
+                        @if(isset($dbStatus['all_tables_status']) && !empty($dbStatus['all_tables_status']['missing_tables']))
+                        <div class="mt-4 border-t pt-3">
+                            <h4 class="font-medium text-gray-800 mb-2">Toutes les tables manquantes</h4>
+                            
+                            <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <p class="text-sm text-yellow-700 mb-2">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-1"></i>
+                                    <strong>{{ count($dbStatus['all_tables_status']['missing_tables']) }}</strong> tables sont manquantes sur un total de 
+                                    <strong>{{ count($dbStatus['all_tables_status']['existing_tables']) + count($dbStatus['all_tables_status']['missing_tables']) }}</strong>.
+                                </p>
+                                
+                                <div class="mt-2 max-h-40 overflow-y-auto">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                        @foreach($dbStatus['all_tables_status']['missing_tables'] as $missingTable)
+                                        <div class="text-xs bg-white p-1.5 rounded border border-yellow-200">
+                                            {{ $missingTable }}
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        <!-- Explication des tables ESBTP -->
+                        <div class="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200">
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
+                                Les tables ESBTP sont essentielles pour le fonctionnement du système. Si elles ne sont pas complètes,
+                                vous devez exécuter les migrations pour assurer le bon fonctionnement de l'application.
+                            </p>
+                        </div>
+                        
                         <!-- Barre de progression visuelle pour le pourcentage de correspondance -->
                         <div class="mt-1 flex items-center">
                             <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
@@ -191,20 +273,49 @@
             </div>
             
             <!-- Migration Console -->
-            <div>
-                <h3 class="font-medium text-gray-800 mb-2">Console de migration</h3>
-                
-                <div class="console" ref="console">
-                    <div v-if="output" v-html="formattedOutput"></div>
-                    <div v-else class="text-gray-400">En attente du démarrage des migrations...</div>
+            <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg" id="migration-console">
+                <div class="p-4 border-b border-gray-800 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-white">Console de migration</h3>
+                    <div class="text-sm text-gray-400">@{{ progress }}%</div>
                 </div>
                 
-                <!-- Progress Bar -->
-                <div class="mt-4 flex items-center">
-                    <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-                        <div class="bg-blue-500 h-2 rounded-full" :style="{ width: progress + '%' }"></div>
+                <div class="relative">
+                    <!-- Messages de statut de la base de données -->
+                    @if(session('database_created'))
+                    <div class="absolute top-0 left-0 right-0 p-3 bg-green-900 bg-opacity-90 border-b border-green-700 z-10">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-400 mt-0.5 mr-2"></i>
+                            <div>
+                                <p class="text-sm text-green-200 font-medium">Base de données créée avec succès !</p>
+                                <p class="text-xs text-green-300 mt-1">La base de données a été créée automatiquement avant la migration.</p>
+                            </div>
+                        </div>
                     </div>
-                    <span class="text-sm font-medium text-gray-600">@{{ progress }}%</span>
+                    @endif
+                    
+                    @if(session('db_connection_error'))
+                    <div class="absolute top-0 left-0 right-0 p-3 bg-red-900 bg-opacity-90 border-b border-red-700 z-10">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-red-400 mt-0.5 mr-2"></i>
+                            <div>
+                                <p class="text-sm text-red-200 font-medium">Erreur de connexion à la base de données</p>
+                                <p class="text-xs text-red-300 mt-1">{{ session('db_connection_error') }}</p>
+                                <p class="text-xs text-red-300 mt-1">Veuillez vérifier vos paramètres de connexion.</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <!-- Barre de progression -->
+                    <div class="h-1 bg-gray-800">
+                        <div class="h-1 bg-blue-500 transition-all duration-300" :style="{ width: progress + '%' }"></div>
+                    </div>
+                    
+                    <!-- Console output -->
+                    <div class="console" ref="console">
+                        <div v-if="output" v-html="formattedOutput"></div>
+                        <div v-else class="text-gray-400">En attente du démarrage des migrations...</div>
+                    </div>
                 </div>
             </div>
             
@@ -255,6 +366,46 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- Options avancées -->
+            <div class="mt-6 bg-white rounded-lg p-4 border border-gray-200">
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Options avancées</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label for="run_seeders" class="text-sm font-medium text-gray-700">Exécuter les seeders</label>
+                            <p class="text-xs text-gray-500">Créer les données de base (rôles, utilisateurs par défaut)</p>
+                        </div>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                            <input type="checkbox" id="run_seeders" v-model="advancedOptions.runSeeders" class="toggle-checkbox absolute block w-6 h-6 rounded-full appearance-none cursor-pointer">
+                            <label for="run_seeders" class="toggle-label block overflow-hidden cursor-pointer"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between" v-if="advancedOptions.runSeeders">
+                        <div>
+                            <label for="run_esbtp_seeders" class="text-sm font-medium text-gray-700">Exécuter les seeders ESBTP</label>
+                            <p class="text-xs text-gray-500">Créer les filières, niveaux d'études et années universitaires</p>
+                        </div>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                            <input type="checkbox" id="run_esbtp_seeders" v-model="advancedOptions.runESBTPSeeders" class="toggle-checkbox absolute block w-6 h-6 rounded-full appearance-none cursor-pointer">
+                            <label for="run_esbtp_seeders" class="toggle-label block overflow-hidden cursor-pointer"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label for="force_migrate" class="text-sm font-medium text-gray-700">Forcer la migration</label>
+                            <p class="text-xs text-gray-500 text-red-500">⚠️ Supprime toutes les tables existantes</p>
+                        </div>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                            <input type="checkbox" id="force_migrate" v-model="advancedOptions.forceMigrate" class="toggle-checkbox absolute block w-6 h-6 rounded-full appearance-none cursor-pointer">
+                            <label for="force_migrate" class="toggle-label block overflow-hidden cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -271,7 +422,12 @@
                 success: null,
                 output: '',
                 progress: 0,
-                nextUrl: ''
+                nextUrl: '',
+                advancedOptions: {
+                    runSeeders: false,
+                    runESBTPSeeders: false,
+                    forceMigrate: false
+                }
             },
             computed: {
                 formattedOutput() {
@@ -312,7 +468,11 @@
                         this.scrollToBottom();
                     });
                     
-                    axios.post('{{ route("install.run-migration") }}')
+                    axios.post('{{ route("install.run-migration") }}', {
+                        runSeeders: this.advancedOptions.runSeeders,
+                        runESBTPSeeders: this.advancedOptions.runESBTPSeeders,
+                        forceMigrate: this.advancedOptions.forceMigrate
+                    })
                         .then(response => {
                             this.loading = false;
                             
@@ -360,19 +520,65 @@
                     window.location.href = this.nextUrl || '{{ route("install.admin") }}';
                 },
                 skipMigration() {
-                    // Afficher un message dans la console
-                    this.output = 'Migration ignorée - Toutes les tables requises existent déjà.\n';
-                    this.output += 'Pourcentage de correspondance: {{ $dbStatus["match_percentage"] }}%\n';
-                    this.output += 'Redirection vers l\'étape suivante...\n';
+                    this.loading = true;
+                    this.output = 'Vérification des migrations installées...\n';
                     
-                    this.progress = 100;
-                    this.completed = true;
-                    this.success = 'Migration ignorée avec succès. Toutes les tables requises existent déjà.';
-                    
-                    // Rediriger après un court délai
-                    setTimeout(() => {
-                        window.location.href = '{{ route("install.admin") }}';
-                    }, 2000);
+                    // Vérifier si toutes les migrations sont réellement exécutées
+                    axios.post('{{ route("install.check-migrations") }}')
+                        .then(response => {
+                            this.loading = false;
+                            
+                            if (response.data.can_skip_migration) {
+                                this.output += 'Vérification réussie : ' + response.data.match_percentage + '% des tables sont présentes.\n';
+                                this.output += 'Migration ignorée - Les tables essentielles existent déjà.\n';
+                                
+                                // Afficher les modules complets
+                                this.output += '\nStatut des modules :\n';
+                                Object.entries(response.data.modules_status.categories).forEach(([module, status]) => {
+                                    const icon = status.complete ? '✅' : '⚠️';
+                                    this.output += `${icon} ${module}: ${status.existing.length}/${status.total} tables (${status.percentage}%)\n`;
+                                });
+                                
+                                this.output += '\nRedirection vers l\'étape suivante...\n';
+                                
+                                this.progress = 100;
+                                this.completed = true;
+                                this.success = 'Migration ignorée avec succès. Les tables essentielles existent déjà.';
+                                
+                                // Rediriger après un court délai
+                                setTimeout(() => {
+                                    window.location.href = '{{ route("install.admin") }}';
+                                }, 2000);
+                            } else {
+                                this.output += 'Impossible de sauter cette étape : ' + response.data.message + '\n';
+                                
+                                if (response.data.all_tables_status.missing_tables_count > 0) {
+                                    this.output += '\nTables manquantes (' + response.data.all_tables_status.missing_tables_count + ') :\n';
+                                    response.data.all_tables_status.missing_tables.forEach(table => {
+                                        this.output += '- ' + table + '\n';
+                                    });
+                                }
+                                
+                                this.output += '\nVeuillez exécuter les migrations pour continuer.\n';
+                                this.error = 'Impossible de sauter la migration : ' + response.data.message;
+                            }
+                            
+                            // Scroll to bottom of console
+                            this.$nextTick(() => {
+                                this.scrollToBottom();
+                            });
+                        })
+                        .catch(error => {
+                            this.loading = false;
+                            this.error = 'Erreur lors de la vérification des migrations';
+                            this.output += '\nErreur: ' + this.error + '\n';
+                            this.output += 'Veuillez exécuter les migrations pour continuer.\n';
+                            
+                            // Scroll to bottom of console
+                            this.$nextTick(() => {
+                                this.scrollToBottom();
+                            });
+                        });
                 },
                 scrollToBottom() {
                     const console = this.$refs.console;

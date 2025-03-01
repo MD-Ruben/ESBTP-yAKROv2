@@ -118,7 +118,7 @@ class LoginController extends Controller
     protected function validateLogin(Request $request)
     {
         $request->validate([
-            'email' => 'required|string',
+            'username' => 'required|string',
             'password' => 'required|string',
         ]);
     }
@@ -144,7 +144,14 @@ class LoginController extends Controller
      */
     protected function credentials(Request $request)
     {
-        return $request->only('email', 'password');
+        $field = filter_var($request->username, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
+            
+        return [
+            $field => $request->username,
+            'password' => $request->password,
+        ];
     }
 
     /**
@@ -181,7 +188,7 @@ class LoginController extends Controller
     protected function sendFailedLoginResponse(Request $request)
     {
         throw ValidationException::withMessages([
-            'email' => [trans('auth.failed')],
+            'username' => [trans('auth.failed')],
         ]);
     }
 

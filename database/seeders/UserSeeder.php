@@ -132,8 +132,12 @@ class UserSeeder extends Seeder
     {
         // Vérifier si l'utilisateur existe déjà
         if (!User::where('email', $email)->exists()) {
+            // Générer un username à partir de l'email (partie avant @)
+            $username = explode('@', $email)[0];
+            
             $user = User::create([
                 'name' => $name,
+                'username' => $username,
                 'email' => $email,
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),

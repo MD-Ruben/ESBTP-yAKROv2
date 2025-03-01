@@ -57,7 +57,7 @@ class ESBTPSalleController extends Controller
         // Validation des données
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:e_s_b_t_p_salles,code',
+            'code' => 'required|string|max:50|unique:esbtp_salles,code',
             'type' => 'required|string|in:' . implode(',', $this->types),
             'capacity' => 'required|integer|min:0',
             'building' => 'nullable|string|max:100',
@@ -126,7 +126,7 @@ class ESBTPSalleController extends Controller
         // Validation des données
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:e_s_b_t_p_salles,code,' . $salle->id,
+            'code' => 'required|string|max:50|unique:esbtp_salles,code,' . $salle->id,
             'type' => 'required|string|in:' . implode(',', $this->types),
             'capacity' => 'required|integer|min:0',
             'building' => 'nullable|string|max:100',

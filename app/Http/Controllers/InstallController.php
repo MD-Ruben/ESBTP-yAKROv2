@@ -14,6 +14,7 @@ use App\Helpers\InstallationHelper;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class InstallController extends Controller
 {
@@ -166,11 +167,19 @@ class InstallController extends Controller
         // Get installation status to check migration match percentage
         $installationStatus = InstallationHelper::getInstallationStatus();
         
-        // Merge the database status with the installation status
+        // Check table status by module (category)
+        $moduleStatus = InstallationHelper::checkTablesByCategory();
+        
+        // Get complete table status
+        $allTablesStatus = InstallationHelper::checkAllRequiredTables();
+        
+        // Merge all status information
         $dbStatus = array_merge($dbStatus, [
             'match_percentage' => $installationStatus['match_percentage'],
             'can_skip_migration' => $installationStatus['match_percentage'] == 100,
-            'installation_status' => $installationStatus
+            'installation_status' => $installationStatus,
+            'module_status' => $moduleStatus,
+            'all_tables_status' => $allTablesStatus
         ]);
         
         // Log the migration status
@@ -182,98 +191,186 @@ class InstallController extends Controller
     }
 
     /**
-     * Run database migrations
+     * Exécute les migrations pour créer les tables dans la base de données.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function runMigration(Request $request)
     {
         try {
-            // Get database configuration from session
-            $host = session('db_host', env('DB_HOST'));
-            $port = session('db_port', env('DB_PORT'));
-            $database = session('db_database', env('DB_DATABASE'));
-            $username = session('db_username', env('DB_USERNAME'));
-            $password = session('db_password', env('DB_PASSWORD'));
+            $databaseExists = session('database_exists', false);
+            $databaseCreated = session('database_created', false);
+            $forceMigrate = $request->has('forceMigrate') ? (bool)$request->forceMigrate : false;
+            $runSeeders = $request->has('runSeeders') ? (bool)$request->runSeeders : true; // Option pour exécuter les seeders
+            $runESBTPSeeders = $request->has('runESBTPSeeders') ? (bool)$request->runESBTPSeeders : true; // Option pour les seeders ESBTP
             
-            // Test database connection
-            $connection = $this->testDatabaseConnection($host, $port, $username, $password, $database);
+            \Log::info("Migration lancée avec les options - Force: " . ($forceMigrate ? 'Oui' : 'Non') . 
+                      ", Seeders: " . ($runSeeders ? 'Oui' : 'Non') . 
+                      ", Seeders ESBTP: " . ($runESBTPSeeders ? 'Oui' : 'Non'));
             
-            if ($connection['status'] !== 'success') {
+            // Vérifier si on a une connexion à la base de données
+            $dbConfigured = InstallationHelper::isDatabaseConfigured();
+            if (!$dbConfigured) {
+                \Log::error("Erreur de migration: Base de données non configurée");
                 return response()->json([
                     'status' => 'error',
-                    'message' => $connection['message']
+                    'message' => 'La base de données n\'est pas correctement configurée. Veuillez revenir à l\'étape précédente.'
                 ]);
             }
             
-            // Get migration data to track tables being created
-            $migrationData = $this->getMigrationTableNames();
-            $migrationTableMap = $migrationData['migration_table_map'];
-            $multiTableMigrations = $migrationData['multi_table_migrations'];
-            
-            // Start output buffer to capture migration output
-            ob_start();
-            
-            // Wipe the database first to avoid migration errors
-            Artisan::call('db:wipe', [
-                '--force' => true
-            ]);
-            
-            // Run migrations
-            Artisan::call('migrate', [
-                '--force' => true,
-                '--seed' => true
-            ]);
-            
-            // Get command output
-            $output = ob_get_clean();
-            
-            // Process output to add information about tables being created
-            $lines = explode("\n", $output);
-            $enhancedOutput = [];
-            
-            foreach ($lines as $line) {
-                $enhancedOutput[] = $line;
+            // Si la base de données n'existe pas, on la crée automatiquement
+            if (!$databaseExists && !$databaseCreated) {
+                \Log::info("La base de données n'existe pas ou n'a pas encore été créée. Tentative de création...");
                 
-                // If this is a migration line, add information about tables being created
-                if (preg_match('/Migrating: (\d+)_(\d+)_(\d+)_(\d+)_(.+)/', $line, $matches)) {
-                    $migrationName = $matches[5] . '.php';
+                $dbConfig = config('database.connections.mysql');
+                $created = $this->createDatabase($dbConfig['host'], $dbConfig['port'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
+                
+                if (!$created) {
+                    \Log::error("Échec de la création automatique de la base de données");
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Impossible de créer automatiquement la base de données. Veuillez la créer manuellement.'
+                    ]);
+                }
+                
+                \Log::info("Base de données créée avec succès");
+                $databaseCreated = true;
+                session(['database_created' => true]);
+            }
+            
+            // Si la base vient d'être créée ou si force_migrate est vrai, exécuter les migrations
+            if ($databaseCreated || $forceMigrate) {
+                \Log::info("Exécution des migrations...");
+                
+                // Clear cache avant la migration
+                \Artisan::call('config:clear');
+                \Artisan::call('cache:clear');
+                
+                // Si force_migrate est vrai et que la base n'a pas été créée dans cette session, faire un wipe
+                if ($forceMigrate && !$databaseCreated) {
+                    \Log::info("Option force_migrate activée. Suppression de toutes les tables...");
+                    \Artisan::call('db:wipe');
+                }
+                
+                // Exécuter les migrations
+                \Artisan::call('migrate', ['--force' => true]);
+                $migrationOutput = \Artisan::output();
+                \Log::info("Résultat des migrations: " . $migrationOutput);
+                
+                // Exécuter les seeders si l'option est activée
+                if ($runSeeders) {
+                    \Log::info("Exécution des seeders principaux...");
+                    \Artisan::call('db:seed', [
+                        '--class' => 'RoleSeeder',
+                        '--force' => true
+                    ]);
                     
-                    // Check if this migration creates tables
-                    if (isset($migrationTableMap[$migrationName])) {
-                        $tables = $migrationTableMap[$migrationName];
+                    // Exécuter les seeders ESBTP si l'option est activée
+                    if ($runESBTPSeeders) {
+                        \Log::info("Exécution des seeders ESBTP...");
                         
-                        if (count($tables) === 1) {
-                            $enhancedOutput[] = "Creating table: " . $tables[0];
-                        } else {
-                            $enhancedOutput[] = "Creating multiple tables: " . implode(', ', $tables);
+                        // Exécuter chaque seeder ESBTP individuellement pour une meilleure gestion des erreurs
+                        $esbtpSeeders = [
+                            'ESBTPFiliereSeeder',
+                            'ESBTPNiveauEtudeSeeder',
+                            'ESBTPAnneeUniversitaireSeeder'
+                        ];
+                        
+                        foreach ($esbtpSeeders as $seeder) {
+                            try {
+                                \Artisan::call('db:seed', [
+                                    '--class' => $seeder,
+                                    '--force' => true
+                                ]);
+                                \Log::info("Seeder {$seeder} exécuté avec succès");
+                            } catch (\Exception $e) {
+                                \Log::error("Erreur lors de l'exécution du seeder {$seeder}: " . $e->getMessage());
+                            }
+                        }
+                        
+                        // Vérifier que les données ESBTP ont été correctement créées
+                        $esbtpDataCheck = InstallationHelper::checkESBTPData();
+                        session(['esbtp_data_check' => $esbtpDataCheck]);
+                        
+                        if (!$esbtpDataCheck['success']) {
+                            \Log::warning("Certaines données ESBTP n'ont pas été correctement créées: " . 
+                                         implode(', ', $esbtpDataCheck['missing_data']));
                         }
                     }
                 }
             }
             
-            // Join the enhanced output
-            $enhancedOutput = implode("\n", $enhancedOutput);
-            
-            // Log success
-            \Log::info('Migrations completed successfully');
-            
-            // Return success response
             return response()->json([
                 'status' => 'success',
-                'message' => 'Migrations exécutées avec succès !',
-                'output' => $enhancedOutput,
-                'redirect' => route('install.admin')
+                'message' => 'Migrations exécutées avec succès' . ($databaseCreated ? ' et base de données créée automatiquement' : ''),
+                'database_created' => $databaseCreated,
+                'esbtp_seeded' => $runESBTPSeeders,
+                'esbtp_data_check' => session('esbtp_data_check', ['success' => true])
             ]);
         } catch (\Exception $e) {
-            // Log error
-            \Log::error('Migration error: ' . $e->getMessage());
-            
-            // Return error response
+            \Log::error("Erreur lors de l'exécution des migrations: " . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Erreur lors de la migration : ' . $e->getMessage(),
-                'output' => ob_get_clean() ?? 'No output'
+                'message' => 'Une erreur est survenue lors de l\'exécution des migrations: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Vérifie l'état des migrations pour déterminer si on peut sauter cette étape
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkMigrations()
+    {
+        // Vérifier l'état de l'installation
+        $installationStatus = InstallationHelper::getInstallationStatus();
+        
+        // Vérifier l'état des modules
+        $moduleStatus = InstallationHelper::checkTablesByCategory();
+        
+        // Vérifier toutes les tables requises
+        $allTablesStatus = InstallationHelper::checkAllRequiredTables();
+        
+        // Déterminer si on peut sauter la migration
+        $canSkipMigration = false;
+        
+        // Critères pour autoriser le skip:
+        // 1. Plus de 95% des tables sont créées
+        // 2. OU tous les modules critiques sont complets (core, admin, user, school)
+        if ($installationStatus['match_percentage'] >= 95) {
+            $canSkipMigration = true;
+            \Log::info("Migration skip autorisé par pourcentage: {$installationStatus['match_percentage']}%");
+        } elseif (
+            isset($moduleStatus['categories']['core']) && $moduleStatus['categories']['core']['complete'] &&
+            isset($moduleStatus['categories']['admin']) && $moduleStatus['categories']['admin']['complete'] &&
+            isset($moduleStatus['categories']['user']) && $moduleStatus['categories']['user']['complete'] &&
+            isset($moduleStatus['categories']['school']) && $moduleStatus['categories']['school']['complete']
+        ) {
+            $canSkipMigration = true;
+            \Log::info("Migration skip autorisé par modules critiques complets");
+        }
+        
+        // Détails sur les tables manquantes
+        $missingTables = [];
+        if (!empty($allTablesStatus['missing_tables'])) {
+            $missingTables = $allTablesStatus['missing_tables'];
+        }
+        
+        // Retourner le résultat
+        return response()->json([
+            'can_skip_migration' => $canSkipMigration,
+            'match_percentage' => $installationStatus['match_percentage'],
+            'modules_status' => $moduleStatus,
+            'all_tables_status' => [
+                'missing_tables_count' => count($missingTables),
+                'missing_tables' => $missingTables
+            ],
+            'message' => $canSkipMigration 
+                ? 'La base de données est suffisamment complète pour continuer.' 
+                : 'Des tables importantes sont manquantes. Veuillez exécuter les migrations.'
+        ]);
     }
 
     /**
@@ -303,47 +400,45 @@ class InstallController extends Controller
     /**
      * Create the admin user
      */
-    public function createAdmin(Request $request)
+    public function setupAdmin(Request $request)
     {
-        // Validate the request
-        $request->validate([
+        try {
+            $validated = $request->validate([
             'name' => 'required|string|max:255',
+                'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        try {
-            // Create the admin user
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'email_verified_at' => now(),
+            // Génération du nom d'utilisateur à partir de l'email si non fourni
+            if (empty($validated['username'])) {
+                $validated['username'] = explode('@', $validated['email'])[0];
+            }
+            
+            // Création de l'utilisateur admin
+            $user = \App\Models\User::create([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'is_active' => true,
             ]);
-
-            // Assign the admin role
+            
+            // Attribuer le rôle admin
             $user->assignRole('admin');
             
-            // Store admin information in session for the complete page
-            session([
-                'admin_email' => $request->email,
-                'admin_name' => $request->name,
-                'admin_password' => $request->password,
-                'school_name' => $request->school_name,
-                'school_email' => $request->school_email,
-                'school_address' => $request->school_address
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Admin user created successfully',
-                'redirect' => route('install.complete')
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Admin user creation failed: ' . $e->getMessage()
-            ], 422);
+            // Enregistrer les informations dans la session
+            session(['admin_name' => $validated['name']]);
+            session(['admin_email' => $validated['email']]);
+            session(['admin_username' => $validated['username']]);
+            session(['admin_password' => $validated['password']]);
+            
+            Log::info('Administrateur créé avec succès: ' . $validated['email']);
+            
+            return redirect()->route('install.complete')->with('success', 'Administrateur créé avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la création de l\'administrateur: ' . $e->getMessage());
+            return redirect()->back()->withInput()->withErrors(['error' => 'Erreur lors de la création de l\'administrateur: ' . $e->getMessage()]);
         }
     }
 
@@ -377,61 +472,62 @@ class InstallController extends Controller
     }
 
     /**
-     * Finalize the installation
+     * Finalise l'installation et redirige vers le tableau de bord.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function finalize()
     {
         try {
-            // Mark the application as installed
-            InstallationHelper::markAsInstalled();
-            
-            // Clear the config cache
-            Artisan::call('config:clear');
-            
-            // Get the admin email from session
-            $adminEmail = session('admin_email');
-            
-            // If we have the admin email, log them in automatically
-            if ($adminEmail) {
-                $user = \App\Models\User::where('email', $adminEmail)->first();
-                if ($user) {
-                    Auth::login($user);
-                }
+            // Vérifier si un superadmin existe
+            if (!InstallationHelper::hasAdminUser()) {
+                Log::error('Tentative de finalisation sans création d\'administrateur');
+                return redirect()->route('install.admin')
+                    ->withErrors(['error' => 'Vous devez créer un compte superadmin avant de finaliser l\'installation.']);
             }
             
-            // Get installation status to check migration match percentage
-            $installationStatus = InstallationHelper::getInstallationStatus();
-            $matchPercentage = $installationStatus['match_percentage'];
+            // Vérifier les données ESBTP
+            $esbtpDataStatus = InstallationHelper::checkESBTPData();
+            if (!$esbtpDataStatus['success']) {
+                Log::warning('Des données ESBTP sont manquantes: ' . implode(', ', $esbtpDataStatus['missing_data']));
+                session([
+                    'esbtp_warning' => true,
+                    'esbtp_missing_data' => $esbtpDataStatus['missing_data']
+                ]);
+            }
             
-            // Log the installation completion status
-            \Log::info("Installation completed. Migration match: {$matchPercentage}%");
+            // Marquer l'application comme installée
+            if (!InstallationHelper::markAsInstalled()) {
+                Log::error('Impossible de marquer l\'application comme installée');
+                throw new \Exception('Impossible de marquer l\'application comme installée');
+            }
+
+            // Récupérer les informations d'identification de l'administrateur depuis la session
+            $adminCredentials = [
+                'username' => session('admin_username'),
+                'email' => session('admin_email'),
+                'password' => session('admin_password')
+            ];
             
-            // Run the cleanup command in the background after sending the response
-            // This will remove installation files and routes
-            $response = response()->json([
-                'status' => 'success',
-                'message' => 'Installation terminée avec succès !',
-                'redirect' => route('welcome'),
-                'match_percentage' => $matchPercentage
-            ]);
-            
-            // Register a shutdown function to run the cleanup command after the response is sent
-            register_shutdown_function(function () {
-                try {
-                    Artisan::call('install:cleanup');
-                } catch (\Exception $e) {
-                    \Log::error('Error running cleanup command: ' . $e->getMessage());
-                }
-            });
-            
-            return $response;
+            // Si l'authentification réussit, rediriger vers le dashboard
+            if (Auth::attempt([
+                    filter_var($adminCredentials['username'], FILTER_VALIDATE_EMAIL) 
+                        ? 'email' 
+                        : 'username' => $adminCredentials['username'],
+                    'password' => $adminCredentials['password']
+                ])) {
+                Log::info('L\'administrateur a été connecté automatiquement: ' . session('admin_email'));
+                return redirect()->route('dashboard');
+            } else {
+                // Si l'authentification échoue, nous redirigeons vers la page de connexion
+                Log::warning('Échec de la connexion automatique de l\'administrateur');
+                return redirect()->route('login')
+                    ->with('message', 'Installation terminée. Veuillez vous connecter avec vos identifiants administrateur.');
+            }
         } catch (\Exception $e) {
-            \Log::error('Error in finalize: ' . $e->getMessage());
-            
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Une erreur est survenue lors de la finalisation de l\'installation: ' . $e->getMessage()
-            ], 500);
+            Log::error('Erreur lors de la finalisation de l\'installation: ' . $e->getMessage());
+            return redirect()->route('install.migration')
+                ->withErrors(['error' => 'Erreur lors de la finalisation de l\'installation: ' . $e->getMessage()]);
         }
     }
 
@@ -448,91 +544,81 @@ class InstallController extends Controller
     }
 
     /**
-     * Test database connection with provided credentials
+     * Test the database connection
+     *
+     * @param string $host Hôte de la base de données
+     * @param string $port Port de la base de données
+     * @param string $username Nom d'utilisateur de la base de données
+     * @param string $password Mot de passe de la base de données
+     * @param string $database Nom de la base de données
+     * @return array Retourne un tableau associatif avec le statut de la connexion et d'autres informations
      */
     private function testDatabaseConnection($host, $port, $username, $password, $database)
     {
+        // Créer le DSN pour la connexion sans spécifier de base de données
+        $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
+        
         try {
-            // First, try to connect to MySQL server without specifying a database
-            $dsn = "mysql:host={$host};port={$port}";
-            $pdo = new \PDO($dsn, $username, $password);
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            // Effacer les sessions précédentes
+            session()->forget(['db_connection_error', 'database_created']);
             
-            // Check if database exists
+            // Essayer de se connecter au serveur MySQL sans spécifier de base de données
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+            ]);
+            
+            // Vérifier si la base de données existe
             $stmt = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{$database}'");
-            $databaseExists = $stmt->fetchColumn() !== false;
+            $databaseExists = $stmt->rowCount() > 0;
             
             if (!$databaseExists) {
-                // Try to create the database
-                try {
-                    $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                    \Log::info("Database '{$database}' created successfully");
-                    $databaseExists = true;
-                } catch (\Exception $e) {
-                    \Log::error("Failed to create database: " . $e->getMessage());
-                    return [
-                        'status' => 'error',
-                        'message' => "La base de données '{$database}' n'existe pas et n'a pas pu être créée automatiquement. Erreur: " . $e->getMessage(),
-                        'database_exists' => false
-                    ];
-                }
-            }
-            
-            // Now try to connect to the specific database
-            if ($databaseExists) {
-                $dsn = "mysql:host={$host};port={$port};dbname={$database}";
-                $pdo = new \PDO($dsn, $username, $password);
-                $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                
-                // Check if tables exist
-                $stmt = $pdo->query("SHOW TABLES");
-                $tables = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-                $tablesExist = count($tables) > 0;
+                // La base de données n'existe pas, on mémorise qu'elle devra être créée
+                \Log::info("Base de données '{$database}' introuvable. Elle sera créée lors de la migration.");
+                session(['database_exists' => false]);
                 
                 return [
                     'status' => 'success',
-                    'message' => 'Connexion à la base de données réussie',
-                    'database_exists' => true,
-                    'tables_exist' => $tablesExist,
-                    'tables_count' => count($tables)
+                    'message' => 'Connexion au serveur réussie. La base de données sera créée lors de la migration.',
+                    'database_exists' => false,
+                    'tables_exist' => false
                 ];
             }
             
+            // Tenter de se connecter à la base de données spécifique
+            $dsnWithDb = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+            $pdoWithDb = new \PDO($dsnWithDb, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+            ]);
+            
+            // Vérifier si des tables existent dans la base de données
+            $stmt = $pdoWithDb->query("SHOW TABLES");
+            $tablesExist = $stmt->rowCount() > 0;
+            
+            // Mémoriser l'état de la base de données en session
+            session([
+                'database_exists' => true,
+                'tables_exist' => $tablesExist
+            ]);
+            
+            // La connexion est établie et la base existe
             return [
                 'status' => 'success',
-                'message' => 'Connexion au serveur MySQL réussie, mais la base de données n\'existe pas',
-                'database_exists' => false
+                'message' => 'Connexion à la base de données réussie.',
+                'database_exists' => true,
+                'tables_exist' => $tablesExist
             ];
-        } catch (\Exception $e) {
-            \Log::error("Database connection error: " . $e->getMessage());
             
-            // Determine the type of error
-            $errorMessage = $e->getMessage();
-            if (strpos($errorMessage, 'Access denied') !== false) {
-                return [
-                    'status' => 'error',
-                    'message' => 'Accès refusé. Vérifiez votre nom d\'utilisateur et votre mot de passe.',
-                    'error_type' => 'access_denied'
-                ];
-            } elseif (strpos($errorMessage, 'Unknown database') !== false) {
-                return [
-                    'status' => 'error',
-                    'message' => "La base de données '{$database}' n'existe pas.",
-                    'error_type' => 'unknown_database',
-                    'database_exists' => false
-                ];
-            } elseif (strpos($errorMessage, 'Connection refused') !== false) {
-                return [
-                    'status' => 'error',
-                    'message' => 'Connexion refusée. Vérifiez que le serveur MySQL est en cours d\'exécution et que l\'hôte et le port sont corrects.',
-                    'error_type' => 'connection_refused'
-                ];
-            }
+        } catch (\Exception $e) {
+            // Journaliser l'erreur de connexion
+            $errorMessage = "Erreur de connexion à la base de données: " . $e->getMessage();
+            \Log::error($errorMessage);
+            
+            // Stocker l'erreur en session pour l'afficher à l'utilisateur
+            session(['db_connection_error' => $e->getMessage()]);
             
             return [
                 'status' => 'error',
-                'message' => 'Erreur de connexion à la base de données: ' . $e->getMessage(),
-                'error_type' => 'general_error'
+                'message' => $errorMessage
             ];
         }
     }
@@ -553,6 +639,11 @@ class InstallController extends Controller
             // First, try to extract table name from filename using regex
             if (preg_match('/create_(.+)_table\.php$/', $filename, $matches)) {
                 $tableName = $matches[1];
+                // Normaliser le nom de la table en supprimant les underscores dans le préfixe pour les tables ESBTP
+                if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                    $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                }
+                
                 $tablesInFile[] = $tableName;
             }
             
@@ -560,6 +651,11 @@ class InstallController extends Controller
             $content = file_get_contents($file);
             if (preg_match_all('/Schema::create\([\'"]([^\'"]+)[\'"]/', $content, $contentMatches)) {
                 foreach ($contentMatches[1] as $tableName) {
+                    // Normaliser le nom de la table en supprimant les underscores dans le préfixe pour les tables ESBTP
+                    if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                        $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                    }
+                    
                     if (!in_array($tableName, $tablesInFile)) {
                         $tablesInFile[] = $tableName;
                     }
@@ -569,6 +665,11 @@ class InstallController extends Controller
             // Also check for createTable method which might be used in some migrations
             if (preg_match_all('/->createTable\([\'"]([^\'"]+)[\'"]/', $content, $createTableMatches)) {
                 foreach ($createTableMatches[1] as $tableName) {
+                    // Normaliser le nom de la table en supprimant les underscores dans le préfixe pour les tables ESBTP
+                    if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                        $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                    }
+                    
                     if (!in_array($tableName, $tablesInFile)) {
                         $tablesInFile[] = $tableName;
                     }
@@ -734,6 +835,37 @@ class InstallController extends Controller
 
                 File::put($path, $content);
             }
+        }
+    }
+
+    /**
+     * Crée une base de données si elle n'existe pas.
+     *
+     * @param  string  $host
+     * @param  string  $port
+     * @param  string  $username
+     * @param  string  $password
+     * @param  string  $database
+     * @return bool
+     */
+    private function createDatabase($host, $port, $username, $password, $database)
+    {
+        try {
+            // Connexion sans spécifier de base de données
+            $pdo = new \PDO("mysql:host={$host};port={$port}", $username, $password);
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            
+            // Échapper le nom de la base de données
+            $database = $pdo->quote($database);
+            
+            // Créer la base de données si elle n'existe pas
+            $pdo->exec("CREATE DATABASE IF NOT EXISTS {$database}");
+            
+            \Log::info("Base de données {$database} créée avec succès");
+            return true;
+        } catch (\Exception $e) {
+            \Log::error("Erreur lors de la création de la base de données: " . $e->getMessage());
+            return false;
         }
     }
 } 

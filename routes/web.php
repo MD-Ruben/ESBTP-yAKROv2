@@ -16,6 +16,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AbsenceJustificationController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\ExamController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,16 +30,17 @@ use App\Http\Controllers\InstallController;
 */
 
 // Installation Routes
-Route::group(['prefix' => 'install', 'middleware' => ['web']], function () {
+Route::prefix('install')->group(function () {
     Route::get('/', [InstallController::class, 'index'])->name('install.index');
     Route::get('/database', [InstallController::class, 'database'])->name('install.database');
     Route::post('/database', [InstallController::class, 'setupDatabase'])->name('install.setup-database');
     Route::get('/migration', [InstallController::class, 'migration'])->name('install.migration');
     Route::post('/migration', [InstallController::class, 'runMigration'])->name('install.run-migration');
+    Route::post('/check-migrations', [InstallController::class, 'checkMigrations'])->name('install.check-migrations');
     Route::get('/admin', [InstallController::class, 'admin'])->name('install.admin');
-    Route::post('/admin', [InstallController::class, 'createAdmin'])->name('install.create-admin');
-    Route::get('/complete', [InstallController::class, 'complete'])->name('install.complete');
-    Route::post('/finalize', [InstallController::class, 'finalize'])->name('install.finalize');
+    Route::post('/admin', [InstallController::class, 'setupAdmin'])->name('install.setup-admin');
+    Route::get('/finish', [InstallController::class, 'finish'])->name('install.finish');
+    Route::post('/finish', [InstallController::class, 'finishInstall'])->name('install.finish-install');
 });
 
 // Routes d'accueil
@@ -89,6 +91,20 @@ Route::post('/password/reset', [App\Http\Controllers\Auth\ResetPasswordControlle
 Route::middleware(['auth'])->group(function () {
     // Tableau de bord
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Routes pour les rôles et permissions
+    Route::get('/roles', function () {
+        return view('admin.roles.index', ['roles' => \Spatie\Permission\Models\Role::with('permissions')->get()]);
+    })->name('roles.index');
+    
+    Route::get('/permissions', function () {
+        return view('admin.permissions.index', ['permissions' => \Spatie\Permission\Models\Permission::all()]);
+    })->name('permissions.index');
+    
+    // Routes pour les paramètres
+    Route::get('/settings', function () {
+        return view('admin.settings.index');
+    })->name('settings.index');
     
     // Routes pour le profil utilisateur
     Route::put('/profile/update', [DashboardController::class, 'updateProfile'])->name('profile.update');
@@ -178,6 +194,68 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cycles/{cycle}/restore', [App\Http\Controllers\ESBTPCycleController::class, 'restore'])->name('cycles.restore');
         Route::delete('/cycles/{cycle}/force-delete', [App\Http\Controllers\ESBTPCycleController::class, 'forceDelete'])->name('cycles.force-delete');
         
+        // Routes pour les filières
+        Route::resource('filieres', App\Http\Controllers\ESBTPFiliereController::class);
+        
+        // Routes pour les niveaux d'études
+        Route::resource('niveaux-etudes', App\Http\Controllers\ESBTPNiveauEtudeController::class);
+        
+        // Routes pour les années universitaires
+        Route::resource('annees-universitaires', App\Http\Controllers\ESBTPAnneeUniversitaireController::class);
+        
+        // Routes pour les salles
+        Route::resource('salles', App\Http\Controllers\ESBTPSalleController::class);
+        
+        // Routes pour les classes ESBTP
+        Route::resource('classes', ClassController::class);
+        
+        // Routes pour les étudiants ESBTP
+        Route::resource('etudiants', App\Http\Controllers\ESBTPEtudiantController::class);
+        
+        // Routes pour les inscriptions ESBTP
+        Route::resource('inscriptions', App\Http\Controllers\ESBTPInscriptionController::class);
+        
+        // Routes pour les matières et unités d'enseignement
+        Route::resource('matieres', App\Http\Controllers\ESBTPTeachingElementController::class);
+        Route::resource('unites-enseignement', App\Http\Controllers\ESBTPTeachingUnitController::class);
+        
+        // Routes pour les enseignants ESBTP
+        Route::resource('enseignants', TeacherController::class);
+        
+        // Routes pour les emplois du temps ESBTP
+        Route::resource('emplois-temps', TimetableController::class);
+        
+        // Routes pour les présences ESBTP
+        Route::resource('presences', AttendanceController::class);
+        
+        // Routes pour les évaluations ESBTP
+        Route::resource('evaluations', ExamController::class);
+        
+        // Routes pour les notes ESBTP
+        Route::resource('notes', GradeController::class);
+        
+        // Routes pour les bulletins
+        Route::get('/bulletins', [GradeController::class, 'selectBulletin'])->name('bulletins.index');
+        
+        // Routes pour les résultats
+        Route::get('/resultats', [GradeController::class, 'index'])->name('resultats.index');
+        
+        // Routes pour la messagerie
+        Route::resource('messages', MessageController::class);
+        
+        // Routes pour les notifications
+        Route::resource('notifications', NotificationController::class);
+        
+        // Routes pour les annonces
+        Route::get('/annonces', [NotificationController::class, 'index'])->name('annonces.index');
+        
+        // Routes pour l'espace étudiant
+        Route::get('/mon-profil', [StudentController::class, 'profile'])->name('mon-profil.index');
+        Route::get('/mes-notes', [GradeController::class, 'index'])->name('mes-notes.index');
+        Route::get('/mes-absences', [AttendanceController::class, 'index'])->name('mes-absences.index');
+        Route::get('/mes-paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'index'])->name('mes-paiements.index');
+        Route::get('/mon-emploi-temps', [TimetableController::class, 'index'])->name('mon-emploi-temps.index');
+        
         // Routes pour les spécialités
         Route::resource('specialties', App\Http\Controllers\ESBTPSpecialtyController::class);
         Route::post('/specialties/{specialty}/restore', [App\Http\Controllers\ESBTPSpecialtyController::class, 'restore'])->name('specialties.restore');
@@ -207,6 +285,26 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('semesters', App\Http\Controllers\ESBTPSemesterController::class);
         Route::post('/semesters/{semester}/restore', [App\Http\Controllers\ESBTPSemesterController::class, 'restore'])->name('semesters.restore');
         Route::delete('/semesters/{semester}/force-delete', [App\Http\Controllers\ESBTPSemesterController::class, 'forceDelete'])->name('semesters.force-delete');
+    });
+
+    // Routes pour les paiements
+    Route::prefix('esbtp/paiements')->name('esbtp.paiements.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ESBTPPaiementController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\ESBTPPaiementController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\ESBTPPaiementController::class, 'store'])->name('store');
+        Route::get('/{id}', [App\Http\Controllers\ESBTPPaiementController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [App\Http\Controllers\ESBTPPaiementController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\ESBTPPaiementController::class, 'update'])->name('update');
+        Route::get('/{id}/valider', [App\Http\Controllers\ESBTPPaiementController::class, 'valider'])->name('valider');
+        Route::post('/{id}/rejeter', [App\Http\Controllers\ESBTPPaiementController::class, 'rejeter'])->name('rejeter');
+        Route::get('/{id}/recu', [App\Http\Controllers\ESBTPPaiementController::class, 'genererRecu'])->name('recu');
+        Route::get('/etudiant/{etudiantId}', [App\Http\Controllers\ESBTPPaiementController::class, 'paiementsEtudiant'])->name('etudiant');
+    });
+
+    // Routes API pour les paiements
+    Route::prefix('esbtp/api')->name('esbtp.api.')->group(function () {
+        Route::get('/etudiants/search', [App\Http\Controllers\ESBTPEtudiantController::class, 'search'])->name('etudiants.search');
+        Route::get('/etudiants/inscriptions', [App\Http\Controllers\ESBTPEtudiantController::class, 'getInscriptions'])->name('etudiants.inscriptions');
     });
 });
 

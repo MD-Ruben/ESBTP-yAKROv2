@@ -238,6 +238,42 @@
         .fade-enter, .fade-leave-to {
             opacity: 0;
         }
+        
+        /* Styles pour les switches */
+        .toggle-checkbox {
+            right: 0;
+            z-index: 10;
+            opacity: 0;
+        }
+        
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3b82f6;
+        }
+        
+        .toggle-checkbox:checked + .toggle-label:before {
+            transform: translateX(100%);
+            background-color: white;
+        }
+        
+        .toggle-label {
+            position: relative;
+            width: 40px;
+            height: 24px;
+            background-color: #e5e7eb;
+            border-radius: 12px;
+        }
+        
+        .toggle-label:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            border-radius: 50%;
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
     </style>
     
     @yield('styles')

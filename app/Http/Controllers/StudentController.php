@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\ClassModel;
 use App\Models\Section;
 use App\Models\Session;
-use App\Models\Guardian;
+use App\Models\ESBTPParent;
 use App\Models\Grade;
 use App\Models\Attendance;
 use App\Models\Certificate;
@@ -64,7 +64,7 @@ class StudentController extends Controller
         $classes = ClassModel::all();
         $sections = Section::all();
         $sessions = Session::where('is_current', true)->first() ?? Session::latest()->first();
-        $guardians = Guardian::all();
+        $guardians = ESBTPParent::all();
 
         return view('students.create', compact('classes', 'sections', 'sessions', 'guardians'));
     }
@@ -89,7 +89,7 @@ class StudentController extends Controller
             'profile_image' => 'nullable|image|max:2048',
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
-            'guardian_id' => 'nullable|exists:guardians,id',
+            'guardian_id' => 'nullable|exists:esbtp_parents,id',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:255',
@@ -175,7 +175,7 @@ class StudentController extends Controller
         $classes = ClassModel::all();
         $sections = Section::all();
         $sessions = Session::all();
-        $guardians = Guardian::all();
+        $guardians = ESBTPParent::all();
 
         return view('students.edit', compact('student', 'classes', 'sections', 'sessions', 'guardians'));
     }
@@ -187,19 +187,8 @@ class StudentController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore($student->user_id),
-            ],
-            'admission_no' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('students')->ignore($student->id),
-            ],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($student->user_id)],
+            'admission_no' => ['required', 'string', 'max:255', Rule::unique('students')->ignore($student->id)],
             'roll_no' => 'nullable|string|max:255',
             'class_id' => 'required|exists:classes,id',
             'section_id' => 'required|exists:sections,id',
@@ -210,7 +199,7 @@ class StudentController extends Controller
             'profile_image' => 'nullable|image|max:2048',
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
-            'guardian_id' => 'nullable|exists:guardians,id',
+            'guardian_id' => 'nullable|exists:esbtp_parents,id',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:255',

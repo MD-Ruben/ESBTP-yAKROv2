@@ -294,11 +294,16 @@
                         @csrf
 
                         <div class="mb-3 animate__animated animate__fadeInUp animate__delay-1">
-                            <label for="email" class="form-label">Adresse e-mail</label>
+                            <label for="username" class="form-label">Nom d'utilisateur</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="votre@email.com">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus placeholder="username">
                             </div>
+                            @error('username')
+                                <div class="invalid-feedback d-block mt-1">
+                                    <strong>{{ $message }}</strong>
+                                </div>
+                            @enderror
                         </div>
 
                         <div class="mb-3 animate__animated animate__fadeInUp animate__delay-2">

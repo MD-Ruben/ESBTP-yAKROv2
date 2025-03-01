@@ -15,7 +15,7 @@ class ESBTPSalle extends Model
      *
      * @var string
      */
-    protected $table = 'e_s_b_t_p_salles';
+    protected $table = 'esbtp_salles';
 
     /**
      * Les attributs qui sont assignables en masse.

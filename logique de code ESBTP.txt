@@ -10,11 +10,7 @@ Résumé: Génie civil option BATIMENT, Génie civil option TRAVAUX PUBLICS, Gé
 
 
 
-        [
-         * Cycle ingénieur: première année Cycle ingénieur, deuxième année Cycle ingénieur, troisième année Cycle ingénieur
-         * Licence pro: Licence 1, Licence 2, Licence 3
-         * Master Pro: Master 1, Master 2 
-        ]
+       
 
 
 Processus d'installation
@@ -36,82 +32,42 @@ L'utilisateur est redirigé au /Dashboard
 Pour vérifier que l'installation, tu dois adapter le code pour qu'il compare le nombre de fichier de migration à faire et le nom de table si c'est égale ça veut dire que l'installation a été faite sinon ce n'est pas installé
 
 Dans la page install/migration idem, si le nombre de migration à faire est égale au nombre de table alors l'installation est faite
-"Smart School
-Smart School
-Installation
-Bienvenue
-Base de données
-3
-Migration
-4
-Administrateur
-5
-Terminé
-Migration de la base de données
-Nous allons maintenant créer les tables nécessaires dans votre base de données.
 
-État de la base de données
-Base de données : Connectée
-Tables existantes : 37
-Des tables existent déjà dans la base de données, mais certaines tables requises sont manquantes.
-
-Toutes les tables existantes seront supprimées et recréées.
-
-Console de migration
-En attente du démarrage des migrations...
-0%
- Retour
-Démarrer la migration
-© 2025 Smart School. Tous droits réservés.">
 -Si c'est installé on doit voir alors le bouton skip migration
 
 N.B: une option de verification en plus il faut que dans le nom des tables il faut aussi ces noms dans les migrations ça veut dire que s'il y a une table "users" alors s'il y a un fichier de migration 00508080_create_users_table" vu qu'il y a users dans les deux ils sont égaux, et donc toutes les tables doivent être égaux aux fichiers de migrations et c'est bon
 
 Côté base de données 
--Si la base de données n'existe pas tu ne mets pas connection database successful  tu mets juste succes parce que la base de données tu vas devoir la créer quand l'utilisateur va appuyer sur demarrer la migration "Smart School
-Smart School
-Installation
-Bienvenue
-2
-Base de données
-3
-Migration
-4
-Administrateur
-5
-Terminé
-Configuration de la base de données
-Veuillez saisir les informations de connexion à votre base de données.
+-Si la base de données n'existe pas tu ne mets pas connection database successful  tu mets juste succes parce que la base de données tu vas devoir la créer quand l'utilisateur va appuyer sur demarrer la migration
 
-Hôte
-localhost
-Généralement "localhost" ou "127.0.0.1"
-
-Port
-3306
-Généralement "3306" pour MySQL
-
-Nom de la base de données
-smart_school
-La base de données sera créée si elle n'existe pas
-
-Nom d'utilisateur
-root
-Généralement "root" pour les installations locales
-
-Mot de passe
-Laissez vide si aucun mot de passe
-Laissez vide si aucun mot de passe n'est défini
-
-Database connection successful
- Retour
-Tester la connexion
-© 2025 Smart School. Tous droits réservés."
 - Si la base de données exite alors tu gardes le message comme quoi la connexion est réussie vu qu'il se connecte vraiment à une base de donnée existante
 
 - Si la base de données n'existe là tu peux mettre un autre message vu que tu ne peux pas te connecter à une base de données inexistante.
 
 
-Sur l'image je veux que tous les points soient liés ça doit faire une seule droite entre les différents cercles et non un point et un segment
+
 
 -QUand tu demarres la migration et que la base de données n'existe ne mets pas un message d'erreur mais juste la plateforme doit créer la base de données avec le nom renseigné
+
+Recommandations pour les migrations:
+Nomenclature cohérente : Maintenir une cohérence entre les noms de fichiers et les noms de tables pour éviter les confusions.
+Organisation des migrations : Planifier l'ordre des migrations en tenant compte des dépendances entre les tables.
+Documentation : Documenter les dépendances entre les tables pour faciliter la maintenance.
+AUssi vérifie que ça ne posera pas de problème pour une bonne vérification de l'installation lors d'un git pull
+
+
+-Quand le superadmin n'est pas créé alors l'app n'est pas installé, c'est une règle aussi le superadmin doit être aussi être créé pour déclarer l'app installé,
+le système doit vérifier la présence d'un superadmin
+Le superadmin doit être créé dans /install/admin
+
+Les différentes roles concernant spatie: Superadmin lui qui gère toute l'application, des data enters(je ne connais pas bien leur nom si tu connais tu mets le bon nom) eux ils auront pour rôle et permission de seulement entrer des données(faire l'inscription des étudiants(ajouter des étudiants) marquer les notes des étudiants, marquer les présences des étudiants, envoyer les messages, créer les emplois du temps)
+Les étudiants auront pour rôle et permissions de voir les informations les concernant
+
+L'appli doit faire la gestion d'une université
+Créer des filières, des niveaux d'études, des années universitaires, créer des classes qui regrouperont ces informations, donc les classes seront créés avec des select parce que quand tu renseignes les différentes filières, les niveaux d'études, les années universitaires tu n'as plus besoin d'informations supplémentaires pour créer une classe n'est ce pas ?
+Après créer des étudiants(faire l'inscription), aussi dans l'inscription il y a la possiblité de créer un parent pour le relier à l'étudiant, s'il y a un deuxième parent tu peux ajouter le deuxième parent et tu définis les liens de parentés, père, mère et tuteur, après cela le système doit automatiquement générer un compte pour l'étudiant ajouté, username se fera avec un nom et un prénom separé par un point (format emai: prenom.nom@esbtp.com, format username: prenom.nom, le username doit être unique donc si tu génères un username et il existe déjà dans la base de données tu choisis un autre prénom ou tu ajoutes des chiffres, le mot de passe est généré automatiquement) donc quand le système crée le compte il doit afficher le username et le mot de passe pour que la personne donne à l'étudiant
+L'admin et le date enters doit pouvoir voir les profils et les informations personnelles de tous les étudiants quand ils cliqueront sur eux dans la page où tu as tous les étudiants sur la page étudiant
+Ils pourront envoyer des messages aux étudiants, soit ils choissisent tous les étudiants, soit des classes, soit des filières, soit des niveaux d'études, soit des étudiants en particulier, donc un select multichoix doit s'ouvrir dans un modal pour faciliter le choix de destinataire
+Les étudiants verront seulement leur profil et leurs informations, emploi du temps, leurs notes, leurs absences, leurs paiements, leurs messages, leurs notifications
+Le système doit avoir un système de notification pour notifier les différents activités sur l'app qui a fait l'activité et qui ça concerne en prenant en considération les différents rôles et permissions
+le système doit avoir un système d'emploi du temps toujours aussi en prenant en compte les permisions et roles de chaque utilisateur

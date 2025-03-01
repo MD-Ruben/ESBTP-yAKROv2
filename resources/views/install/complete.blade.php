@@ -74,6 +74,10 @@
                                 <p class="text-sm font-medium text-gray-800">{{ session('admin_name') }}</p>
                             </div>
                             <div>
+                                <p class="text-xs text-gray-500">Nom d'utilisateur:</p>
+                                <p class="text-sm font-medium text-gray-800">{{ session('admin_username') }}</p>
+                            </div>
+                            <div>
                                 <p class="text-xs text-gray-500">Email:</p>
                                 <p class="text-sm font-medium text-blue-800" id="admin-email">{{ session('admin_email') }}</p>
                             </div>
@@ -143,77 +147,52 @@
         
         <!-- Bouton de finalisation -->
         <div class="mt-8 text-center">
-            <form id="finalizeForm" @submit.prevent="finalize">
-                <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center mx-auto" :disabled="loading">
-                    <span v-if="loading" class="mr-2"><i class="fas fa-spinner fa-spin"></i></span>
-                    <span v-else class="mr-2"><i class="fas fa-check-double"></i></span>
-                    Terminer l'installation et accéder au tableau de bord
-                </button>
-                
-                <div v-if="error" class="mt-4 bg-red-50 border-l-4 border-red-500 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-500"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700">@{{ error }}</p>
-                        </div>
-                    </div>
-                </div>
-            </form>
+            <a href="{{ route('login') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-sign-in-alt mr-2"></i> Accéder à l'application
+            </a>
+        </div>
+    </div>
+
+    <!-- Avertissement pour les données ESBTP manquantes -->
+    @if(session('esbtp_warning'))
+    <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <span class="font-medium">Attention :</span> 
+                    Certaines données ESBTP n'ont pas été correctement initialisées.
+                </p>
+                @if(isset(session('esbtp_missing_data')[0]))
+                <ul class="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                    @foreach(session('esbtp_missing_data') as $missingData)
+                    <li>{{ $missingData }}</li>
+                    @endforeach
+                </ul>
+                @endif
+                <p class="mt-2 text-sm text-yellow-700">
+                    Vous devrez peut-être exécuter manuellement les seeders ESBTP ou créer ces données via l'interface d'administration.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    <!-- Information sur la connexion -->
+    <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                    <span class="font-medium">Astuce de connexion :</span> 
+                    Vous pouvez vous connecter en utilisant soit votre nom d'utilisateur, soit votre adresse email.
+                </p>
+            </div>
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-<script>
-    new Vue({
-        el: '#finalizeForm',
-        data: {
-            loading: false,
-            error: null
-        },
-        methods: {
-            finalize() {
-                this.loading = true;
-                this.error = null;
-                
-                axios.post('{{ route("install.finalize") }}')
-                    .then(response => {
-                        this.loading = false;
-                        if (response.data.status === 'success') {
-                            // Vérifier le pourcentage de correspondance des migrations
-                            const matchPercentage = response.data.match_percentage || 0;
-                            
-                            // Journaliser le pourcentage de correspondance
-                            console.log(`Installation terminée. Correspondance des migrations: ${matchPercentage}%`);
-                            
-                            // Si la correspondance est de 100%, rediriger vers la page d'accueil
-                            // Sinon, rediriger vers la page de migration pour corriger les problèmes
-                            if (matchPercentage === 100) {
-                                // Rediriger vers la page d'accueil
-                                window.location.href = response.data.redirect || '{{ route("welcome") }}';
-                            } else {
-                                // Afficher un message d'avertissement
-                                this.error = `Installation terminée, mais certaines tables sont manquantes (${matchPercentage}% de correspondance). Vous allez être redirigé vers la page de migration.`;
-                                
-                                // Rediriger vers la page de migration après 3 secondes
-                                setTimeout(() => {
-                                    window.location.href = '{{ route("install.migration") }}';
-                                }, 3000);
-                            }
-                        } else {
-                            this.error = response.data.message || 'Une erreur est survenue lors de la finalisation';
-                        }
-                    })
-                    .catch(error => {
-                        this.loading = false;
-                        this.error = 'Une erreur est survenue lors de la finalisation de l\'installation';
-                        console.error(error);
-                    });
-            }
-        }
-    });
-</script>
 @endsection 

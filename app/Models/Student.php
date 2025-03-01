@@ -401,4 +401,14 @@ class Student extends Model
         
         return $query->exists();
     }
+
+    /**
+     * Relation avec le parent/tuteur.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function guardian()
+    {
+        return $this->belongsTo(ESBTPParent::class, 'guardian_id');
+    }
 } 

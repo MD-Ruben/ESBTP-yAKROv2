@@ -276,6 +276,25 @@
                             <!-- Onglet Informations du Parent -->
                             <div class="tab-pane fade" id="parent" role="tabpanel" aria-labelledby="parent-tab">
                                 <div class="row g-3">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="guardian_id" class="form-label">Sélectionner un parent existant</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-users text-muted"></i></span>
+                                            <select class="form-select border-0 bg-light @error('guardian_id') is-invalid @enderror" id="guardian_id" name="guardian_id">
+                                                <option value="">Sélectionner un parent</option>
+                                                @foreach($guardians ?? [] as $guardian)
+                                                    <option value="{{ $guardian->id }}" {{ old('guardian_id') == $guardian->id ? 'selected' : '' }}>
+                                                        {{ $guardian->nom_complet ?? $guardian->prenoms . ' ' . $guardian->nom }} ({{ $guardian->telephone }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-text">Si le parent existe déjà, sélectionnez-le dans la liste. Sinon, remplissez les informations ci-dessous.</div>
+                                        @error('guardian_id')
+                                            <div class="text-danger mt-1 small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    
                                     <div class="col-md-6 mb-3">
                                         <label for="parent_name" class="form-label">Nom du parent/tuteur</label>
                                         <div class="input-group">

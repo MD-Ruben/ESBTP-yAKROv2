@@ -44,6 +44,7 @@ class SuperAdminSeeder extends Seeder
             ['email' => 'admin@esbtp.ci'],
             [
                 'name' => 'Super Admin',
+                'username' => 'admin_esbtp',
                 'password' => Hash::make('admin123'),
                 'email_verified_at' => now(),
             ]

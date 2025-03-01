@@ -23,69 +23,55 @@ class ESBTPInscription extends Model
      * @var array
      */
     protected $fillable = [
-        'student_id',
-        'filiere_id',
-        'niveau_etude_id',
+        'etudiant_id',
         'annee_universitaire_id',
-        'inscription_date',
-        'status',
-        'notes',
+        'filiere_id',
+        'niveau_id',
+        'classe_id',
+        'date_inscription',
+        'type_inscription', // Première inscription, réinscription, etc.
+        'status', // active, annulée, etc.
+        'montant_scolarite',
+        'frais_inscription',
+        'numero_recu',
+        'date_paiement',
+        'mode_paiement',
+        'observations',
+        'documents_fournis', // JSON avec liste des documents
+        'date_validation',
+        'validated_by',
+        'created_by',
+        'updated_by'
     ];
 
     /**
-     * Les attributs qui doivent être convertis en types natifs.
+     * Les attributs qui doivent être castés.
      *
      * @var array
      */
     protected $casts = [
-        'inscription_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'date_inscription' => 'date',
+        'date_paiement' => 'date',
+        'date_validation' => 'date',
+        'documents_fournis' => 'array',
+        'montant_scolarite' => 'float',
+        'frais_inscription' => 'float',
     ];
 
     /**
-     * Les constantes pour les statuts possibles.
+     * Relation avec l'étudiant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    const STATUS_ACTIVE = 'active';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_ABANDONED = 'abandoned';
-    const STATUS_SUSPENDED = 'suspended';
-
-    /**
-     * Obtenir l'étudiant associé à cette inscription.
-     * 
-     * Une inscription appartient à un étudiant (relation many-to-one).
-     */
-    public function student()
+    public function etudiant()
     {
-        return $this->belongsTo(Student::class, 'student_id');
+        return $this->belongsTo(ESBTPEtudiant::class, 'etudiant_id');
     }
 
     /**
-     * Obtenir la filière associée à cette inscription.
-     * 
-     * Une inscription est liée à une filière (relation many-to-one).
-     */
-    public function filiere()
-    {
-        return $this->belongsTo(ESBTPFiliere::class, 'filiere_id');
-    }
-
-    /**
-     * Obtenir le niveau d'études associé à cette inscription.
-     * 
-     * Une inscription est liée à un niveau d'études (relation many-to-one).
-     */
-    public function niveauEtude()
-    {
-        return $this->belongsTo(ESBTPNiveauEtude::class, 'niveau_etude_id');
-    }
-
-    /**
-     * Obtenir l'année universitaire associée à cette inscription.
-     * 
-     * Une inscription est liée à une année universitaire (relation many-to-one).
+     * Relation avec l'année universitaire.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function anneeUniversitaire()
     {
@@ -93,34 +79,172 @@ class ESBTPInscription extends Model
     }
 
     /**
+     * Relation avec la filière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function filiere()
+    {
+        return $this->belongsTo(ESBTPFiliere::class, 'filiere_id');
+    }
+
+    /**
+     * Relation avec le niveau d'étude.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function niveau()
+    {
+        return $this->belongsTo(ESBTPNiveauEtude::class, 'niveau_id');
+    }
+
+    /**
+     * Relation avec la classe.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function classe()
+    {
+        return $this->belongsTo(ESBTPClasse::class, 'classe_id');
+    }
+
+    /**
+     * Relation avec les paiements de scolarité.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function paiements()
+    {
+        return $this->hasMany(ESBTPPaiement::class, 'inscription_id');
+    }
+
+    /**
+     * Utilisateur qui a validé l'inscription.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function validatedBy()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    /**
+     * Utilisateur qui a créé l'entrée.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Utilisateur qui a mis à jour l'entrée.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Obtenir le montant total payé pour cette inscription.
+     *
+     * @return float
+     */
+    public function getMontantPayeAttribute()
+    {
+        return $this->paiements()->where('status', 'validé')->sum('montant');
+    }
+
+    /**
+     * Obtenir le solde restant à payer.
+     *
+     * @return float
+     */
+    public function getSoldeRestantAttribute()
+    {
+        return $this->montant_scolarite - $this->montant_paye;
+    }
+
+    /**
+     * Vérifier si l'inscription est entièrement payée.
+     *
+     * @return bool
+     */
+    public function getEstPayeeAttribute()
+    {
+        return $this->solde_restant <= 0;
+    }
+
+    /**
+     * Obtenir le pourcentage payé de la scolarité.
+     *
+     * @return int
+     */
+    public function getPourcentagePayeAttribute()
+    {
+        if ($this->montant_scolarite <= 0) {
+            return 100;
+        }
+        
+        return min(100, round(($this->montant_paye / $this->montant_scolarite) * 100));
+    }
+
+    /**
+     * Scope pour filtrer les inscriptions actives.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActives($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
      * Scope pour filtrer les inscriptions par année universitaire.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $anneeId
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeInAcademicYear($query, $academicYearId)
+    public function scopeParAnnee($query, $anneeId)
     {
-        return $query->where('annee_universitaire_id', $academicYearId);
+        return $query->where('annee_universitaire_id', $anneeId);
     }
 
     /**
-     * Scope pour filtrer les inscriptions par filière.
+     * Scope pour filtrer les inscriptions de l'année en cours.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeInFiliere($query, $filiereId)
+    public function scopeAnneeEnCours($query)
     {
-        return $query->where('filiere_id', $filiereId);
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        
+        if (!$anneeEnCours) {
+            return $query->whereRaw('1=0'); // Retourne une requête vide si aucune année en cours
+        }
+        
+        return $query->where('annee_universitaire_id', $anneeEnCours->id);
     }
 
     /**
-     * Scope pour filtrer les inscriptions par niveau d'études.
+     * Vérifie si l'inscription est pour l'année en cours.
+     *
+     * @return bool
      */
-    public function scopeInNiveauEtude($query, $niveauEtudeId)
+    public function getEstPourAnneeEnCoursAttribute()
     {
-        return $query->where('niveau_etude_id', $niveauEtudeId);
-    }
-
-    /**
-     * Scope pour filtrer les inscriptions par statut.
-     */
-    public function scopeWithStatus($query, $status)
-    {
-        return $query->where('status', $status);
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        
+        if (!$anneeEnCours) {
+            return false;
+        }
+        
+        return $this->annee_universitaire_id === $anneeEnCours->id;
     }
 }

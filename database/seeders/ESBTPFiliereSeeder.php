@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\ESBTPFiliere;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ESBTPFiliereSeeder extends Seeder
 {
@@ -14,62 +15,70 @@ class ESBTPFiliereSeeder extends Seeder
      */
     public function run()
     {
-        // Création des filières principales
-        
-        // 1. Génie Civil
-        $genieCivil = ESBTPFiliere::create([
-            'name' => 'GÉNIE CIVIL',
+        // Créer les filières principales
+        $genieCivil = DB::table('esbtp_filieres')->insertGetId([
+            'name' => 'Génie Civil',
             'code' => 'GC',
-            'description' => 'Formation en génie civil couvrant les domaines de la construction, des travaux publics, de l\'urbanisme et de la topographie.',
+            'description' => 'Formation en génie civil et construction',
             'is_active' => true,
-            'parent_id' => null, // Filière principale
+            'parent_id' => null,
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
-        
-        // 2. Mine - Géologie - Pétrole
-        $mineGeologiePetrole = ESBTPFiliere::create([
-            'name' => 'MINE - GÉOLOGIE - PÉTROLE',
+
+        $mineGeoPetro = DB::table('esbtp_filieres')->insertGetId([
+            'name' => 'Mine - Géologie - Pétrole',
             'code' => 'MGP',
-            'description' => 'Formation dans les domaines des mines, de la géologie et du pétrole.',
+            'description' => 'Formation en exploitation minière, géologie et pétrole',
             'is_active' => true,
-            'parent_id' => null, // Filière principale
+            'parent_id' => null,
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
-        
-        // Création des options (sous-filières) pour le Génie Civil
-        
-        // 1. Option Bâtiments
-        ESBTPFiliere::create([
-            'name' => 'BÂTIMENT',
-            'code' => 'GC-BAT',
-            'description' => 'Option Bâtiment du Génie Civil, spécialisée dans la conception et la construction de bâtiments.',
-            'is_active' => true,
-            'parent_id' => $genieCivil->id, // Sous-filière de Génie Civil
-        ]);
-        
-        // 2. Option Travaux Publics
-        ESBTPFiliere::create([
-            'name' => 'TRAVAUX PUBLICS',
-            'code' => 'GC-TP',
-            'description' => 'Option Travaux Publics du Génie Civil, spécialisée dans la conception et la construction d\'infrastructures publiques.',
-            'is_active' => true,
-            'parent_id' => $genieCivil->id, // Sous-filière de Génie Civil
-        ]);
-        
-        // 3. Option Géomètre Topographe
-        ESBTPFiliere::create([
-            'name' => 'GÉOMÈTRE-TOPOGRAPHE',
-            'code' => 'GC-GT',
-            'description' => 'Option Géomètre-Topographe du Génie Civil, spécialisée dans les relevés topographiques et les mesures de terrain.',
-            'is_active' => true,
-            'parent_id' => $genieCivil->id, // Sous-filière de Génie Civil
-        ]);
-        
-        // 4. Option Urbanisme
-        ESBTPFiliere::create([
-            'name' => 'URBANISME',
-            'code' => 'GC-URB',
-            'description' => 'Option Urbanisme du Génie Civil, spécialisée dans la planification et l\'aménagement urbain.',
-            'is_active' => true,
-            'parent_id' => $genieCivil->id, // Sous-filière de Génie Civil
-        ]);
+
+        // Créer les sous-filières pour Génie Civil
+        $sousFilieresGC = [
+            [
+                'name' => 'Génie Civil option BATIMENT',
+                'code' => 'GC-BAT',
+                'description' => 'Spécialisation en construction de bâtiments',
+                'is_active' => true,
+                'parent_id' => $genieCivil,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Génie Civil option TRAVAUX PUBLICS',
+                'code' => 'GC-TP',
+                'description' => 'Spécialisation en travaux publics et infrastructures',
+                'is_active' => true,
+                'parent_id' => $genieCivil,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Génie Civil option URBANISME',
+                'code' => 'GC-URB',
+                'description' => 'Spécialisation en aménagement urbain',
+                'is_active' => true,
+                'parent_id' => $genieCivil,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Génie Civil option GEOMETRE-TOPOGRAPHE',
+                'code' => 'GC-GT',
+                'description' => 'Spécialisation en géométrie et topographie',
+                'is_active' => true,
+                'parent_id' => $genieCivil,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ];
+
+        DB::table('esbtp_filieres')->insert($sousFilieresGC);
+
+        // Log les informations
+        \Log::info('Seeders de filières ESBTP créés avec succès');
     }
 }

@@ -22,14 +22,23 @@
                     <p class="text-xs text-gray-500 mt-1">Entrez votre nom complet</p>
                 </div>
 
-                <!-- Email -->
+                <!-- Nom d'utilisateur -->
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
-                    <input type="email" id="email" v-model="form.email" required
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
+                    <input type="text" id="username" v-model="form.username" required
                         class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="admin@ecole.fr">
-                    <p class="text-xs text-gray-500 mt-1">Cette adresse sera utilisée pour la connexion</p>
+                        placeholder="admin">
+                    <p class="text-xs text-gray-500 mt-1">Ce nom sera utilisé pour la connexion</p>
                 </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+                <input type="email" id="email" v-model="form.email" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="admin@ecole.fr">
+                <p class="text-xs text-gray-500 mt-1">Cette adresse sera utilisée pour les notifications</p>
             </div>
 
             <!-- Mot de passe -->
@@ -151,7 +160,7 @@
                 this.loading = true;
                 
                 // Envoyer la requête au serveur
-                axios.post('{{ route("install.create-admin") }}', this.form)
+                axios.post('{{ route("install.setup-admin") }}', this.form)
                     .then(response => {
                         this.loading = false;
                         if (response.data.status === 'success') {
