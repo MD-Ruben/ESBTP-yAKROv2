@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'ESBTP'))</title>
+    <title>@yield('title', config('app.name', 'ESBTP-yAKRO'))</title>
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
@@ -368,7 +368,7 @@
                 </li>
                 @endrole
                 
-                @hasanyrole('superadmin|secretaire')
+                @hasanyrole('superadmin|secretaire|directeur')
                 <div class="menu-category">Structure académique</div>
                 <li class="nav-item">
                     <a href="{{ route('esbtp.filieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.filieres.*') ? 'active' : '' }}">
@@ -424,7 +424,7 @@
                 </li>
                 @endhasanyrole
 
-                @hasanyrole('superadmin|secretaire|enseignant')
+                @hasanyrole('superadmin|secretaire|enseignant|directeur')
                 <div class="menu-category">Enseignement</div>
                 <li class="nav-item">
                     <a href="{{ route('esbtp.emplois-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.emplois-temps.*') ? 'active' : '' }}">
@@ -432,10 +432,22 @@
                         <span>Emplois du temps</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.seances-cours.create') }}" class="nav-link {{ request()->routeIs('esbtp.seances-cours.*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                        <span>Séances de cours</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.attendances.index') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.*') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-check nav-icon"></i>
+                        <span>Présences</span>
+                    </a>
+                </li>
                 @endhasanyrole
                 
                 <div class="menu-category">Évaluations</div>
-                @hasanyrole('superadmin|secretaire|enseignant')
+                @hasanyrole('superadmin|secretaire|enseignant|directeur')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
                         <i class="fas fa-pen-fancy nav-icon"></i>
@@ -458,7 +470,7 @@
                 </li>
                 
                 <div class="menu-category">Communication</div>
-                @hasanyrole('superadmin|secretaire')
+                @hasanyrole('superadmin|secretaire|enseignant|directeur')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.*') ? 'active' : '' }}">
                         <i class="fas fa-bullhorn nav-icon"></i>
@@ -508,19 +520,12 @@
                     </button>
                 </div>
                 
-                <div class="action-item">
-                    <button class="action-btn">
-                        <i class="fas fa-envelope"></i>
-                        <span class="notification-badge">5</span>
-                    </button>
-                </div>
-                
                 <div class="action-item dropdown">
                     <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                         <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
                         <div class="user-info">
                             <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
-                            <div class="user-role">{{ Auth::user()->role ?? 'Rôle' }}</div>
+                            <div class="user-role">{{ Auth::user()->roles->first()->name ?? 'Rôle' }}</div>
                         </div>
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">

@@ -1,150 +1,96 @@
-# ESBTP School Management System
+# ESBTP-yAKRO | Système de Gestion Universitaire
 
-## À propos
-
-ESBTP School Management System est une application web complète pour la gestion des écoles, spécialement conçue pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP). Cette application permet de gérer les départements, les cycles de formation, les spécialités, les années d'études, les semestres, les partenariats et la formation continue.
-
-## Prérequis
-
-- PHP 7.4 ou supérieur
-- Composer
-- MySQL 5.7 ou supérieur
-- Node.js et NPM (pour la compilation des assets)
-- Serveur web (Apache, Nginx, etc.)
-
-## Installation
-
-1. Clonez le dépôt :
-   ```
-   git clone https://github.com/votre-utilisateur/esbtp-school-management.git
-   cd esbtp-school-management
-   ```
-
-2. Installez les dépendances PHP :
-   ```
-   composer install
-   ```
-
-3. Installez les dépendances JavaScript :
-   ```
-   npm install && npm run dev
-   ```
-
-4. Copiez le fichier d'environnement :
-   ```
-   cp .env.example .env
-   ```
-
-5. Configurez votre base de données dans le fichier `.env` :
-   ```
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=esbtp_school
-   DB_USERNAME=root
-   DB_PASSWORD=
-   ```
-
-6. Générez une clé d'application :
-   ```
-   php artisan key:generate
-   ```
-
-7. Exécutez les migrations et les seeders :
-   ```
-   php artisan migrate --seed
-   ```
-
-8. Créez un lien symbolique pour le stockage :
-   ```
-   php artisan storage:link
-   ```
-
-## Scripts utilitaires
-
-Le dossier `scripts_esbtp` contient plusieurs scripts utilitaires pour faciliter la gestion de l'application :
-
-### Réinitialisation de l'application
-
-Pour réinitialiser l'application à son état initial :
-
-- Sur Windows : exécutez `scripts_esbtp/reset_app.bat`
-- Sur Linux/Mac : exécutez `scripts_esbtp/reset_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/reset_app.sh`)
-
-### Démarrage de l'application
-
-Pour démarrer le serveur de développement :
-
-- Sur Windows : exécutez `scripts_esbtp/start_app.bat`
-- Sur Linux/Mac : exécutez `scripts_esbtp/start_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/start_app.sh`)
-
-### Mise à jour de l'application
-
-Pour mettre à jour l'application avec les dernières modifications :
-
-- Sur Windows : exécutez `scripts_esbtp/update_app.bat`
-- Sur Linux/Mac : exécutez `scripts_esbtp/update_app.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/update_app.sh`)
-
-### Sauvegarde de la base de données
-
-Pour créer une sauvegarde de la base de données :
-
-- Sur Windows : exécutez `scripts_esbtp/backup_db.bat`
-- Sur Linux/Mac : exécutez `scripts_esbtp/backup_db.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/backup_db.sh`)
-
-Les sauvegardes sont stockées dans le dossier `storage/app/backups` avec un horodatage dans le nom du fichier.
-
-### Création d'un package d'installation
-
-Pour créer un package d'installation léger et épuré de l'application :
-
-- Sur Windows : exécutez `scripts_esbtp/create_package.bat`
-- Sur Linux/Mac : exécutez `scripts_esbtp/create_package.sh` (assurez-vous qu'il est exécutable avec `chmod +x scripts_esbtp/create_package.sh`)
-
-Le package créé contiendra :
-- Le code source de l'application (sans les dossiers vendor et node_modules)
-- Des scripts d'installation pour Windows et Linux/Mac
-- Un guide d'installation rapide
-- Les identifiants par défaut
-
-Ce package peut être facilement distribué aux clients ou stocké sur une clé USB ou en ligne.
-
-Pour plus d'informations sur ces scripts, consultez le fichier `scripts_esbtp/README.md`.
-
-## Identifiants par défaut
-
-### Superadmin
-- Email : admin@esbtp.ci
-- Mot de passe : admin123
+Application de gestion universitaire pour l'École Supérieure de Bâtiment et Travaux Publics (ESBTP) de yAKRO.
 
 ## Fonctionnalités
 
-- Gestion des départements
-- Gestion des cycles de formation
-- Gestion des spécialités
-- Gestion des années d'études
-- Gestion des semestres
-- Gestion des partenariats
-- Gestion de la formation continue
-- Gestion des utilisateurs et des rôles
-- Et bien plus encore...
+-   **Gestion des classes** : Filières, formations, niveaux d'études
+-   **Gestion des étudiants** : Informations personnelles, inscriptions
+-   **Gestion des matières** : Organisation par niveau d'étude et filière
+-   **Gestion des emplois du temps** : Planning des cours par classe
+-   **Gestion des évaluations et notes** : Suivi des performances académiques
+-   **Gestion des bulletins** : Génération automatique des bulletins de notes
+-   **Gestion des présences** : Suivi des présences aux cours
+-   **Système de rôles et permissions** : Contrôle d'accès granulaire
 
-## Structure du projet
+## Prérequis
 
-- `app/` - Contient les modèles, contrôleurs et autres classes PHP
-- `config/` - Contient les fichiers de configuration
-- `database/` - Contient les migrations et les seeders
-- `public/` - Contient les fichiers accessibles publiquement
-- `resources/` - Contient les vues, les assets et les fichiers de traduction
-- `routes/` - Contient les définitions de routes
-- `storage/` - Contient les fichiers téléchargés, les logs, etc.
-- `tests/` - Contient les tests automatisés
-- `scripts_esbtp/` - Contient les scripts utilitaires pour l'application
+-   PHP 8.1+
+-   MySQL 5.7+ ou MariaDB 10.3+
+-   Composer
+-   Node.js et NPM (pour la compilation des assets)
+-   Serveur web (Apache/Nginx)
 
-## Contribution
+## Installation
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou à soumettre une pull request.
+### 1. Clonage du dépôt
 
-## Licence
+```bash
+git clone https://github.com/votre-organisation/ESBTP-yAKRO.git
+cd ESBTP-yAKRO
+```
 
-Ce projet est sous licence [MIT](LICENSE).
+### 2. Installation des dépendances
+
+```bash
+composer install
+npm install && npm run dev
+```
+
+### 3. Configuration de l'environnement
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Modifiez le fichier `.env` pour configurer la connexion à la base de données et les autres paramètres.
+
+### 4. Installation via l'interface
+
+1. Accédez à l'URL de l'application dans votre navigateur
+2. Suivez l'assistant d'installation qui vous guidera à travers les étapes suivantes :
+    - Configuration de la base de données
+    - Exécution des migrations
+    - Création du compte administrateur
+    - Finalisation de l'installation
+
+### 5. Installation manuelle (alternative)
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+## Structure des rôles
+
+L'application utilise un système de rôles et permissions basé sur Spatie Laravel Permission :
+
+1. **Super Administrateur** : Accès complet à toutes les fonctionnalités
+2. **Directeur des Études** : Gestion académique
+3. **Enseignant** : Gestion des notes et présences pour ses cours
+4. **Secrétaire Académique** : Gestion administrative
+5. **Étudiant** : Accès à son profil, ses notes et son emploi du temps
+6. **Parent** : Consultation des informations de ses enfants
+
+## Utilisation et documentation
+
+Pour plus d'informations sur l'utilisation de l'application, consultez les fichiers de documentation :
+
+-   [Spécifications fonctionnelles](docs/specifications_ESBTP.md)
+-   [Système de rôles et permissions](docs/roles_permissions_ESBTP.md)
+
+## Maintenance
+
+Pour mettre à jour l'application :
+
+```bash
+git pull
+composer install
+php artisan migrate
+php artisan optimize:clear
+```
+
+## Support
+
+Pour toute question ou assistance, veuillez contacter l'administrateur système ou le service informatique de ESBTP-yAKRO.

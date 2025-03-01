@@ -5,8 +5,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\ESBTPFiliereController;
@@ -24,6 +22,7 @@ use App\Http\Controllers\ESBTPBulletinController;
 use App\Http\Controllers\ESBTPAnnonceController;
 use App\Http\Controllers\ESBTPSeanceCoursController;
 use App\Http\Controllers\ESBTPAttendanceController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,8 +48,20 @@ Route::prefix('install')->group(function () {
     Route::post('/complete', [InstallController::class, 'finalize'])->name('install.finalize');
 });
 
-// Routes d'authentification
-Auth::routes(['verify' => true]);
+// Routes d'authentification simplifiées
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Routes d'enregistrement
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
+
+// Routes de réinitialisation de mot de passe
+Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 // Routes accessibles uniquement après authentification
 Route::middleware(['auth', 'installed'])->group(function () {
@@ -125,4 +136,13 @@ Route::middleware(['auth', 'installed'])->group(function () {
         Route::get('/mes-notes', [ESBTPNoteController::class, 'mesNotes'])->name('mes-notes.index');
         Route::get('/mon-emploi-temps', [ESBTPEmploiTempsController::class, 'monEmploiTemps'])->name('mon-emploi-temps.index');
     });
+    
+    // Routes pour les paramètres et les rôles
+    Route::get('/settings', function() {
+        return view('settings.index');
+    })->name('settings.index');
+    
+    Route::get('/roles', function() {
+        return view('roles.index');
+    })->name('roles.index');
 });

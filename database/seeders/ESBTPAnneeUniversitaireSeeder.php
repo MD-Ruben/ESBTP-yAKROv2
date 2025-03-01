@@ -2,48 +2,50 @@
 
 namespace Database\Seeders;
 
-use App\Models\ESBTPAnneeUniversitaire;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class ESBTPAnneeUniversitaireSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seeder pour créer les années universitaires de l'ESBTP.
      *
      * @return void
      */
     public function run()
     {
-        // Création des années universitaires
+        $anneeActuelle = date('Y');
         
-        // 1. Année universitaire 2023-2024
-        ESBTPAnneeUniversitaire::create([
-            'name' => '2023-2024',
-            'start_date' => '2023-09-01',
-            'end_date' => '2024-07-31',
-            'is_current' => false,
-            'is_active' => true,
-            'description' => 'Année universitaire 2023-2024',
-        ]);
+        $anneesUniversitaires = [
+            [
+                'libelle' => ($anneeActuelle-1) . '-' . $anneeActuelle,
+                'date_debut' => ($anneeActuelle-1) . '-09-15',
+                'date_fin' => $anneeActuelle . '-07-15',
+                'est_actuelle' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'libelle' => $anneeActuelle . '-' . ($anneeActuelle+1),
+                'date_debut' => $anneeActuelle . '-09-15',
+                'date_fin' => ($anneeActuelle+1) . '-07-15',
+                'est_actuelle' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'libelle' => ($anneeActuelle+1) . '-' . ($anneeActuelle+2),
+                'date_debut' => ($anneeActuelle+1) . '-09-15',
+                'date_fin' => ($anneeActuelle+2) . '-07-15',
+                'est_actuelle' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
         
-        // 2. Année universitaire 2024-2025 (année en cours)
-        ESBTPAnneeUniversitaire::create([
-            'name' => '2024-2025',
-            'start_date' => '2024-09-01',
-            'end_date' => '2025-07-31',
-            'is_current' => true,
-            'is_active' => true,
-            'description' => 'Année universitaire 2024-2025',
-        ]);
+        // Utilisation de la méthode insertOrIgnore pour éviter les doublons
+        DB::table('esbtp_annee_universitaires')->insertOrIgnore($anneesUniversitaires);
         
-        // 3. Année universitaire 2025-2026 (prochaine année)
-        ESBTPAnneeUniversitaire::create([
-            'name' => '2025-2026',
-            'start_date' => '2025-09-01',
-            'end_date' => '2026-07-31',
-            'is_current' => false,
-            'is_active' => true,
-            'description' => 'Année universitaire 2025-2026',
-        ]);
+        $this->command->info('Les années universitaires ESBTP ont été créées avec succès.');
     }
 }
