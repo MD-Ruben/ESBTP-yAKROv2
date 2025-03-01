@@ -83,4 +83,25 @@ class ESBTPFiliere extends Model
     {
         return is_null($this->parent_id);
     }
+
+    /**
+     * Relation avec les formations associées à cette filière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function formations()
+    {
+        return $this->belongsToMany(ESBTPFormation::class, 'esbtp_filiere_formation', 'filiere_id', 'formation_id')
+                    ->withTimestamps();
+    }
+    
+    /**
+     * Relation avec les inscriptions associées à cette filière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function inscriptions()
+    {
+        return $this->hasMany(ESBTPInscription::class, 'filiere_id');
+    }
 }

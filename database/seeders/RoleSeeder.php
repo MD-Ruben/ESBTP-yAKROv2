@@ -15,155 +15,133 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
-        // Créer les rôles de base
+        // Création des rôles principaux pour ESBTP
         $roles = [
-            'super-admin',
-            'admin',
-            'teacher',
-            'student',
+            'superadmin',
+            'secretaire',
+            'enseignant',
+            'etudiant',
             'parent'
         ];
 
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
+        foreach ($roles as $roleName) {
+            Role::create(['name' => $roleName]);
         }
 
-        // Création des rôles principaux
-        $roles = [
-            'super-admin' => 'Accès complet à toutes les fonctionnalités',
-            'admin' => 'Administrateur avec accès à la plupart des fonctionnalités',
-            'directeur' => 'Directeur d\'établissement',
-            'enseignant' => 'Enseignant avec accès aux cours et notes',
-            'etudiant' => 'Étudiant avec accès à ses cours et notes',
-            'parent' => 'Parent avec accès aux informations de ses enfants',
-            'secretaire' => 'Secrétaire administrative',
-            'comptable' => 'Responsable de la comptabilité',
-            'bibliothecaire' => 'Responsable de la bibliothèque'
-        ];
+        // Création des permissions de base
+        // Pour les filières
+        Permission::create(['name' => 'filieres.view']);
+        Permission::create(['name' => 'filieres.create']);
+        Permission::create(['name' => 'filieres.edit']);
+        Permission::create(['name' => 'filieres.delete']);
 
-        foreach ($roles as $name => $description) {
-            // Vérifier si le rôle existe déjà
-            if (!Role::where('name', $name)->exists()) {
-                Role::create([
-                    'name' => $name,
-                    'guard_name' => 'web'
-                ]);
-            }
-        }
+        // Pour les niveaux d'études
+        Permission::create(['name' => 'niveaux-etudes.view']);
+        Permission::create(['name' => 'niveaux-etudes.create']);
+        Permission::create(['name' => 'niveaux-etudes.edit']);
+        Permission::create(['name' => 'niveaux-etudes.delete']);
 
-        // Création des permissions
-        $permissions = [
-            // Permissions générales
-            'view dashboard' => 'Voir le tableau de bord',
-            'manage users' => 'Gérer les utilisateurs',
-            'view users' => 'Voir les utilisateurs',
-            'create users' => 'Créer des utilisateurs',
-            'edit users' => 'Modifier des utilisateurs',
-            'delete users' => 'Supprimer des utilisateurs',
-            
-            // Permissions académiques
-            'manage courses' => 'Gérer les cours',
-            'view courses' => 'Voir les cours',
-            'create courses' => 'Créer des cours',
-            'edit courses' => 'Modifier des cours',
-            'delete courses' => 'Supprimer des cours',
-            
-            'manage grades' => 'Gérer les notes',
-            'view grades' => 'Voir les notes',
-            'create grades' => 'Créer des notes',
-            'edit grades' => 'Modifier des notes',
-            'delete grades' => 'Supprimer des notes',
-            
-            // Permissions administratives
-            'manage settings' => 'Gérer les paramètres',
-            'view settings' => 'Voir les paramètres',
-            'edit settings' => 'Modifier les paramètres',
-            
-            'manage finances' => 'Gérer les finances',
-            'view finances' => 'Voir les finances',
-            'create finances' => 'Créer des entrées financières',
-            'edit finances' => 'Modifier des entrées financières',
-            'delete finances' => 'Supprimer des entrées financières',
-            
-            // Permissions bibliothèque
-            'manage library' => 'Gérer la bibliothèque',
-            'view library' => 'Voir la bibliothèque',
-            'create library' => 'Ajouter des livres',
-            'edit library' => 'Modifier des livres',
-            'delete library' => 'Supprimer des livres',
-            'borrow library' => 'Emprunter des livres',
-            'return library' => 'Retourner des livres'
-        ];
+        // Pour les formations
+        Permission::create(['name' => 'formations.view']);
+        Permission::create(['name' => 'formations.create']);
+        Permission::create(['name' => 'formations.edit']);
+        Permission::create(['name' => 'formations.delete']);
 
-        foreach ($permissions as $name => $description) {
-            // Vérifier si la permission existe déjà
-            if (!Permission::where('name', $name)->exists()) {
-                Permission::create([
-                    'name' => $name,
-                    'guard_name' => 'web'
-                ]);
-            }
-        }
+        // Pour les matières
+        Permission::create(['name' => 'matieres.view']);
+        Permission::create(['name' => 'matieres.create']);
+        Permission::create(['name' => 'matieres.edit']);
+        Permission::create(['name' => 'matieres.delete']);
+
+        // Pour les classes
+        Permission::create(['name' => 'classes.view']);
+        Permission::create(['name' => 'classes.create']);
+        Permission::create(['name' => 'classes.edit']);
+        Permission::create(['name' => 'classes.delete']);
+
+        // Pour les étudiants
+        Permission::create(['name' => 'etudiants.view']);
+        Permission::create(['name' => 'etudiants.create']);
+        Permission::create(['name' => 'etudiants.edit']);
+        Permission::create(['name' => 'etudiants.delete']);
+
+        // Pour les évaluations
+        Permission::create(['name' => 'evaluations.view']);
+        Permission::create(['name' => 'evaluations.create']);
+        Permission::create(['name' => 'evaluations.edit']);
+        Permission::create(['name' => 'evaluations.delete']);
+
+        // Pour les notes
+        Permission::create(['name' => 'notes.view']);
+        Permission::create(['name' => 'notes.create']);
+        Permission::create(['name' => 'notes.edit']);
+        Permission::create(['name' => 'notes.delete']);
+
+        // Pour les bulletins
+        Permission::create(['name' => 'bulletins.view']);
+        Permission::create(['name' => 'bulletins.create']);
+        Permission::create(['name' => 'bulletins.edit']);
+        Permission::create(['name' => 'bulletins.delete']);
+
+        // Pour les emplois du temps
+        Permission::create(['name' => 'emplois-temps.view']);
+        Permission::create(['name' => 'emplois-temps.create']);
+        Permission::create(['name' => 'emplois-temps.edit']);
+        Permission::create(['name' => 'emplois-temps.delete']);
+
+        // Pour les annonces
+        Permission::create(['name' => 'annonces.view']);
+        Permission::create(['name' => 'annonces.create']);
+        Permission::create(['name' => 'annonces.edit']);
+        Permission::create(['name' => 'annonces.delete']);
 
         // Attribution des permissions aux rôles
-        $superAdmin = Role::findByName('super-admin');
-        $superAdmin->syncPermissions(Permission::all());
+        // Le superadmin a toutes les permissions
+        $superadminRole = Role::findByName('superadmin');
+        $superadminRole->givePermissionTo(Permission::all());
 
-        $admin = Role::findByName('admin');
-        $admin->syncPermissions(Permission::all()->except(['manage settings', 'edit settings']));
-
-        $directeur = Role::findByName('directeur');
-        $directeur->syncPermissions([
-            'view dashboard', 'view users', 
-            'manage courses', 'view courses', 'create courses', 'edit courses', 
-            'manage grades', 'view grades', 
-            'view finances', 
-            'view library'
+        // La secrétaire a des permissions administratives
+        $secretaireRole = Role::findByName('secretaire');
+        $secretaireRole->givePermissionTo([
+            'filieres.view', 'filieres.create', 'filieres.edit',
+            'niveaux-etudes.view', 'niveaux-etudes.create', 'niveaux-etudes.edit',
+            'formations.view', 'formations.create', 'formations.edit',
+            'matieres.view', 'matieres.create', 'matieres.edit',
+            'classes.view', 'classes.create', 'classes.edit',
+            'etudiants.view', 'etudiants.create', 'etudiants.edit',
+            'evaluations.view',
+            'notes.view',
+            'bulletins.view', 'bulletins.create',
+            'emplois-temps.view', 'emplois-temps.create', 'emplois-temps.edit',
+            'annonces.view', 'annonces.create', 'annonces.edit'
         ]);
 
-        $enseignant = Role::findByName('enseignant');
-        $enseignant->syncPermissions([
-            'view dashboard', 
-            'view courses', 'edit courses', 
-            'manage grades', 'view grades', 'create grades', 'edit grades', 
-            'view library', 'borrow library', 'return library'
+        // L'enseignant a des permissions liées à l'enseignement
+        $enseignantRole = Role::findByName('enseignant');
+        $enseignantRole->givePermissionTo([
+            'matieres.view',
+            'classes.view',
+            'etudiants.view',
+            'evaluations.view', 'evaluations.create', 'evaluations.edit',
+            'notes.view', 'notes.create', 'notes.edit',
+            'bulletins.view',
+            'emplois-temps.view'
         ]);
 
-        $etudiant = Role::findByName('etudiant');
-        $etudiant->syncPermissions([
-            'view dashboard', 
-            'view courses', 
-            'view grades', 
-            'view library', 'borrow library', 'return library'
+        // L'étudiant a des permissions limitées
+        $etudiantRole = Role::findByName('etudiant');
+        $etudiantRole->givePermissionTo([
+            'bulletins.view',
+            'emplois-temps.view',
+            'annonces.view'
         ]);
 
-        $parent = Role::findByName('parent');
-        $parent->syncPermissions([
-            'view dashboard', 
-            'view courses', 
-            'view grades', 
-            'view finances'
-        ]);
-
-        $secretaire = Role::findByName('secretaire');
-        $secretaire->syncPermissions([
-            'view dashboard', 
-            'view users', 'create users', 'edit users', 
-            'view courses', 
-            'view grades', 
-            'view finances'
-        ]);
-
-        $comptable = Role::findByName('comptable');
-        $comptable->syncPermissions([
-            'view dashboard', 
-            'manage finances', 'view finances', 'create finances', 'edit finances', 'delete finances'
-        ]);
-
-        $bibliothecaire = Role::findByName('bibliothecaire');
-        $bibliothecaire->syncPermissions([
-            'view dashboard', 
-            'manage library', 'view library', 'create library', 'edit library', 'delete library', 'borrow library', 'return library'
+        // Le parent a des permissions similaires à l'étudiant
+        $parentRole = Role::findByName('parent');
+        $parentRole->givePermissionTo([
+            'bulletins.view',
+            'emplois-temps.view',
+            'annonces.view'
         ]);
     }
 } 

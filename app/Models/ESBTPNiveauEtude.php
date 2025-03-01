@@ -64,4 +64,36 @@ class ESBTPNiveauEtude extends Model
     {
         return $this->type . ' - ' . $this->name;
     }
+
+    /**
+     * Relation avec les formations associées à ce niveau d'études.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function formations()
+    {
+        return $this->belongsToMany(ESBTPFormation::class, 'esbtp_formation_niveau', 'niveau_id', 'formation_id')
+                    ->withTimestamps();
+    }
+    
+    /**
+     * Relation avec les matières associées à ce niveau d'études.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function matieres()
+    {
+        return $this->belongsToMany(ESBTPMatiere::class, 'esbtp_niveau_matiere', 'niveau_id', 'matiere_id')
+                    ->withTimestamps();
+    }
+    
+    /**
+     * Relation avec les inscriptions associées à ce niveau d'études.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function inscriptions()
+    {
+        return $this->hasMany(ESBTPInscription::class, 'niveau_id');
+    }
 }

@@ -355,12 +355,6 @@
                 @role('superadmin')
                 <div class="menu-category">Administration</div>
                 <li class="nav-item">
-                    <a href="{{ url('/users') }}" class="nav-link {{ request()->is('users*') ? 'active' : '' }}">
-                        <i class="fas fa-users nav-icon"></i>
-                        <span>Utilisateurs</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="{{ route('roles.index') }}" class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
                         <i class="fas fa-user-tag nav-icon"></i>
                         <span>Rôles et permissions</span>
@@ -395,27 +389,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{{ route('esbtp.formations.index') }}" class="nav-link {{ request()->routeIs('esbtp.formations.*') ? 'active' : '' }}">
+                        <i class="fas fa-graduation-cap nav-icon"></i>
+                        <span>Formations</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="{{ route('esbtp.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
                         <i class="fas fa-chalkboard nav-icon"></i>
                         <span>Classes</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.salles.index') }}" class="nav-link {{ request()->routeIs('esbtp.salles.*') ? 'active' : '' }}">
-                        <i class="fas fa-door-open nav-icon"></i>
-                        <span>Salles de classe</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="{{ route('esbtp.matieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.matieres.*') ? 'active' : '' }}">
                         <i class="fas fa-book nav-icon"></i>
                         <span>Matières</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.unites-enseignement.index') }}" class="nav-link {{ request()->routeIs('esbtp.unites-enseignement.*') ? 'active' : '' }}">
-                        <i class="fas fa-cubes nav-icon"></i>
-                        <span>Unités d'enseignement (UE)</span>
                     </a>
                 </li>
                 @endhasanyrole
@@ -434,40 +422,14 @@
                         <span>Inscriptions</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link disabled">
-                        <i class="fas fa-user-friends nav-icon"></i>
-                        <span>Parents <small class="text-warning">(à venir)</small></span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.paiements.index') }}" class="nav-link {{ request()->routeIs('esbtp.paiements.*') ? 'active' : '' }}">
-                        <i class="fas fa-money-bill-wave nav-icon"></i>
-                        <span>Paiements</span>
-                    </a>
-                </li>
                 @endhasanyrole
 
                 @hasanyrole('superadmin|secretaire|enseignant')
                 <div class="menu-category">Enseignement</div>
-                @hasanyrole('superadmin|secretaire')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.enseignants.index') }}" class="nav-link {{ request()->routeIs('esbtp.enseignants.*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span>Enseignants</span>
-                    </a>
-                </li>
-                @endhasanyrole
                 <li class="nav-item">
                     <a href="{{ route('esbtp.emplois-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.emplois-temps.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-week nav-icon"></i>
                         <span>Emplois du temps</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.presences.index') }}" class="nav-link {{ request()->routeIs('esbtp.presences.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Présences</span>
                     </a>
                 </li>
                 @endhasanyrole
@@ -495,28 +457,7 @@
                     </a>
                 </li>
                 
-                @hasanyrole('superadmin|secretaire|enseignant')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
-                        <i class="fas fa-chart-bar nav-icon"></i>
-                        <span>Résultats</span>
-                    </a>
-                </li>
-                @endhasanyrole
-                
                 <div class="menu-category">Communication</div>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.messages.index') }}" class="nav-link {{ request()->routeIs('esbtp.messages.*') ? 'active' : '' }}">
-                        <i class="fas fa-envelope nav-icon"></i>
-                        <span>Messagerie</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.notifications.index') }}" class="nav-link {{ request()->routeIs('esbtp.notifications.*') ? 'active' : '' }}">
-                        <i class="fas fa-bell nav-icon"></i>
-                        <span>Notifications</span>
-                    </a>
-                </li>
                 @hasanyrole('superadmin|secretaire')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.*') ? 'active' : '' }}">
@@ -538,18 +479,6 @@
                     <a href="{{ route('esbtp.mes-notes.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notes.*') ? 'active' : '' }}">
                         <i class="fas fa-graduation-cap nav-icon"></i>
                         <span>Mes notes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-absences.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-absences.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Mes absences</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-paiements.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-paiements.*') ? 'active' : '' }}">
-                        <i class="fas fa-money-bill-wave nav-icon"></i>
-                        <span>Mes paiements</span>
                     </a>
                 </li>
                 <li class="nav-item">

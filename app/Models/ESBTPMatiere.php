@@ -112,6 +112,17 @@ class ESBTPMatiere extends Model
     }
 
     /**
+     * Relation avec les formations associées à cette matière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function formations()
+    {
+        return $this->belongsToMany(ESBTPFormation::class, 'esbtp_formation_matiere', 'matiere_id', 'formation_id')
+                    ->withTimestamps();
+    }
+
+    /**
      * Obtenir le coefficient pour une classe spécifique.
      *
      * @param int $classeId
