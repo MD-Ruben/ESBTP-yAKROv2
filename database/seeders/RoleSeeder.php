@@ -17,11 +17,9 @@ class RoleSeeder extends Seeder
     {
         // Création des rôles principaux pour ESBTP
         $roles = [
-            'superadmin',
+            'superAdmin',
             'secretaire',
-            'enseignant',
-            'etudiant',
-            'parent'
+            'etudiant'
         ];
 
         foreach ($roles as $roleName) {
@@ -30,118 +28,101 @@ class RoleSeeder extends Seeder
 
         // Création des permissions de base
         // Pour les filières
-        Permission::create(['name' => 'filieres.view']);
-        Permission::create(['name' => 'filieres.create']);
-        Permission::create(['name' => 'filieres.edit']);
-        Permission::create(['name' => 'filieres.delete']);
+        Permission::create(['name' => 'view_filieres']);
+        Permission::create(['name' => 'create_filieres']);
+        Permission::create(['name' => 'edit_filieres']);
+        Permission::create(['name' => 'delete_filieres']);
 
         // Pour les niveaux d'études
-        Permission::create(['name' => 'niveaux-etudes.view']);
-        Permission::create(['name' => 'niveaux-etudes.create']);
-        Permission::create(['name' => 'niveaux-etudes.edit']);
-        Permission::create(['name' => 'niveaux-etudes.delete']);
+        Permission::create(['name' => 'view_niveaux_etudes']);
+        Permission::create(['name' => 'create_niveaux_etudes']);
+        Permission::create(['name' => 'edit_niveaux_etudes']);
+        Permission::create(['name' => 'delete_niveaux_etudes']);
 
         // Pour les formations
-        Permission::create(['name' => 'formations.view']);
-        Permission::create(['name' => 'formations.create']);
-        Permission::create(['name' => 'formations.edit']);
-        Permission::create(['name' => 'formations.delete']);
+        Permission::create(['name' => 'view_formations']);
+        Permission::create(['name' => 'create_formations']);
+        Permission::create(['name' => 'edit_formations']);
+        Permission::create(['name' => 'delete_formations']);
 
         // Pour les matières
-        Permission::create(['name' => 'matieres.view']);
-        Permission::create(['name' => 'matieres.create']);
-        Permission::create(['name' => 'matieres.edit']);
-        Permission::create(['name' => 'matieres.delete']);
+        Permission::create(['name' => 'view_matieres']);
+        Permission::create(['name' => 'create_matieres']);
+        Permission::create(['name' => 'edit_matieres']);
+        Permission::create(['name' => 'delete_matieres']);
 
         // Pour les classes
-        Permission::create(['name' => 'classes.view']);
-        Permission::create(['name' => 'classes.create']);
-        Permission::create(['name' => 'classes.edit']);
-        Permission::create(['name' => 'classes.delete']);
+        Permission::create(['name' => 'view_classes']);
+        Permission::create(['name' => 'create_classes']);
+        Permission::create(['name' => 'edit_classes']);
+        Permission::create(['name' => 'delete_classes']);
 
         // Pour les étudiants
-        Permission::create(['name' => 'etudiants.view']);
-        Permission::create(['name' => 'etudiants.create']);
-        Permission::create(['name' => 'etudiants.edit']);
-        Permission::create(['name' => 'etudiants.delete']);
+        Permission::create(['name' => 'view_students']);
+        Permission::create(['name' => 'create_students']);
+        Permission::create(['name' => 'edit_students']);
+        Permission::create(['name' => 'delete_students']);
+        Permission::create(['name' => 'view_own_profile']);
 
-        // Pour les évaluations
-        Permission::create(['name' => 'evaluations.view']);
-        Permission::create(['name' => 'evaluations.create']);
-        Permission::create(['name' => 'evaluations.edit']);
-        Permission::create(['name' => 'evaluations.delete']);
+        // Pour les examens
+        Permission::create(['name' => 'view_exams']);
+        Permission::create(['name' => 'create_exams']);
+        Permission::create(['name' => 'edit_exams']);
+        Permission::create(['name' => 'delete_exams']);
+        Permission::create(['name' => 'view_own_exams']);
 
         // Pour les notes
-        Permission::create(['name' => 'notes.view']);
-        Permission::create(['name' => 'notes.create']);
-        Permission::create(['name' => 'notes.edit']);
-        Permission::create(['name' => 'notes.delete']);
+        Permission::create(['name' => 'view_grades']);
+        Permission::create(['name' => 'create_grades']);
+        Permission::create(['name' => 'edit_grades']);
+        Permission::create(['name' => 'delete_grades']);
+        Permission::create(['name' => 'view_own_grades']);
 
         // Pour les bulletins
-        Permission::create(['name' => 'bulletins.view']);
-        Permission::create(['name' => 'bulletins.create']);
-        Permission::create(['name' => 'bulletins.edit']);
-        Permission::create(['name' => 'bulletins.delete']);
+        Permission::create(['name' => 'view_bulletins']);
+        Permission::create(['name' => 'generate_bulletin']);
+        Permission::create(['name' => 'edit_bulletins']);
+        Permission::create(['name' => 'delete_bulletins']);
+        Permission::create(['name' => 'view_own_bulletin']);
 
         // Pour les emplois du temps
-        Permission::create(['name' => 'emplois-temps.view']);
-        Permission::create(['name' => 'emplois-temps.create']);
-        Permission::create(['name' => 'emplois-temps.edit']);
-        Permission::create(['name' => 'emplois-temps.delete']);
+        Permission::create(['name' => 'view_timetables']);
+        Permission::create(['name' => 'create_timetable']);
+        Permission::create(['name' => 'edit_timetables']);
+        Permission::create(['name' => 'delete_timetables']);
+        Permission::create(['name' => 'view_own_timetable']);
 
-        // Pour les annonces
-        Permission::create(['name' => 'annonces.view']);
-        Permission::create(['name' => 'annonces.create']);
-        Permission::create(['name' => 'annonces.edit']);
-        Permission::create(['name' => 'annonces.delete']);
+        // Pour les messages
+        Permission::create(['name' => 'send_messages']);
+        Permission::create(['name' => 'receive_messages']);
+
+        // Pour les présences
+        Permission::create(['name' => 'view_attendances']);
+        Permission::create(['name' => 'create_attendance']);
+        Permission::create(['name' => 'edit_attendances']);
+        Permission::create(['name' => 'delete_attendances']);
+        Permission::create(['name' => 'view_own_attendances']);
 
         // Attribution des permissions aux rôles
-        // Le superadmin a toutes les permissions
-        $superadminRole = Role::findByName('superadmin');
+        // Le superAdmin a toutes les permissions
+        $superadminRole = Role::findByName('superAdmin');
         $superadminRole->givePermissionTo(Permission::all());
 
-        // La secrétaire a des permissions administratives
+        // Le secrétaire a des permissions spécifiques
         $secretaireRole = Role::findByName('secretaire');
         $secretaireRole->givePermissionTo([
-            'filieres.view', 'filieres.create', 'filieres.edit',
-            'niveaux-etudes.view', 'niveaux-etudes.create', 'niveaux-etudes.edit',
-            'formations.view', 'formations.create', 'formations.edit',
-            'matieres.view', 'matieres.create', 'matieres.edit',
-            'classes.view', 'classes.create', 'classes.edit',
-            'etudiants.view', 'etudiants.create', 'etudiants.edit',
-            'evaluations.view',
-            'notes.view',
-            'bulletins.view', 'bulletins.create',
-            'emplois-temps.view', 'emplois-temps.create', 'emplois-temps.edit',
-            'annonces.view', 'annonces.create', 'annonces.edit'
+            'view_filieres', 'view_formations', 'view_niveaux_etudes', 'view_classes',
+            'create_students', 'view_students', 'view_exams', 'view_matieres',
+            'create_grades', 'view_grades', 'generate_bulletin', 'view_bulletins',
+            'create_timetable', 'view_timetables', 'send_messages',
+            'create_attendance', 'view_attendances'
         ]);
 
-        // L'enseignant a des permissions liées à l'enseignement
-        $enseignantRole = Role::findByName('enseignant');
-        $enseignantRole->givePermissionTo([
-            'matieres.view',
-            'classes.view',
-            'etudiants.view',
-            'evaluations.view', 'evaluations.create', 'evaluations.edit',
-            'notes.view', 'notes.create', 'notes.edit',
-            'bulletins.view',
-            'emplois-temps.view'
-        ]);
-
-        // L'étudiant a des permissions limitées
+        // L'étudiant ne peut voir que ses propres données
         $etudiantRole = Role::findByName('etudiant');
         $etudiantRole->givePermissionTo([
-            'bulletins.view',
-            'emplois-temps.view',
-            'annonces.view'
-        ]);
-
-        // Le parent a des permissions similaires à l'étudiant
-        $parentRole = Role::findByName('parent');
-        $parentRole->givePermissionTo([
-            'bulletins.view',
-            'emplois-temps.view',
-            'annonces.view'
+            'view_own_profile', 'view_own_exams', 'view_own_grades', 'view_own_bulletin',
+            'view_own_timetable', 'receive_messages', 'view_own_attendances'
         ]);
     }
 } 

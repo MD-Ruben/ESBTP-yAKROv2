@@ -125,7 +125,8 @@
                         <div class="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200">
                             <p class="text-sm text-gray-600">
                                 <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
-                                Les tables ESBTP sont essentielles pour le fonctionnement du système. Si elles ne sont pas complètes,
+                                Les tables ESBTP sont essentielles pour le fonctionnement du système, y compris les tables de rôles et permissions 
+                                qui sont <strong>requises</strong> et non supplémentaires. Si elles ne sont pas complètes,
                                 vous devez exécuter les migrations pour assurer le bon fonctionnement de l'application.
                             </p>
                         </div>
@@ -145,7 +146,8 @@
                                     <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
                                     <div>
                                         <p class="text-sm text-green-700 font-semibold">Correspondance parfaite (100%) !</p>
-                                        <p class="text-sm text-green-700 mt-1">Toutes les tables requises existent déjà dans la base de données. Vous pouvez passer la migration.</p>
+                                        <p class="text-sm text-green-700 mt-1">Toutes les tables requises existent déjà dans la base de données.</p>
+                                        <p class="text-sm text-green-700 mt-1"><strong>Note:</strong> Les tables additionnelles pour les rôles et permissions sont <strong>requises</strong> pour le bon fonctionnement du module ESBTP.</p>
                                     </div>
                                 </div>
                             </div>
@@ -441,6 +443,7 @@
                         <div>
                             <label for="run_esbtp_seeders" class="text-sm font-medium text-gray-700">Exécuter les seeders ESBTP</label>
                             <p class="text-xs text-gray-500">Créer les filières, niveaux d'études et années universitaires</p>
+                            <p class="text-xs text-green-600">(Recommandé pour la première installation)</p>
                         </div>
                         <div class="relative inline-block w-10 mr-2 align-middle select-none">
                             <input type="checkbox" id="run_esbtp_seeders" v-model="advancedOptions.runESBTPSeeders" class="toggle-checkbox absolute block w-6 h-6 rounded-full appearance-none cursor-pointer">

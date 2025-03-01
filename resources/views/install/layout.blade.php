@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title') - Installation Smart School</title>
+    <title>@yield('title') - Installation ESBTP-Yakro</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
@@ -283,8 +283,8 @@
         <div class="install-container px-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <img src="{{ asset('images/logo.png') }}" alt="Smart School" class="h-12 mr-4">
-                    <h1 class="text-2xl font-bold text-gray-800">Smart School</h1>
+                    <img src="{{ asset('images/@esbtp_logo.png') }}" alt="ESBTP-Yakro" class="h-12 mr-4">
+                    <h1 class="text-2xl font-bold text-gray-800">ESBTP-Yakro</h1>
                 </div>
                 <div class="text-gray-600">
                     <span class="font-medium">Installation</span>
@@ -399,7 +399,7 @@
     <footer class="bg-white py-4 mt-8">
         <div class="install-container px-4">
             <div class="text-center text-gray-600 text-sm">
-                &copy; {{ date('Y') }} Smart School. Tous droits réservés.
+                &copy; {{ date('Y') }} ESBTP-Yakro. Tous droits réservés.
             </div>
         </div>
     </footer>

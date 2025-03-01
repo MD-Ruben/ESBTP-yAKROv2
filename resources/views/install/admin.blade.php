@@ -70,7 +70,7 @@
                         <label for="school_name" class="block text-sm font-medium text-gray-700 mb-1">Nom de l'école</label>
                         <input type="text" id="school_name" v-model="form.school_name" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="École Smart School">
+                            placeholder="École ESBTP-Yakro">
                     </div>
                     
                     <div>

@@ -1,96 +1,159 @@
-# ESBTP-yAKRO | Système de Gestion Universitaire
+# ESBTP-yAKRO - Système de Gestion d'École
 
-Application de gestion universitaire pour l'École Supérieure de Bâtiment et Travaux Publics (ESBTP) de yAKRO.
-
-## Fonctionnalités
-
--   **Gestion des classes** : Filières, formations, niveaux d'études
--   **Gestion des étudiants** : Informations personnelles, inscriptions
--   **Gestion des matières** : Organisation par niveau d'étude et filière
--   **Gestion des emplois du temps** : Planning des cours par classe
--   **Gestion des évaluations et notes** : Suivi des performances académiques
--   **Gestion des bulletins** : Génération automatique des bulletins de notes
--   **Gestion des présences** : Suivi des présences aux cours
--   **Système de rôles et permissions** : Contrôle d'accès granulaire
+Ce projet est un système de gestion scolaire pour l'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yakro.
 
 ## Prérequis
 
--   PHP 8.1+
--   MySQL 5.7+ ou MariaDB 10.3+
+-   PHP 7.4 ou supérieur
 -   Composer
--   Node.js et NPM (pour la compilation des assets)
--   Serveur web (Apache/Nginx)
+-   MySQL 5.7 ou supérieur
+-   Node.js et npm
+-   Serveur web (Apache, Nginx, etc.)
 
 ## Installation
 
-### 1. Clonage du dépôt
+### Méthode automatique (recommandée)
+
+#### Sur Linux/MacOS
 
 ```bash
-git clone https://github.com/votre-organisation/ESBTP-yAKRO.git
-cd ESBTP-yAKRO
+# Cloner le dépôt
+git clone https://github.com/votre-utilisateur/ESBTP-yAKROv2.git
+cd ESBTP-yAKROv2
+
+# Rendre le script d'installation exécutable
+chmod +x install.sh
+
+# Exécuter le script d'installation
+./install.sh
 ```
 
-### 2. Installation des dépendances
+#### Sur Windows
 
 ```bash
-composer install
-npm install && npm run dev
+# Cloner le dépôt
+git clone https://github.com/votre-utilisateur/ESBTP-yAKROv2.git
+cd ESBTP-yAKROv2
+
+# Exécuter le script d'installation
+install.bat
 ```
 
-### 3. Configuration de l'environnement
+### Installation manuelle
 
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+1. Cloner le dépôt
 
-Modifiez le fichier `.env` pour configurer la connexion à la base de données et les autres paramètres.
+    ```bash
+    git clone https://github.com/votre-utilisateur/ESBTP-yAKROv2.git
+    cd ESBTP-yAKROv2
+    ```
 
-### 4. Installation via l'interface
+2. Installer les dépendances Composer
 
-1. Accédez à l'URL de l'application dans votre navigateur
-2. Suivez l'assistant d'installation qui vous guidera à travers les étapes suivantes :
-    - Configuration de la base de données
-    - Exécution des migrations
-    - Création du compte administrateur
-    - Finalisation de l'installation
+    ```bash
+    composer install
+    ```
 
-### 5. Installation manuelle (alternative)
+3. Copier le fichier d'environnement
 
-```bash
-php artisan migrate
-php artisan db:seed
-```
+    ```bash
+    cp .env.example .env
+    ```
 
-## Structure des rôles
+4. Générer la clé d'application
 
-L'application utilise un système de rôles et permissions basé sur Spatie Laravel Permission :
+    ```bash
+    php artisan key:generate
+    ```
 
-1. **Super Administrateur** : Accès complet à toutes les fonctionnalités
-2. **Directeur des Études** : Gestion académique
-3. **Enseignant** : Gestion des notes et présences pour ses cours
-4. **Secrétaire Académique** : Gestion administrative
-5. **Étudiant** : Accès à son profil, ses notes et son emploi du temps
-6. **Parent** : Consultation des informations de ses enfants
+5. Configurer la base de données dans le fichier `.env`
 
-## Utilisation et documentation
+    ```
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=nom_de_votre_base_de_donnees
+    DB_USERNAME=utilisateur_de_votre_base_de_donnees
+    DB_PASSWORD=mot_de_passe_de_votre_base_de_donnees
+    ```
 
-Pour plus d'informations sur l'utilisation de l'application, consultez les fichiers de documentation :
+6. Exécuter les migrations et les seeders
 
--   [Spécifications fonctionnelles](docs/specifications_ESBTP.md)
--   [Système de rôles et permissions](docs/roles_permissions_ESBTP.md)
+    ```bash
+    php artisan migrate --seed
+    ```
 
-## Maintenance
+7. Installer les dépendances npm
 
-Pour mettre à jour l'application :
+    ```bash
+    npm install && npm run dev
+    ```
 
-```bash
-git pull
-composer install
-php artisan migrate
-php artisan optimize:clear
-```
+8. Effacer le cache
+    ```bash
+    php artisan optimize:clear
+    ```
 
-## Support
+## Déploiement
 
-Pour toute question ou assistance, veuillez contacter l'administrateur système ou le service informatique de ESBTP-yAKRO.
+Pour déployer une nouvelle version de l'application :
+
+1. Se connecter au serveur de production
+
+    ```bash
+    ssh utilisateur@votre-serveur
+    ```
+
+2. Accéder au répertoire du projet
+
+    ```bash
+    cd /chemin/vers/ESBTP-yAKROv2
+    ```
+
+3. Mettre à jour le code source
+
+    ```bash
+    git pull origin main
+    ```
+
+4. Installer les dépendances et optimiser
+
+    ```bash
+    composer install --optimize-autoloader --no-dev
+    npm install && npm run production
+    ```
+
+5. Mettre à jour la base de données
+
+    ```bash
+    php artisan migrate --force
+    ```
+
+6. Effacer le cache
+    ```bash
+    php artisan optimize
+    ```
+
+## Structure des migrations et seeders
+
+Le système utilise plusieurs seeders pour initialiser les données :
+
+-   `ESBTPRoleSeeder` : Crée les rôles et permissions de base
+-   `ESBTPNiveauEtudeSeeder` : Initialise les niveaux d'études
+-   `ESBTPFiliereSeeder` : Initialise les filières disponibles
+-   `ESBTPAnneeUniversitaireSeeder` : Crée les années universitaires
+-   `ESBTPMatiereSeeder` : Initialise les matières enseignées
+
+## Recommandations
+
+-   **Nomenclature cohérente** : Maintenir une cohérence entre les noms de fichiers et les noms de tables pour éviter les confusions.
+-   **Organisation des migrations** : Planifier l'ordre des migrations en tenant compte des dépendances entre les tables.
+-   **Documentation** : Documenter les dépendances entre les tables pour faciliter la maintenance.
+
+## Licence
+
+Ce projet est sous licence propriétaire. Tous droits réservés.
+
+## Contact
+
+Pour plus d'informations, veuillez contacter l'administrateur du système.

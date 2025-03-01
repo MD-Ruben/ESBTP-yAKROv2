@@ -355,8 +355,20 @@ class InstallationHelper
                 'esbtp_paiements',
                 'esbtp_classes',
                 'esbtp_matieres',
-                'esbtp_unites_enseignement',
-                'esbtp_salles'
+                'esbtp_formations',
+                'esbtp_filiere_formation',
+                'esbtp_formation_niveau',
+                'esbtp_formation_matiere',
+                'esbtp_evaluations',
+                'esbtp_notes',
+                'esbtp_bulletins',
+                'esbtp_resultat_matieres',
+                'esbtp_annonces',
+                'esbtp_annonce_classe',
+                'esbtp_annonce_etudiant',
+                'esbtp_emploi_temps',
+                'esbtp_seance_cours',
+                'esbtp_attendances'
             ];
             
             foreach ($esbtpTables as $table) {
@@ -480,8 +492,20 @@ class InstallationHelper
                         'esbtp_paiements',
                         'esbtp_classes',
                         'esbtp_matieres',
-                        'esbtp_unites_enseignement',
-                        'esbtp_salles'
+                        'esbtp_formations',
+                        'esbtp_filiere_formation',
+                        'esbtp_formation_niveau',
+                        'esbtp_formation_matiere',
+                        'esbtp_evaluations',
+                        'esbtp_notes',
+                        'esbtp_bulletins',
+                        'esbtp_resultat_matieres',
+                        'esbtp_annonces',
+                        'esbtp_annonce_classe',
+                        'esbtp_annonce_etudiant',
+                        'esbtp_emploi_temps',
+                        'esbtp_seance_cours',
+                        'esbtp_attendances'
                     ]
                 ],
                 'core' => [
@@ -670,7 +694,7 @@ class InstallationHelper
 
             // Vérifier les filières
             $filieresCount = DB::table('esbtp_filieres')->count();
-            if ($filieresCount < 6) { // 2 filières principales + 4 options pour Génie Civil
+            if ($filieresCount < 5) { // 5 filières au total pour ESBTP
                 $result['success'] = false;
                 $result['filieres'] = false;
                 $result['missing_data'][] = 'Filières ESBTP';

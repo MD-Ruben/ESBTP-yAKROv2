@@ -313,9 +313,10 @@ class InstallController extends Controller
                         
                         // Exécuter chaque seeder ESBTP individuellement pour une meilleure gestion des erreurs
                         $esbtpSeeders = [
-                            'ESBTPFiliereSeeder',
-                            'ESBTPNiveauEtudeSeeder',
+                            'ESBTPRoleSeeder',
                             'ESBTPAnneeUniversitaireSeeder',
+                            'ESBTPNiveauEtudeSeeder',
+                            'ESBTPFiliereSeeder',
                             'ESBTPMatiereSeeder'
                         ];
                         
@@ -323,10 +324,19 @@ class InstallController extends Controller
                         foreach ($esbtpSeeders as $seeder) {
                             try {
                                 \Log::info("Exécution du seeder {$seeder}");
-                                \Artisan::call('db:seed', [
-                                    '--class' => $seeder,
-                                    '--force' => true
-                                ]);
+                                // Vérifier si la classe du seeder existe
+                                $seederClass = "\\Database\\Seeders\\{$seeder}";
+                                if (class_exists($seederClass)) {
+                                    \Artisan::call('db:seed', [
+                                        '--class' => $seeder,
+                                        '--force' => true
+                                    ]);
+                                    \Log::info("Seeder {$seeder} exécuté avec succès.");
+                                } else {
+                                    $errorMsg = "Erreur : la classe {$seeder} n'existe pas.";
+                                    \Log::error($errorMsg);
+                                    $seederErrors[] = $errorMsg;
+                                }
                             } catch (\Exception $e) {
                                 $errorMsg = "Erreur dans {$seeder}: " . $e->getMessage();
                                 \Log::error($errorMsg);
@@ -343,9 +353,11 @@ class InstallController extends Controller
                         session(['esbtp_data_check' => $esbtpDataCheck]);
                         
                         if (!$esbtpDataCheck['success']) {
-                            $missingDataWarning = "Certaines données ESBTP n'ont pas été correctement créées: " . implode(', ', $esbtpDataCheck['missing_data']);
+                            $missingDataWarning = "⚠️ Attention : Certaines données ESBTP n'ont pas pu être créées : " . implode(', ', $esbtpDataCheck['missing_data']);
                             \Log::warning($missingDataWarning);
                             $migrationWarnings[] = $missingDataWarning;
+                        } else {
+                            \Log::info("📊 Les données ESBTP ont été initialisées avec succès.");
                         }
                     }
                 }
@@ -486,8 +498,8 @@ class InstallController extends Controller
                 'is_active' => true,
             ]);
             
-            // Attribuer le rôle admin
-            $user->assignRole('admin');
+            // Attribuer le rôle superAdmin
+            $user->assignRole('superAdmin');
             
             // Enregistrer les informations dans la session
             session(['admin_name' => $validated['name']]);

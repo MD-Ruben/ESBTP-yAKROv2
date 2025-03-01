@@ -37,7 +37,7 @@ class CreateESBTPBulletinsTable extends Migration
                 $table->softDeletes();
                 
                 // Contrainte d'unicité pour éviter les doublons
-                $table->unique(['etudiant_id', 'classe_id', 'annee_universitaire_id', 'periode']);
+                $table->unique(['etudiant_id', 'classe_id', 'annee_universitaire_id', 'periode'], 'unique_bulletin_etudiant');
             });
             
             \Log::info('Table esbtp_bulletins créée avec succès.');

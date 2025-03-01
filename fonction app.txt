@@ -71,7 +71,7 @@ Pour la vérification des vues tu dois chercher le nom du dossier(la fonctionnal
 
 
 
-Maintenant que tu as fini, fais une vérification complète de la structure du code, je veux que tu supprime tout ce qui n'est pas en rapport avec mon prompt ce qui n'est pas spécifique à ESBT et à specification_ESBTP.md et roles_permissions_ESBTP.md, dossiers, files, script, migrations, models, controller, seeder, les vues tout vraiment tout, ce qui est repetitive aussi, les redondances. Je veux une application epurée, après tu pars modifier la barre latérale(sidebar) dans app.blade.php pour garder seulement ce qui est dans mon prompt ce qui est specifique à ESBTP
+Maintenant que tu as fini d'implémenter les fonctionnalités de l'app selon specification_ESBTP.md, fais une vérification complète de la structure du code, je veux que tu supprime tout ce qui n'est pas en rapport avec mon prompt ce qui n'est pas spécifique à ESBT et à specification_ESBTP.md et roles_permissions_ESBTP.md, dossiers, files, script, migrations, models, controller, seeder, les vues tout vraiment tout, ce qui est repetitive aussi, les redondances. Je veux une application epurée, après tu pars modifier la barre latérale(sidebar) dans app.blade.php pour garder seulement ce qui est dans mon prompt ce qui est specifique à ESBTP
 Vérifie bien que ce que tu supprimes ne va pas endommager ce que j'ai mis dans mon prompt(ce que tu as implémenté) et aussi l'installation /install
 Toutes les migrations et seeders en rapport avec la documentation specification_ESBTP.md et roles_permissions_ESBTP.md doivent être créées
 Aussi vérifies l'installtion /install pour voir si ça marche complètement
@@ -90,4 +90,6 @@ Enfin crée des seeders pour tout tester complètement de l'application (   * le
 		La filière MINE - GEOLOGIE - PETROLE: Cet élément contient des matières subdivisé en deux groupes Formation Générale et Formation technologique et professionnelle.
 			Formation Générale: Cet élement contient comme matières: Technique d'expression écrite et orale/communication/documentation(1ère année: 40 heures/2e année: 20 heures) - Anglais technique (1ere année: 40 heures/2e Année: 30 heures) - Economie et Gestion - Droit - Mathématiques - Physique (statique et résistance des matériaux) - Chimie Informatique appliqué - CAO/DAO - Entreprenariat 
                         Formation Technologie et professionnelle: Cet élément contient comme matières: Géologie générale - Calculs topométriques - Dessins plans topographiques - Travaux pratiques de topométrie - Topométrie appliquée - Lotissement - Travaux de photogramétrie/cartographie - Géodésie (canevas géodésiques) - Travaux d'aménagement foncier et cadastral( Droit foncier et cadastre) - Organisation et gestion des chantiers et des cabinets - Photographie aérienne (Cours, TD, TP) - Système d'informations géographiques - Télédetection - Travaux d'auscultation d'ouvrages et de génie civil - Informatique appliquée - Projet de fin d'études  )
+
+Vérifies que tout a été fait que tout est okay, grep codebase pour une vérification complète et sûre
 
