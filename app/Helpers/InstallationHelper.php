@@ -348,7 +348,15 @@ class InstallationHelper
                 'esbtp_filieres',
                 'esbtp_niveau_etudes',
                 'esbtp_annee_universitaires',
-                'esbtp_inscriptions'
+                'esbtp_inscriptions',
+                'esbtp_etudiants',
+                'esbtp_parents',
+                'esbtp_etudiant_parent',
+                'esbtp_paiements',
+                'esbtp_classes',
+                'esbtp_matieres',
+                'esbtp_unites_enseignement',
+                'esbtp_salles'
             ];
             
             foreach ($esbtpTables as $table) {
@@ -465,7 +473,15 @@ class InstallationHelper
                         'esbtp_filieres',
                         'esbtp_niveau_etudes',
                         'esbtp_annee_universitaires',
-                        'esbtp_inscriptions'
+                        'esbtp_inscriptions',
+                        'esbtp_etudiants',
+                        'esbtp_parents',
+                        'esbtp_etudiant_parent',
+                        'esbtp_paiements',
+                        'esbtp_classes',
+                        'esbtp_matieres',
+                        'esbtp_unites_enseignement',
+                        'esbtp_salles'
                     ]
                 ],
                 'core' => [
@@ -646,6 +662,9 @@ class InstallationHelper
                 'filieres' => true,
                 'niveaux' => true,
                 'annees' => true,
+                'etudiants' => true,
+                'parents' => true,
+                'paiements' => true,
                 'missing_data' => []
             ];
 
@@ -672,6 +691,36 @@ class InstallationHelper
                 $result['annees'] = false;
                 $result['missing_data'][] = 'Années universitaires ESBTP';
             }
+            
+            // Vérifier la table étudiants
+            if (Schema::hasTable('esbtp_etudiants')) {
+                \Log::info('Table esbtp_etudiants existe');
+            } else {
+                $result['success'] = false;
+                $result['etudiants'] = false;
+                $result['missing_data'][] = 'Table étudiants ESBTP';
+                \Log::warning('Table esbtp_etudiants n\'existe pas');
+            }
+            
+            // Vérifier la table parents
+            if (Schema::hasTable('esbtp_parents')) {
+                \Log::info('Table esbtp_parents existe');
+            } else {
+                $result['success'] = false;
+                $result['parents'] = false;
+                $result['missing_data'][] = 'Table parents ESBTP';
+                \Log::warning('Table esbtp_parents n\'existe pas');
+            }
+            
+            // Vérifier la table paiements
+            if (Schema::hasTable('esbtp_paiements')) {
+                \Log::info('Table esbtp_paiements existe');
+            } else {
+                $result['success'] = false;
+                $result['paiements'] = false;
+                $result['missing_data'][] = 'Table paiements ESBTP';
+                \Log::warning('Table esbtp_paiements n\'existe pas');
+            }
 
             return $result;
         } catch (\Exception $e) {
@@ -681,6 +730,9 @@ class InstallationHelper
                 'filieres' => false,
                 'niveaux' => false,
                 'annees' => false,
+                'etudiants' => false,
+                'parents' => false,
+                'paiements' => false,
                 'missing_data' => ['Données ESBTP (erreur de connexion)'],
                 'error' => $e->getMessage()
             ];
