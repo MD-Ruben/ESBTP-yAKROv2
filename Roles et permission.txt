@@ -39,4 +39,5 @@ Permissions:
 
 voilà les différents roles et permisions, reprends tout à zero pour remplir mes points que j'ai mis dans ce prompt, assure toi que à la fin les roles et permissions soient comme ça, n'oublie pas d'adapter à comment fonctionne l'appli reflechis et sois créatif tout en respectant mes demandes
 
-Tu modifies aussi le tableau de bord(dashboard), la page(la vue) qu'on voit qu'on se connecte pour fit avec chaque role
+Tu modifies aussi le tableau de bord(dashboard), la page(la vue) qu'on voit qu'on se connecte pour fit(s'adapter) avec chaque role
+Ce que ty verras sur ton dashboard dependra de ton rôle,

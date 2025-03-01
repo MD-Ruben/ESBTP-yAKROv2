@@ -1,0 +1,158 @@
+@extends('layouts.app')
+
+@section('title', 'Marquer les présences')
+
+@section('content')
+<div class="content-wrapper">
+    <div class="page-header">
+        <h3 class="page-title">
+            <span class="page-title-icon bg-gradient-primary text-white me-2">
+                <i class="mdi mdi-calendar-check"></i>
+            </span> Marquer les présences
+        </h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('esbtp.attendances.index') }}">Présences</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Marquer les présences</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <div class="col-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Marquer les présences</h4>
+                    
+                    <!-- Sélection de la classe et de la séance -->
+                    <div class="mb-4">
+                        <form id="selectionForm" method="GET" action="{{ route('esbtp.attendances.create') }}" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="classe_id" class="form-label">Classe</label>
+                                <select name="classe_id" id="classe_id" class="form-control" required onchange="this.form.submit()">
+                                    <option value="">Sélectionner une classe</option>
+                                    @foreach($classes as $classe)
+                                        <option value="{{ $classe->id }}" {{ request('classe_id') == $classe->id ? 'selected' : '' }}>
+                                            {{ $classe->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            @if(request()->filled('classe_id'))
+                                <div class="col-md-4">
+                                    <label for="seance_id" class="form-label">Séance de cours</label>
+                                    <select name="seance_id" id="seance_id" class="form-control" required onchange="this.form.submit()">
+                                        <option value="">Sélectionner une séance</option>
+                                        @foreach($seances as $seance)
+                                            <option value="{{ $seance->id }}" {{ request('seance_id') == $seance->id ? 'selected' : '' }}>
+                                                {{ $seance->matiere->nom }} - {{ $seance->plage_horaire }} ({{ $seance->jour_semaine_texte }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+                            
+                            @if(request()->filled('seance_id'))
+                                <div class="col-md-4">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" name="date" id="date" class="form-control" required value="{{ request('date', date('Y-m-d')) }}">
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                    
+                    <!-- Formulaire de saisie des présences -->
+                    @if(request()->filled('seance_id') && request()->filled('date') && $etudiants->count() > 0)
+                        <form action="{{ route('esbtp.attendances.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="seance_cours_id" value="{{ request('seance_id') }}">
+                            <input type="hidden" name="date" value="{{ request('date') }}">
+                            
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Étudiant</th>
+                                            <th>Statut</th>
+                                            <th>Commentaire</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($etudiants as $etudiant)
+                                            <tr>
+                                                <td>{{ $etudiant->nom_complet }}</td>
+                                                <td>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="statuts[{{ $etudiant->id }}]" id="present_{{ $etudiant->id }}" value="present" checked>
+                                                        <label class="form-check-label text-success" for="present_{{ $etudiant->id }}">Présent</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="statuts[{{ $etudiant->id }}]" id="absent_{{ $etudiant->id }}" value="absent">
+                                                        <label class="form-check-label text-danger" for="absent_{{ $etudiant->id }}">Absent</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="statuts[{{ $etudiant->id }}]" id="retard_{{ $etudiant->id }}" value="retard">
+                                                        <label class="form-check-label text-warning" for="retard_{{ $etudiant->id }}">Retard</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="statuts[{{ $etudiant->id }}]" id="excuse_{{ $etudiant->id }}" value="excuse">
+                                                        <label class="form-check-label text-info" for="excuse_{{ $etudiant->id }}">Excusé</label>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="commentaires[{{ $etudiant->id }}]" class="form-control" placeholder="Commentaire (optionnel)">
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-gradient-primary">
+                                    <i class="mdi mdi-content-save"></i> Enregistrer les présences
+                                </button>
+                                <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-light">Annuler</a>
+                            </div>
+                        </form>
+                        
+                        <!-- Boutons pour marquer tous les étudiants -->
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-success btn-sm" onclick="marquerTous('present')">
+                                <i class="mdi mdi-check-all"></i> Tous présents
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="marquerTous('absent')">
+                                <i class="mdi mdi-close-all"></i> Tous absents
+                            </button>
+                        </div>
+                    @elseif(request()->filled('seance_id') && request()->filled('date') && $etudiants->count() == 0)
+                        <div class="alert alert-warning">
+                            <i class="mdi mdi-alert-circle"></i> Aucun étudiant n'est inscrit dans cette classe.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@section('scripts')
+<script>
+    function marquerTous(statut) {
+        document.querySelectorAll('input[type="radio"][value="' + statut + '"]').forEach(function(radio) {
+            radio.checked = true;
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Soumettre automatiquement le formulaire quand la date change
+        document.getElementById('date')?.addEventListener('change', function() {
+            document.getElementById('selectionForm').submit();
+        });
+    });
+</script>
+@endsection 

@@ -23,6 +23,7 @@ use App\Http\Controllers\ESBTPNoteController;
 use App\Http\Controllers\ESBTPBulletinController;
 use App\Http\Controllers\ESBTPAnnonceController;
 use App\Http\Controllers\ESBTPSeanceCoursController;
+use App\Http\Controllers\ESBTPAttendanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,6 +112,11 @@ Route::middleware(['auth', 'installed'])->group(function () {
         Route::get('/seances-cours/{seancesCour}/edit', [ESBTPSeanceCoursController::class, 'edit'])->name('seances-cours.edit');
         Route::put('/seances-cours/{seancesCour}', [ESBTPSeanceCoursController::class, 'update'])->name('seances-cours.update');
         Route::delete('/seances-cours/{seancesCour}', [ESBTPSeanceCoursController::class, 'destroy'])->name('seances-cours.destroy');
+        
+        // Routes pour les présences
+        Route::resource('attendances', ESBTPAttendanceController::class);
+        Route::get('/attendances-rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])->name('attendances.rapport-form');
+        Route::post('/attendances-rapport', [ESBTPAttendanceController::class, 'rapport'])->name('attendances.rapport');
     });
     
     // Routes pour l'espace étudiant

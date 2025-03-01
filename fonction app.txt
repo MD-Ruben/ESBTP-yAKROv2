@@ -71,10 +71,11 @@ Pour la vérification des vues tu dois chercher le nom du dossier(la fonctionnal
 
 
 
-Maintenant que tu as fini, fais une vérification complète de la structure du code, je veux que tu supprime tout ce qui n'est pas en rapport avec mon prompt ce qui n'est pas spécifique à ESBT, dossiers, files, script, migrations, models, controller, seeder, les vues tout vraiment tout, ce qui est repetitive aussi, les redondances. Je veux une application epurée, après tu pars modifier la barre latérale(sidebar) dans app.blade.php pour garder seulement ce qui est dans mon prompt ce qui est specifique à ESBTP
+Maintenant que tu as fini, fais une vérification complète de la structure du code, je veux que tu supprime tout ce qui n'est pas en rapport avec mon prompt ce qui n'est pas spécifique à ESBT et à specification_ESBTP.md et roles_permissions_ESBTP.md, dossiers, files, script, migrations, models, controller, seeder, les vues tout vraiment tout, ce qui est repetitive aussi, les redondances. Je veux une application epurée, après tu pars modifier la barre latérale(sidebar) dans app.blade.php pour garder seulement ce qui est dans mon prompt ce qui est specifique à ESBTP
 Vérifie bien que ce que tu supprimes ne va pas endommager ce que j'ai mis dans mon prompt(ce que tu as implémenté) et aussi l'installation /install
+Toutes les migrations et seeders en rapport avec la documentation specification_ESBTP.md et roles_permissions_ESBTP.md doivent être créées
 Aussi vérifies l'installtion /install pour voir si ça marche complètement
-Vérfie chaque étape pour l'installation que tout est bon, configuration base de données, vérification migration, création de superadmin et complete l'installation
+Vérfie chaque étape pour l'installation que tout est bon, configuration base de données, vérification des migration executés, les tables qui existent déjà and so on ... , création de superadmin et complete l'installation
              
 
               (  Processus d'installation pour un git push et git pull, un déploiement, vérifie le code pour voir si tout est bon et aussi sur les fichiers de migration, sur le fichier installationHelper, IntallerController and so on)
