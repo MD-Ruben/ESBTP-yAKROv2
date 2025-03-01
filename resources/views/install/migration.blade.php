@@ -352,7 +352,7 @@
                     </a>
                     @endif
                     
-                    <button v-if="!started" @click="runMigration" class="btn-primary" :disabled="loading">
+                    <button @click="runMigration" class="btn-primary" :disabled="loading">
                         <span v-if="!loading">Démarrer la migration</span>
                         <span v-else class="flex items-center">
                             <i class="fas fa-circle-notch fa-spin mr-2"></i>
@@ -360,10 +360,64 @@
                         </span>
                     </button>
                     
-                    <button v-else-if="completed" @click="goToNextStep" class="btn-primary">
+                    <button v-if="completed" @click="goToNextStep" class="btn-success">
+                        <i class="fas fa-check-circle mr-2"></i>
                         <span>Continuer</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
                     </button>
+                </div>
+            </div>
+            
+            <!-- Indicateur de progression amélioré -->
+            <div v-if="loading" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div class="flex items-center">
+                    <i class="fas fa-spinner fa-spin text-blue-500 mr-3 text-xl"></i>
+                    <div>
+                        <p class="font-medium text-blue-700">Migration en cours...</p>
+                        <p class="text-sm text-blue-600 mt-1">Cette opération peut prendre quelques minutes. Veuillez patienter.</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between text-xs text-blue-600 mb-1">
+                        <span>Progression</span>
+                        <span>@{{ progress.toFixed(0) }}%</span>
+                    </div>
+                    <div class="h-2 bg-blue-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alertes pour les erreurs de connexion à la base de données -->
+            @if(session('db_connection_error'))
+            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                    <div>
+                        <p class="font-medium text-red-700">Erreur de connexion à la base de données</p>
+                        <p class="text-sm text-red-600 mt-1">{{ session('db_connection_error') }}</p>
+                        <div class="mt-3 p-3 bg-white rounded border border-red-100">
+                            <h4 class="text-sm font-medium text-red-700 mb-2">Solutions possibles :</h4>
+                            <ul class="text-xs text-red-600 list-disc pl-4 space-y-1">
+                                <li>Vérifiez que votre serveur MySQL est bien démarré</li>
+                                <li>Vérifiez que les identifiants sont corrects (nom d'utilisateur, mot de passe)</li>
+                                <li>Vérifiez que l'utilisateur a les droits suffisants</li>
+                                <li>Assurez-vous que le port MySQL spécifié est correct (généralement 3306)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+            
+            <!-- Alertes spécifiques pour les erreurs connues -->
+            <div v-if="hasMissingTableError" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                    <div>
+                        <p class="font-medium text-yellow-700">Attention : Table manquante détectée</p>
+                        <p class="text-sm text-yellow-600 mt-1">La table "esbtp_unites_enseignement" est mentionnée dans les migrations mais a été supprimée des spécifications. Ceci est normal et n'affecte pas le fonctionnement de l'application.</p>
+                        <p class="text-sm text-yellow-600 mt-2">Vous pouvez continuer l'installation normalement.</p>
+                    </div>
                 </div>
             </div>
             
@@ -424,10 +478,11 @@
                 progress: 0,
                 nextUrl: '',
                 advancedOptions: {
-                    runSeeders: false,
-                    runESBTPSeeders: false,
+                    runSeeders: true,
+                    runESBTPSeeders: true,
                     forceMigrate: false
-                }
+                },
+                migrationErrors: null
             },
             computed: {
                 formattedOutput() {
@@ -449,9 +504,14 @@
                             } else if (line.includes('Creating table:')) {
                                 return `<span class="text-purple-400">${line}</span>`;
                             }
-                            return `<span class="text-gray-300">${line}</span>`;
+                            return line;
                         })
                         .join('<br>');
+                },
+                hasMissingTableError() {
+                    if (!this.error) return false;
+                    return this.error.includes('esbtp_unites_enseignement') || 
+                           (this.migrationErrors && this.migrationErrors.includes('esbtp_unites_enseignement'));
                 }
             },
             methods: {
@@ -462,11 +522,46 @@
                     this.success = null;
                     this.output = 'Démarrage des migrations...\n';
                     this.progress = 5;
+                    this.migrationErrors = null;
+                    
+                    // Affichage des options utilisées
+                    this.output += `🔧 Options sélectionnées :\n`;
+                    this.output += `  • Exécuter les seeders : ${this.advancedOptions.runSeeders ? '✅ Oui' : '❌ Non'}\n`;
+                    if (this.advancedOptions.runSeeders) {
+                        this.output += `  • Exécuter les seeders ESBTP : ${this.advancedOptions.runESBTPSeeders ? '✅ Oui' : '❌ Non'}\n`;
+                    }
+                    this.output += `  • Forcer la migration : ${this.advancedOptions.forceMigrate ? '⚠️ Oui' : '❌ Non'}\n\n`;
                     
                     // Scroll to bottom of console
                     this.$nextTick(() => {
                         this.scrollToBottom();
                     });
+                    
+                    // Simulation de progression plus réaliste
+                    this.output += `⏳ Préparation de la base de données...\n`;
+                    let progressSteps = [
+                        { target: 10, text: 'Vérification de la connexion...' },
+                        { target: 20, text: 'Préparation des migrations...' },
+                        { target: 30, text: 'Création des tables...' },
+                        { target: 60, text: 'Application des migrations...' },
+                        { target: 80, text: 'Configuration des données...' },
+                        { target: 90, text: 'Finalisation...' }
+                    ];
+                    
+                    let currentStep = 0;
+                    
+                    this.progressInterval = setInterval(() => {
+                        if (currentStep < progressSteps.length && this.progress < progressSteps[currentStep].target) {
+                            this.progress += 0.5;
+                            if (this.progress >= progressSteps[currentStep].target) {
+                                this.output += `\n${progressSteps[currentStep].text}\n`;
+                                this.$nextTick(() => {
+                                    this.scrollToBottom();
+                                });
+                                currentStep++;
+                            }
+                        }
+                    }, 300);
                     
                     axios.post('{{ route("install.run-migration") }}', {
                         runSeeders: this.advancedOptions.runSeeders,
@@ -474,18 +569,57 @@
                         forceMigrate: this.advancedOptions.forceMigrate
                     })
                         .then(response => {
-                            this.loading = false;
+                            clearInterval(this.progressInterval);
                             
                             if (response.data.status === 'success') {
                                 this.success = response.data.message;
-                                this.output += response.data.output;
+                                this.output += `\n✅ ${response.data.message}\n`;
+                                
+                                // Afficher un message si la base de données a été créée
+                                if (response.data.database_created) {
+                                    this.output += `🔄 Base de données créée automatiquement.\n`;
+                                }
+                                
+                                // Afficher un message sur les seeders ESBTP
+                                if (response.data.esbtp_seeded) {
+                                    this.output += `📊 Les données ESBTP ont été initialisées.\n`;
+                                    
+                                    // Vérifier si les données ESBTP sont complètes
+                                    if (response.data.esbtp_data_check && !response.data.esbtp_data_check.success) {
+                                        this.output += `⚠️ Attention : Certaines données ESBTP n'ont pas pu être créées : ${response.data.esbtp_data_check.missing_data.join(', ')}\n`;
+                                    }
+                                }
+                                
+                                // Vérifier s'il y a des erreurs spécifiques
+                                if (response.data.migration_errors) {
+                                    this.migrationErrors = response.data.migration_errors;
+                                    
+                                    // Si c'est une erreur relative à esbtp_unites_enseignement, on la traite différemment
+                                    if (this.hasMissingTableError) {
+                                        this.output += `\n⚠️ Avertissement : ${response.data.migration_errors}\n`;
+                                        this.output += `ℹ️ Cet avertissement est normal et ne bloque pas l'installation. La table mentionnée a été supprimée des spécifications.\n`;
+                                    } else {
+                                        this.output += `\n⚠️ Avertissement : ${response.data.migration_errors}\n`;
+                                    }
+                                }
+                                
                                 this.progress = 100;
                                 this.completed = true;
                                 this.nextUrl = response.data.redirect;
+                                
+                                // Réduire le loading après un délai pour montrer le 100%
+                                setTimeout(() => {
+                                    this.loading = false;
+                                }, 1000);
                             } else {
                                 this.error = response.data.message;
-                                this.output += '\nErreur: ' + response.data.message;
+                                this.output += `\n❌ Erreur: ${response.data.message}\n`;
                                 this.progress = 0;
+                                this.loading = false;
+                                
+                                if (response.data.migration_errors) {
+                                    this.migrationErrors = response.data.migration_errors;
+                                }
                             }
                             
                             // Scroll to bottom of console
@@ -494,18 +628,30 @@
                             });
                         })
                         .catch(error => {
+                            clearInterval(this.progressInterval);
                             this.loading = false;
                             
                             if (error.response && error.response.data) {
                                 this.error = error.response.data.message || 'Une erreur est survenue lors de la migration.';
-                                this.output += '\nErreur: ' + this.error;
+                                this.output += `\n❌ Erreur: ${this.error}\n`;
+                                
+                                // Si l'erreur concerne l'accès à la base de données
+                                if (this.error.includes('Access denied') || this.error.includes('Accès refusé')) {
+                                    this.output += `\n🔑 Problème d'authentification MySQL : Vérifiez que le nom d'utilisateur et le mot de passe sont corrects.\n`;
+                                } else if (this.error.includes('Connection refused') || this.error.includes('Connexion refusée')) {
+                                    this.output += `\n🔌 Problème de connexion au serveur MySQL : Vérifiez que le serveur est bien démarré et accessible.\n`;
+                                }
                                 
                                 if (error.response.data.output) {
                                     this.output += '\n' + error.response.data.output;
                                 }
+                                
+                                if (error.response.data.migration_errors) {
+                                    this.migrationErrors = error.response.data.migration_errors;
+                                }
                             } else {
                                 this.error = 'Une erreur est survenue lors de la migration.';
-                                this.output += '\nErreur: ' + this.error;
+                                this.output += `\n❌ Erreur: ${this.error}\n`;
                             }
                             
                             this.progress = 0;

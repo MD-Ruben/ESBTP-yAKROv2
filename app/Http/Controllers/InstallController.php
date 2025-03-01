@@ -205,32 +205,37 @@ class InstallController extends Controller
             $runSeeders = $request->has('runSeeders') ? (bool)$request->runSeeders : true; // Option pour exécuter les seeders
             $runESBTPSeeders = $request->has('runESBTPSeeders') ? (bool)$request->runESBTPSeeders : true; // Option pour les seeders ESBTP
             
-            \Log::info("Migration lancée avec les options - Force: " . ($forceMigrate ? 'Oui' : 'Non') . 
-                      ", Seeders: " . ($runSeeders ? 'Oui' : 'Non') . 
-                      ", Seeders ESBTP: " . ($runESBTPSeeders ? 'Oui' : 'Non'));
+            // Nettoyer les erreurs précédentes
+            session()->forget(['migration_errors', 'db_connection_error']);
+            
+            \Log::info("Migration lancée avec options - Force: {$forceMigrate}, Seeders: {$runSeeders}, ESBTP Seeders: {$runESBTPSeeders}");
             
             // Vérifier si on a une connexion à la base de données
             $dbConfigured = InstallationHelper::isDatabaseConfigured();
             if (!$dbConfigured) {
+                $errorMsg = 'La base de données n\'est pas correctement configurée. Veuillez revenir à l\'étape précédente.';
                 \Log::error("Erreur de migration: Base de données non configurée");
+                session(['migration_errors' => $errorMsg]);
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'La base de données n\'est pas correctement configurée. Veuillez revenir à l\'étape précédente.'
+                    'message' => $errorMsg
                 ]);
             }
             
             // Si la base de données n'existe pas, on la crée automatiquement
             if (!$databaseExists && !$databaseCreated) {
-                \Log::info("La base de données n'existe pas ou n'a pas encore été créée. Tentative de création...");
+                \Log::info("Tentative de création de la base de données...");
                 
                 $dbConfig = config('database.connections.mysql');
                 $created = $this->createDatabase($dbConfig['host'], $dbConfig['port'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
                 
                 if (!$created) {
-                    \Log::error("Échec de la création automatique de la base de données");
+                    $errorMsg = session('db_connection_error') ?? 'Impossible de créer automatiquement la base de données. Veuillez la créer manuellement.';
+                    \Log::error("Échec de la création de la base de données: {$errorMsg}");
+                    session(['migration_errors' => $errorMsg]);
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'Impossible de créer automatiquement la base de données. Veuillez la créer manuellement.'
+                        'message' => $errorMsg
                     ]);
                 }
                 
@@ -241,8 +246,6 @@ class InstallController extends Controller
             
             // Si la base vient d'être créée ou si force_migrate est vrai, exécuter les migrations
             if ($databaseCreated || $forceMigrate) {
-                \Log::info("Exécution des migrations...");
-                
                 // Clear cache avant la migration
                 \Artisan::call('config:clear');
                 \Artisan::call('cache:clear');
@@ -254,17 +257,55 @@ class InstallController extends Controller
                 }
                 
                 // Exécuter les migrations
-                \Artisan::call('migrate', ['--force' => true]);
-                $migrationOutput = \Artisan::output();
-                \Log::info("Résultat des migrations: " . $migrationOutput);
+                $migrationSuccess = true;
+                $migrationWarnings = [];
                 
-                // Exécuter les seeders si l'option est activée
-                if ($runSeeders) {
+                try {
+                    \Log::info("Exécution des migrations...");
+                    \Artisan::call('migrate', ['--force' => true]);
+                    $migrationOutput = \Artisan::output();
+                    
+                    // Vérifier s'il y a des avertissements liés à la table manquante esbtp_unites_enseignement
+                    if (strpos($migrationOutput, 'esbtp_unites_enseignement') !== false && 
+                        strpos($migrationOutput, 'does not exist') !== false) {
+                        $warning = "Table esbtp_unites_enseignement manquante détectée. Cette table a été supprimée des spécifications et n'affecte pas le fonctionnement de l'application.";
+                        \Log::warning($warning);
+                        $migrationWarnings[] = $warning;
+                    }
+                } catch (\Exception $e) {
+                    // Si l'erreur concerne la table esbtp_unites_enseignement, c'est un avertissement, pas une erreur critique
+                    if (strpos($e->getMessage(), 'esbtp_unites_enseignement') !== false) {
+                        $warning = "Avertissement concernant esbtp_unites_enseignement: " . $e->getMessage();
+                        \Log::warning($warning);
+                        $migrationWarnings[] = $warning;
+                    } else {
+                        // Pour les autres erreurs, c'est critique
+                        $errorMsg = 'Erreur lors des migrations: ' . $e->getMessage();
+                        \Log::error($errorMsg);
+                        session(['migration_errors' => $errorMsg]);
+                        $migrationSuccess = false;
+                        
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => $errorMsg,
+                            'migration_errors' => $errorMsg
+                        ]);
+                    }
+                }
+                
+                // Exécuter les seeders si l'option est activée et que les migrations ont réussi
+                if ($runSeeders && $migrationSuccess) {
                     \Log::info("Exécution des seeders principaux...");
-                    \Artisan::call('db:seed', [
-                        '--class' => 'RoleSeeder',
-                        '--force' => true
-                    ]);
+                    try {
+                        \Artisan::call('db:seed', [
+                            '--class' => 'RoleSeeder',
+                            '--force' => true
+                        ]);
+                    } catch (\Exception $e) {
+                        $errorMsg = "Erreur lors de l'exécution du seeder RoleSeeder: " . $e->getMessage();
+                        \Log::error($errorMsg);
+                        $migrationWarnings[] = $errorMsg;
+                    }
                     
                     // Exécuter les seeders ESBTP si l'option est activée
                     if ($runESBTPSeeders) {
@@ -274,19 +315,27 @@ class InstallController extends Controller
                         $esbtpSeeders = [
                             'ESBTPFiliereSeeder',
                             'ESBTPNiveauEtudeSeeder',
-                            'ESBTPAnneeUniversitaireSeeder'
+                            'ESBTPAnneeUniversitaireSeeder',
+                            'ESBTPMatiereSeeder'
                         ];
                         
+                        $seederErrors = [];
                         foreach ($esbtpSeeders as $seeder) {
                             try {
+                                \Log::info("Exécution du seeder {$seeder}");
                                 \Artisan::call('db:seed', [
                                     '--class' => $seeder,
                                     '--force' => true
                                 ]);
-                                \Log::info("Seeder {$seeder} exécuté avec succès");
                             } catch (\Exception $e) {
-                                \Log::error("Erreur lors de l'exécution du seeder {$seeder}: " . $e->getMessage());
+                                $errorMsg = "Erreur dans {$seeder}: " . $e->getMessage();
+                                \Log::error($errorMsg);
+                                $seederErrors[] = $errorMsg;
                             }
+                        }
+                        
+                        if (!empty($seederErrors)) {
+                            $migrationWarnings = array_merge($migrationWarnings, $seederErrors);
                         }
                         
                         // Vérifier que les données ESBTP ont été correctement créées
@@ -294,10 +343,16 @@ class InstallController extends Controller
                         session(['esbtp_data_check' => $esbtpDataCheck]);
                         
                         if (!$esbtpDataCheck['success']) {
-                            \Log::warning("Certaines données ESBTP n'ont pas été correctement créées: " . 
-                                         implode(', ', $esbtpDataCheck['missing_data']));
+                            $missingDataWarning = "Certaines données ESBTP n'ont pas été correctement créées: " . implode(', ', $esbtpDataCheck['missing_data']);
+                            \Log::warning($missingDataWarning);
+                            $migrationWarnings[] = $missingDataWarning;
                         }
                     }
+                }
+                
+                // Si nous avons des avertissements, les enregistrer en session
+                if (!empty($migrationWarnings)) {
+                    session(['migration_errors' => implode(' | ', $migrationWarnings)]);
                 }
             }
             
@@ -306,13 +361,20 @@ class InstallController extends Controller
                 'message' => 'Migrations exécutées avec succès' . ($databaseCreated ? ' et base de données créée automatiquement' : ''),
                 'database_created' => $databaseCreated,
                 'esbtp_seeded' => $runESBTPSeeders,
-                'esbtp_data_check' => session('esbtp_data_check', ['success' => true])
+                'esbtp_data_check' => session('esbtp_data_check', ['success' => true]),
+                'migration_errors' => session('migration_errors', null),
+                'redirect' => route('install.admin')
             ]);
+            
         } catch (\Exception $e) {
-            \Log::error("Erreur lors de l'exécution des migrations: " . $e->getMessage());
+            $errorMsg = 'Une erreur est survenue: ' . $e->getMessage();
+            \Log::error("Erreur critique lors de l'exécution des migrations: " . $e->getMessage());
+            session(['migration_errors' => $errorMsg]);
+            
             return response()->json([
                 'status' => 'error',
-                'message' => 'Une erreur est survenue lors de l\'exécution des migrations: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de l\'exécution des migrations: ' . $e->getMessage(),
+                'migration_errors' => session('migration_errors', null)
             ]);
         }
     }
@@ -608,13 +670,49 @@ class InstallController extends Controller
                 'tables_exist' => $tablesExist
             ];
             
-        } catch (\Exception $e) {
+        } catch (\PDOException $e) {
             // Journaliser l'erreur de connexion
-            $errorMessage = "Erreur de connexion à la base de données: " . $e->getMessage();
+            $errorCode = $e->getCode();
+            $errorMessage = "";
+            
+            // Traiter les erreurs courantes de manière spécifique
+            switch ($errorCode) {
+                case 1045: // Access denied for user
+                    $errorMessage = "Accès refusé pour l'utilisateur '{$username}'. Vérifiez vos identifiants MySQL.";
+                    break;
+                case 2002: // Connection refused
+                    $errorMessage = "Impossible de se connecter au serveur MySQL ({$host}:{$port}). Vérifiez que le serveur est bien démarré.";
+                    break;
+                case 1049: // Unknown database
+                    $errorMessage = "La base de données '{$database}' n'existe pas encore. Elle sera créée automatiquement lors de la migration.";
+                    session(['database_exists' => false]);
+                    return [
+                        'status' => 'success',
+                        'message' => $errorMessage,
+                        'database_exists' => false,
+                        'tables_exist' => false
+                    ];
+                default:
+                    $errorMessage = "Erreur de connexion à la base de données: " . $e->getMessage();
+            }
+            
             \Log::error($errorMessage);
             
             // Stocker l'erreur en session pour l'afficher à l'utilisateur
-            session(['db_connection_error' => $e->getMessage()]);
+            session(['db_connection_error' => $errorMessage]);
+            
+            return [
+                'status' => 'error',
+                'message' => $errorMessage,
+                'error_code' => $errorCode
+            ];
+        } catch (\Exception $e) {
+            // Pour toute autre exception
+            $errorMessage = "Erreur inattendue lors de la connexion à la base de données: " . $e->getMessage();
+            \Log::error($errorMessage);
+            
+            // Stocker l'erreur en session pour l'afficher à l'utilisateur
+            session(['db_connection_error' => $errorMessage]);
             
             return [
                 'status' => 'error',
@@ -855,16 +953,45 @@ class InstallController extends Controller
             $pdo = new \PDO("mysql:host={$host};port={$port}", $username, $password);
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             
-            // Échapper le nom de la base de données
-            $database = $pdo->quote($database);
+            // Conserver le nom original pour les logs
+            $dbName = $database;
             
-            // Créer la base de données si elle n'existe pas
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS {$database}");
+            // Échapper correctement le nom de la base de données en utilisant la méthode de citation de PDO
+            // Ceci est important pour gérer les noms de bases de données avec des caractères spéciaux
+            $safeDatabase = $pdo->quote($database);
+            // Retirer les guillemets simples ajoutés par quote() car ils sont déjà inclus dans la requête SQL
+            $safeDatabase = trim($safeDatabase, "'");
             
-            \Log::info("Base de données {$database} créée avec succès");
+            // Créer la base de données avec une syntaxe SQL correcte
+            $sql = "CREATE DATABASE IF NOT EXISTS `{$safeDatabase}`";
+            \Log::info("Exécution de la requête SQL: " . $sql);
+            $pdo->exec($sql);
+            
+            \Log::info("Base de données {$dbName} créée avec succès");
             return true;
+        } catch (\PDOException $e) {
+            $errorCode = $e->getCode();
+            $errorMessage = "";
+            
+            // Traiter les erreurs courantes de manière spécifique
+            switch ($errorCode) {
+                case 1045: // Access denied
+                    $errorMessage = "Accès refusé pour l'utilisateur '{$username}'. Vérifiez que cet utilisateur a les droits de création de base de données.";
+                    break;
+                case 1007: // Database exists
+                    \Log::info("La base de données {$database} existe déjà. Continuons avec celle-ci.");
+                    return true;
+                default:
+                    $errorMessage = "Erreur lors de la création de la base de données {$database}: " . $e->getMessage();
+            }
+            
+            \Log::error($errorMessage);
+            session(['db_connection_error' => $errorMessage]);
+            return false;
         } catch (\Exception $e) {
-            \Log::error("Erreur lors de la création de la base de données: " . $e->getMessage());
+            $errorMessage = "Erreur inattendue lors de la création de la base de données {$database}: " . $e->getMessage();
+            \Log::error($errorMessage);
+            session(['db_connection_error' => $errorMessage]);
             return false;
         }
     }

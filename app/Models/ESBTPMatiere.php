@@ -25,10 +25,18 @@ class ESBTPMatiere extends Model
     protected $fillable = [
         'name',
         'code',
+        'nom',
         'description',
-        'unite_enseignement_id',
-        'coefficient_default',
-        'total_heures_default',
+        'coefficient',
+        'heures_cm',
+        'heures_td',
+        'heures_tp',
+        'heures_stage',
+        'heures_perso',
+        'niveau_etude_id',
+        'filiere_id',
+        'type_formation',
+        'couleur',
         'is_active',
         'created_by',
         'updated_by'
@@ -40,19 +48,33 @@ class ESBTPMatiere extends Model
      * @var array
      */
     protected $casts = [
-        'coefficient_default' => 'float',
-        'total_heures_default' => 'integer',
+        'coefficient' => 'float',
+        'heures_cm' => 'integer',
+        'heures_td' => 'integer',
+        'heures_tp' => 'integer',
+        'heures_stage' => 'integer',
+        'heures_perso' => 'integer',
         'is_active' => 'boolean',
     ];
 
     /**
-     * Relation avec l'unité d'enseignement.
+     * Relation avec le niveau d'étude.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function uniteEnseignement()
+    public function niveauEtude()
     {
-        return $this->belongsTo(ESBTPUniteEnseignement::class, 'unite_enseignement_id');
+        return $this->belongsTo(ESBTPNiveauEtude::class, 'niveau_etude_id');
+    }
+
+    /**
+     * Relation avec la filière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function filiere()
+    {
+        return $this->belongsTo(ESBTPFiliere::class, 'filiere_id');
     }
 
     /**
@@ -90,28 +112,6 @@ class ESBTPMatiere extends Model
     }
 
     /**
-     * Relation avec les filières associées à cette matière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function filieres()
-    {
-        return $this->belongsToMany(ESBTPFiliere::class, 'esbtp_filiere_matiere', 'matiere_id', 'filiere_id')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Relation avec les niveaux d'études associées à cette matière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function niveaux()
-    {
-        return $this->belongsToMany(ESBTPNiveauEtude::class, 'esbtp_niveau_matiere', 'matiere_id', 'niveau_id')
-                    ->withTimestamps();
-    }
-
-    /**
      * Relation avec les formations associées à cette matière.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -131,7 +131,7 @@ class ESBTPMatiere extends Model
     public function getCoefficientForClasse($classeId)
     {
         $pivot = $this->classes()->where('esbtp_classe.id', $classeId)->first()->pivot ?? null;
-        return $pivot ? $pivot->coefficient : $this->coefficient_default;
+        return $pivot ? $pivot->coefficient : $this->coefficient;
     }
 
     /**
@@ -143,7 +143,7 @@ class ESBTPMatiere extends Model
     public function getTotalHeuresForClasse($classeId)
     {
         $pivot = $this->classes()->where('esbtp_classe.id', $classeId)->first()->pivot ?? null;
-        return $pivot ? $pivot->total_heures : $this->total_heures_default;
+        return $pivot ? $pivot->total_heures : $this->heures_cm + $this->heures_td + $this->heures_tp + $this->heures_stage + $this->heures_perso;
     }
 
     /**

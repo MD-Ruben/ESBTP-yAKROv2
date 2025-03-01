@@ -32,15 +32,6 @@
                                         <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations générales</h6>
                                     </div>
                                     <div class="card-body">
-                                        <!-- Nom de la matière -->
-                                        <div class="mb-3">
-                                            <label for="name" class="form-label">Nom de la matière <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                                            @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                        
                                         <!-- Code de la matière -->
                                         <div class="mb-3">
                                             <label for="code" class="form-label">Code de la matière <span class="text-danger">*</span></label>
@@ -51,18 +42,11 @@
                                             @enderror
                                         </div>
                                         
-                                        <!-- Unité d'enseignement -->
+                                        <!-- Nom complet de la matière (nom) -->
                                         <div class="mb-3">
-                                            <label for="unite_enseignement_id" class="form-label">Unité d'enseignement</label>
-                                            <select class="form-select select2 @error('unite_enseignement_id') is-invalid @enderror" id="unite_enseignement_id" name="unite_enseignement_id">
-                                                <option value="">Sélectionner une unité d'enseignement</option>
-                                                @foreach($unitesEnseignement as $ue)
-                                                    <option value="{{ $ue->id }}" {{ old('unite_enseignement_id') == $ue->id ? 'selected' : '' }}>
-                                                        {{ $ue->name }} ({{ $ue->code }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('unite_enseignement_id')
+                                            <label for="nom" class="form-label">Nom complet de la matière <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control @error('nom') is-invalid @enderror" id="nom" name="nom" value="{{ old('nom') }}" required>
+                                            @error('nom')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -78,9 +62,9 @@
                                     <div class="card-body">
                                         <!-- Coefficient -->
                                         <div class="mb-3">
-                                            <label for="coefficient_default" class="form-label">Coefficient par défaut <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control @error('coefficient_default') is-invalid @enderror" id="coefficient_default" name="coefficient_default" value="{{ old('coefficient_default', 1) }}" min="1" step="0.5" required>
-                                            @error('coefficient_default')
+                                            <label for="coefficient" class="form-label">Coefficient <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control @error('coefficient') is-invalid @enderror" id="coefficient" name="coefficient" value="{{ old('coefficient', 1) }}" min="1" step="0.5" required>
+                                            @error('coefficient')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -88,16 +72,16 @@
                                         <!-- Volume horaire -->
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label for="heures_cm_default" class="form-label">Heures de cours magistraux</label>
-                                                <input type="number" class="form-control @error('heures_cm_default') is-invalid @enderror" id="heures_cm_default" name="heures_cm_default" value="{{ old('heures_cm_default', 0) }}" min="0" step="0.5">
-                                                @error('heures_cm_default')
+                                                <label for="heures_cm" class="form-label">Heures de cours magistraux</label>
+                                                <input type="number" class="form-control @error('heures_cm') is-invalid @enderror" id="heures_cm" name="heures_cm" value="{{ old('heures_cm', 0) }}" min="0" step="0.5">
+                                                @error('heures_cm')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label for="heures_td_default" class="form-label">Heures de travaux dirigés</label>
-                                                <input type="number" class="form-control @error('heures_td_default') is-invalid @enderror" id="heures_td_default" name="heures_td_default" value="{{ old('heures_td_default', 0) }}" min="0" step="0.5">
-                                                @error('heures_td_default')
+                                                <label for="heures_td" class="form-label">Heures de travaux dirigés</label>
+                                                <input type="number" class="form-control @error('heures_td') is-invalid @enderror" id="heures_td" name="heures_td" value="{{ old('heures_td', 0) }}" min="0" step="0.5">
+                                                @error('heures_td')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
@@ -105,19 +89,27 @@
                                         
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label for="heures_tp_default" class="form-label">Heures de travaux pratiques</label>
-                                                <input type="number" class="form-control @error('heures_tp_default') is-invalid @enderror" id="heures_tp_default" name="heures_tp_default" value="{{ old('heures_tp_default', 0) }}" min="0" step="0.5">
-                                                @error('heures_tp_default')
+                                                <label for="heures_tp" class="form-label">Heures de travaux pratiques</label>
+                                                <input type="number" class="form-control @error('heures_tp') is-invalid @enderror" id="heures_tp" name="heures_tp" value="{{ old('heures_tp', 0) }}" min="0" step="0.5">
+                                                @error('heures_tp')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label for="total_heures_default" class="form-label">Total des heures <span class="text-danger">*</span></label>
-                                                <input type="number" class="form-control @error('total_heures_default') is-invalid @enderror" id="total_heures_default" name="total_heures_default" value="{{ old('total_heures_default', 0) }}" min="0" step="0.5" required readonly>
-                                                @error('total_heures_default')
+                                                <label for="heures_stage" class="form-label">Heures de stage</label>
+                                                <input type="number" class="form-control @error('heures_stage') is-invalid @enderror" id="heures_stage" name="heures_stage" value="{{ old('heures_stage', 0) }}" min="0" step="0.5">
+                                                @error('heures_stage')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="heures_perso" class="form-label">Heures de travail personnel</label>
+                                            <input type="number" class="form-control @error('heures_perso') is-invalid @enderror" id="heures_perso" name="heures_perso" value="{{ old('heures_perso', 0) }}" min="0" step="0.5">
+                                            @error('heures_perso')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -131,48 +123,56 @@
                                         <h6 class="mb-0"><i class="fas fa-link me-2"></i>Associations</h6>
                                     </div>
                                     <div class="card-body">
-                                        <!-- Formations associées -->
+                                        <!-- Filière associée -->
                                         <div class="mb-3">
-                                            <label for="formations" class="form-label">Formations <span class="text-danger">*</span></label>
-                                            <select class="form-select select2 @error('formations') is-invalid @enderror" id="formations" name="formations[]" multiple required>
-                                                @foreach($formations as $formation)
-                                                    <option value="{{ $formation->id }}" {{ (old('formations') && in_array($formation->id, old('formations'))) || (isset($formationId) && $formationId == $formation->id) ? 'selected' : '' }}>
-                                                        {{ $formation->name }} ({{ $formation->code }})
+                                            <label for="filiere_id" class="form-label">Filière</label>
+                                            <select class="form-select select2 @error('filiere_id') is-invalid @enderror" id="filiere_id" name="filiere_id">
+                                                <option value="">Sélectionner une filière</option>
+                                                @foreach($filieres as $filiere)
+                                                    <option value="{{ $filiere->id }}" {{ old('filiere_id') == $filiere->id ? 'selected' : '' }}>
+                                                        {{ $filiere->name }} ({{ $filiere->code }})
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('formations')
+                                            @error('filiere_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         
-                                        <!-- Niveaux d'études associés -->
+                                        <!-- Niveau d'étude associé -->
                                         <div class="mb-3">
-                                            <label for="niveaux_etudes" class="form-label">Niveaux d'études <span class="text-danger">*</span></label>
-                                            <select class="form-select select2 @error('niveaux_etudes') is-invalid @enderror" id="niveaux_etudes" name="niveaux_etudes[]" multiple required>
+                                            <label for="niveau_etude_id" class="form-label">Niveau d'étude</label>
+                                            <select class="form-select select2 @error('niveau_etude_id') is-invalid @enderror" id="niveau_etude_id" name="niveau_etude_id">
+                                                <option value="">Sélectionner un niveau d'étude</option>
                                                 @foreach($niveauxEtudes as $niveau)
-                                                    <option value="{{ $niveau->id }}" {{ old('niveaux_etudes') && in_array($niveau->id, old('niveaux_etudes')) ? 'selected' : '' }}>
+                                                    <option value="{{ $niveau->id }}" {{ old('niveau_etude_id') == $niveau->id ? 'selected' : '' }}>
                                                         {{ $niveau->name }} ({{ $niveau->code }})
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('niveaux_etudes')
+                                            @error('niveau_etude_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
                                         
-                                        <!-- Enseignants associés -->
+                                        <!-- Type de formation -->
                                         <div class="mb-3">
-                                            <label for="enseignants" class="form-label">Enseignants</label>
-                                            <select class="form-select select2 @error('enseignants') is-invalid @enderror" id="enseignants" name="enseignants[]" multiple>
-                                                @foreach($enseignants as $enseignant)
-                                                    <option value="{{ $enseignant->id }}" {{ old('enseignants') && in_array($enseignant->id, old('enseignants')) ? 'selected' : '' }}>
-                                                        {{ $enseignant->user->name }} ({{ $enseignant->matricule }})
-                                                    </option>
-                                                @endforeach
+                                            <label for="type_formation" class="form-label">Type de formation <span class="text-danger">*</span></label>
+                                            <select class="form-select @error('type_formation') is-invalid @enderror" id="type_formation" name="type_formation" required>
+                                                <option value="generale" {{ old('type_formation') == 'generale' ? 'selected' : '' }}>Formation générale</option>
+                                                <option value="technologique_professionnelle" {{ old('type_formation') == 'technologique_professionnelle' ? 'selected' : '' }}>Formation technologique et professionnelle</option>
                                             </select>
-                                            <small class="form-text text-muted">Vous pourrez ajouter ou modifier les enseignants plus tard.</small>
-                                            @error('enseignants')
+                                            @error('type_formation')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        
+                                        <!-- Couleur -->
+                                        <div class="mb-3">
+                                            <label for="couleur" class="form-label">Couleur</label>
+                                            <input type="color" class="form-control form-control-color @error('couleur') is-invalid @enderror" id="couleur" name="couleur" value="{{ old('couleur', '#007bff') }}">
+                                            <small class="form-text text-muted">Couleur utilisée pour représenter la matière dans l'emploi du temps</small>
+                                            @error('couleur')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -237,7 +237,7 @@
         });
         
         // Génération automatique du code
-        $('#name').on('blur', function() {
+        $('#nom').on('blur', function() {
             if ($('#code').val() === '') {
                 let name = $(this).val().trim().toUpperCase();
                 if (name) {
@@ -250,14 +250,16 @@
         
         // Calcul automatique du total des heures
         function calculateTotalHours() {
-            const cm = parseFloat($('#heures_cm_default').val()) || 0;
-            const td = parseFloat($('#heures_td_default').val()) || 0;
-            const tp = parseFloat($('#heures_tp_default').val()) || 0;
-            const total = cm + td + tp;
+            const cm = parseFloat($('#heures_cm').val()) || 0;
+            const td = parseFloat($('#heures_td').val()) || 0;
+            const tp = parseFloat($('#heures_tp').val()) || 0;
+            const stage = parseFloat($('#heures_stage').val()) || 0;
+            const perso = parseFloat($('#heures_perso').val()) || 0;
+            const total = cm + td + tp + stage + perso;
             $('#total_heures_default').val(total);
         }
         
-        $('#heures_cm_default, #heures_td_default, #heures_tp_default').on('input', calculateTotalHours);
+        $('#heures_cm, #heures_td, #heures_tp, #heures_stage, #heures_perso').on('input', calculateTotalHours);
         calculateTotalHours(); // Calcul initial
     });
 </script>

@@ -17,10 +17,18 @@ class CreateESBTPMatieresTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('code')->unique();
+            $table->string('nom');
             $table->text('description')->nullable();
-            
-            // Relation avec l'unité d'enseignement (UE)
-            $table->foreignId('unite_enseignement_id')->nullable()->constrained('esbtp_unites_enseignement');
+            $table->integer('coefficient')->default(1);
+            $table->integer('heures_cm')->default(0); // Cours magistraux
+            $table->integer('heures_td')->default(0); // Travaux dirigés
+            $table->integer('heures_tp')->default(0); // Travaux pratiques
+            $table->integer('heures_stage')->default(0); // Stages
+            $table->integer('heures_perso')->default(0); // Travail personnel
+            $table->foreignId('niveau_etude_id')->nullable()->constrained('esbtp_niveau_etudes');
+            $table->foreignId('filiere_id')->nullable()->constrained('esbtp_filieres');
+            $table->enum('type_formation', ['generale', 'technologique_professionnelle'])->default('generale');
+            $table->string('couleur')->nullable();
             
             // Valeurs par défaut pour le coefficient et le total d'heures
             $table->float('coefficient_default')->default(1.0);

@@ -51,15 +51,19 @@ class ESBTPMatiereController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:esbtp_matieres,code',
+            'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'unite_enseignement_id' => 'nullable|exists:esbtp_unites_enseignement,id',
-            'coefficient_default' => 'required|numeric|min:0',
-            'total_heures_default' => 'required|integer|min:0',
-            'is_active' => 'boolean',
-            'filiere_ids' => 'nullable|array',
-            'filiere_ids.*' => 'exists:esbtp_filieres,id',
-            'niveau_ids' => 'nullable|array',
-            'niveau_ids.*' => 'exists:esbtp_niveau_etudes,id',
+            'coefficient' => 'required|numeric|min:0',
+            'heures_cm' => 'required|integer|min:0',
+            'heures_td' => 'required|integer|min:0',
+            'heures_tp' => 'required|integer|min:0',
+            'heures_stage' => 'required|integer|min:0',
+            'heures_perso' => 'required|integer|min:0',
+            'niveau_etude_id' => 'nullable|exists:esbtp_niveau_etudes,id',
+            'filiere_id' => 'nullable|exists:esbtp_filieres,id',
+            'type_formation' => 'required|in:generale,technologique_professionnelle',
+            'couleur' => 'nullable|string|max:50',
+            'is_active' => 'required|boolean',
         ]);
         
         // Ajouter l'identifiant de l'utilisateur courant
@@ -70,13 +74,13 @@ class ESBTPMatiereController extends Controller
         $matiere = ESBTPMatiere::create($validatedData);
         
         // Attacher les filières si présentes
-        if ($request->has('filiere_ids')) {
-            $matiere->filieres()->attach($request->filiere_ids);
+        if ($request->has('filiere_id')) {
+            $matiere->filieres()->attach($request->filiere_id);
         }
         
         // Attacher les niveaux d'études si présents
-        if ($request->has('niveau_ids')) {
-            $matiere->niveaux()->attach($request->niveau_ids);
+        if ($request->has('niveau_etude_id')) {
+            $matiere->niveaux()->attach($request->niveau_etude_id);
         }
         
         // Rediriger avec un message de succès
@@ -143,15 +147,19 @@ class ESBTPMatiereController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:esbtp_matieres,code,' . $matiere->id,
+            'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'unite_enseignement_id' => 'nullable|exists:esbtp_unites_enseignement,id',
-            'coefficient_default' => 'required|numeric|min:0',
-            'total_heures_default' => 'required|integer|min:0',
-            'is_active' => 'boolean',
-            'filiere_ids' => 'nullable|array',
-            'filiere_ids.*' => 'exists:esbtp_filieres,id',
-            'niveau_ids' => 'nullable|array',
-            'niveau_ids.*' => 'exists:esbtp_niveau_etudes,id',
+            'coefficient' => 'required|numeric|min:0',
+            'heures_cm' => 'required|integer|min:0',
+            'heures_td' => 'required|integer|min:0',
+            'heures_tp' => 'required|integer|min:0',
+            'heures_stage' => 'required|integer|min:0',
+            'heures_perso' => 'required|integer|min:0',
+            'niveau_etude_id' => 'nullable|exists:esbtp_niveau_etudes,id',
+            'filiere_id' => 'nullable|exists:esbtp_filieres,id',
+            'type_formation' => 'required|in:generale,technologique_professionnelle',
+            'couleur' => 'nullable|string|max:50',
+            'is_active' => 'required|boolean',
         ]);
         
         // Ajouter l'identifiant de l'utilisateur courant
@@ -161,15 +169,15 @@ class ESBTPMatiereController extends Controller
         $matiere->update($validatedData);
         
         // Synchroniser les filières
-        if ($request->has('filiere_ids')) {
-            $matiere->filieres()->sync($request->filiere_ids);
+        if ($request->has('filiere_id')) {
+            $matiere->filieres()->sync($request->filiere_id);
         } else {
             $matiere->filieres()->detach();
         }
         
         // Synchroniser les niveaux d'études
-        if ($request->has('niveau_ids')) {
-            $matiere->niveaux()->sync($request->niveau_ids);
+        if ($request->has('niveau_etude_id')) {
+            $matiere->niveaux()->sync($request->niveau_etude_id);
         } else {
             $matiere->niveaux()->detach();
         }
