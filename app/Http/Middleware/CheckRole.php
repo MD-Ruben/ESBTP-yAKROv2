@@ -12,7 +12,7 @@ class CheckRole
      * Vérifie si l'utilisateur a le rôle spécifié.
      *
      * Ce middleware permet de restreindre l'accès aux routes en fonction du rôle de l'utilisateur.
-     * Par exemple, certaines routes ne sont accessibles qu'aux administrateurs ou aux enseignants.
+     * Par exemple, certaines routes ne sont accessibles qu'aux super administrateurs, secrétaires ou étudiants.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
@@ -28,24 +28,21 @@ class CheckRole
 
         // Récupérer l'utilisateur connecté
         $user = Auth::user();
-
-        // Vérifier si l'utilisateur a le rôle requis
-        if ($role === 'admin' && $user->user_type !== 'admin' && $user->user_type !== 'superadmin') {
-            abort(403, 'Accès non autorisé. Rôle d\'administrateur requis.');
+        
+        // Si l'utilisateur est superAdmin, il a accès à tout
+        if ($user->hasRole('superAdmin')) {
+            return $next($request);
         }
-
-        if ($role === 'teacher' && !$user->isTeacher()) {
-            abort(403, 'Accès non autorisé. Rôle d\'enseignant requis.');
+        
+        // Vérifier pour les rôles multiples (ex: 'role:admin,editor')
+        $roles = explode(',', $role);
+        foreach ($roles as $singleRole) {
+            if ($user->hasRole($singleRole)) {
+                return $next($request);
+            }
         }
-
-        if ($role === 'student' && !$user->isStudent()) {
-            abort(403, 'Accès non autorisé. Rôle d\'étudiant requis.');
-        }
-
-        if ($role === 'parent' && !$user->isParent()) {
-            abort(403, 'Accès non autorisé. Rôle de parent requis.');
-        }
-
-        return $next($request);
+        
+        // Si aucun des rôles requis n'est présent
+        abort(403, 'Accès non autorisé. Rôle de ' . ucfirst($roles[0]) . ' requis.');
     }
 } 

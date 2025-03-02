@@ -23,7 +23,15 @@ class ESBTPAnnonceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        return view('esbtp.annonces.index', compact('annonces'));
+        // Préparation des statistiques
+        $stats = [
+            'total' => ESBTPAnnonce::count(),
+            'published' => ESBTPAnnonce::where('status', 'published')->count(),
+            'pending' => ESBTPAnnonce::whereIn('status', ['draft', 'scheduled'])->count(),
+            'urgent' => ESBTPAnnonce::where('is_urgent', true)->count()
+        ];
+        
+        return view('esbtp.annonces.index', compact('annonces', 'stats'));
     }
 
     /**

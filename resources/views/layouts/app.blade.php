@@ -3,13 +3,12 @@
     
     Ce fichier a été modifié pour :
     1. Corriger les routes non définies (erreurs 'Route [xxx] not defined')
-    2. Organiser la barre latérale en fonction des rôles (superadmin, secretaire, enseignant, etudiant)
+    2. Organiser la barre latérale en fonction des rôles (superadmin, secretaire, enseignant, etudiant, parent)
     3. Regrouper les fonctionnalités par catégories logiques
     
-    Toutes les routes ont été alignées avec les contrôleurs existants et les préfixes 'esbtp.'
-    Des vues pour les rôles, permissions et paramètres ont été ajoutées.
+    Toutes les routes ont été alignées avec les contrôleurs existants.
     
-    Dernière mise à jour : 01/03/2025
+    Dernière mise à jour : 02/03/2025
 -->
 
 <!DOCTYPE html>
@@ -425,7 +424,7 @@
                 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.emplois-temps.etudiant') }}" class="nav-link {{ request()->routeIs('esbtp.emplois-temps.etudiant') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mon-emploi-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-emploi-temps.index') ? 'active' : '' }}">
                         <i class="fas fa-calendar-day nav-icon"></i>
                         <span>Mon emploi du temps</span>
                     </a>
@@ -433,44 +432,44 @@
                 @endrole
 
                 <!-- Section examens et notes -->
-                <div class="menu-category">Examens et Notes</div>
+                <div class="menu-category">Examens et notes</div>
                 @hasanyrole('superAdmin|secretaire')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.exams.index') }}" class="nav-link {{ request()->routeIs('esbtp.exams.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
                         <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Gestion des examens</span>
+                        <span>Examens</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.grades.index') }}" class="nav-link {{ request()->routeIs('esbtp.grades.index') ? 'active' : '' }}">
-                        <i class="fas fa-pen-fancy nav-icon"></i>
-                        <span>Saisie des notes</span>
+                    <a href="{{ route('esbtp.notes.index') }}" class="nav-link {{ request()->routeIs('esbtp.notes.*') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-list nav-icon"></i>
+                        <span>Notes</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.bulletins.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.bulletins.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
                         <i class="fas fa-file-invoice nav-icon"></i>
-                        <span>Génération de bulletins</span>
+                        <span>Bulletins</span>
                     </a>
                 </li>
                 @endhasanyrole
                 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.exams.etudiant') }}" class="nav-link {{ request()->routeIs('esbtp.exams.etudiant') ? 'active' : '' }}">
+                    <a href="{{ route('mes-examens.index') }}" class="nav-link {{ request()->routeIs('mes-examens.index') ? 'active' : '' }}">
                         <i class="fas fa-file-alt nav-icon"></i>
                         <span>Mes examens</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.grades.etudiant') }}" class="nav-link {{ request()->routeIs('esbtp.grades.etudiant') ? 'active' : '' }}">
-                        <i class="fas fa-pen-fancy nav-icon"></i>
+                    <a href="{{ route('mes-notes.index') }}" class="nav-link {{ request()->routeIs('mes-notes.index') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-list nav-icon"></i>
                         <span>Mes notes</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.bulletin.etudiant') }}" class="nav-link {{ request()->routeIs('esbtp.bulletin.etudiant') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice nav-icon"></i>
+                    <a href="{{ route('mon-bulletin.index') }}" class="nav-link {{ request()->routeIs('mon-bulletin.index') ? 'active' : '' }}">
+                        <i class="fas fa-chart-pie nav-icon"></i>
                         <span>Mon bulletin</span>
                     </a>
                 </li>
@@ -482,31 +481,77 @@
                 <li class="nav-item">
                     <a href="{{ route('esbtp.attendances.index') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.index') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Gestion des présences</span>
+                        <span>Suivi des présences</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('esbtp.attendances.rapport-form') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.rapport-form') ? 'active' : '' }}">
                         <i class="fas fa-chart-pie nav-icon"></i>
-                        <span>Rapports de présence</span>
+                        <span>Rapports</span>
                     </a>
                 </li>
                 @endhasanyrole
                 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.attendances.etudiant') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.etudiant') ? 'active' : '' }}">
+                    <a href="{{ route('mes-absences.index') }}" class="nav-link {{ request()->routeIs('mes-absences.index') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Mes présences</span>
+                        <span>Mes absences</span>
                     </a>
                 </li>
                 @endrole
                 
-                <!-- Section messages -->
+                @role('parent')
+                <div class="menu-category">Espace Parent</div>
+                <li class="nav-item">
+                    <a href="{{ route('parent.dashboard') }}" class="nav-link {{ request()->routeIs('parent.dashboard') ? 'active' : '' }}">
+                        <i class="fas fa-home nav-icon"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.payments') }}" class="nav-link {{ request()->routeIs('parent.payments*') ? 'active' : '' }}">
+                        <i class="fas fa-money-bill-wave nav-icon"></i>
+                        <span>Paiements</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.absences.summary') }}" class="nav-link {{ request()->routeIs('parent.absences*') ? 'active' : '' }}">
+                        <i class="fas fa-user-clock nav-icon"></i>
+                        <span>Absences</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.bulletins') }}" class="nav-link {{ request()->routeIs('parent.bulletins*') ? 'active' : '' }}">
+                        <i class="fas fa-file-alt nav-icon"></i>
+                        <span>Bulletins</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.messages') }}" class="nav-link {{ request()->routeIs('parent.messages*') ? 'active' : '' }}">
+                        <i class="fas fa-envelope nav-icon"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.notifications') }}" class="nav-link {{ request()->routeIs('parent.notifications*') ? 'active' : '' }}">
+                        <i class="fas fa-bell nav-icon"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('parent.settings.index') }}" class="nav-link {{ request()->routeIs('parent.settings*') ? 'active' : '' }}">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span>Paramètres</span>
+                    </a>
+                </li>
+                @endrole
+                
+                <!-- Communication -->
                 <div class="menu-category">Communication</div>
                 @hasanyrole('superAdmin|secretaire')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.messages.index') }}" class="nav-link {{ request()->routeIs('esbtp.messages.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.*') ? 'active' : '' }}">
                         <i class="fas fa-envelope nav-icon"></i>
                         <span>Envoi de messages</span>
                     </a>
@@ -515,7 +560,7 @@
                 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.messages.received') }}" class="nav-link {{ request()->routeIs('esbtp.messages.received') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.index') ? 'active' : '' }}">
                         <i class="fas fa-inbox nav-icon"></i>
                         <span>Mes messages</span>
                     </a>
@@ -525,7 +570,7 @@
                 <!-- Section profil utilisateur -->
                 <div class="menu-category">Mon compte</div>
                 <li class="nav-item">
-                    <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mon-profil.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-profil.*') ? 'active' : '' }}">
                         <i class="fas fa-user-circle nav-icon"></i>
                         <span>Profil</span>
                     </a>

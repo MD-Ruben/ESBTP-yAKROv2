@@ -111,36 +111,18 @@ class InstallationHelper
     public static function hasAdminUser(): bool
     {
         try {
-            if (!self::isDatabaseConfigured()) {
-                Log::info('hasAdminUser: Database not configured');
-                return false;
-            }
-            
+            // Vérifier d'abord si la table users existe
             if (!Schema::hasTable('users')) {
-                Log::info('hasAdminUser: Users table does not exist');
                 return false;
             }
+
+            // Chercher directement dans la table users sans se préoccuper des rôles
+            $adminExists = DB::table('users')->count() > 0;
             
-            if (!Schema::hasTable('roles')) {
-                Log::info('hasAdminUser: Roles table does not exist');
-                return false;
-            }
-            
-            if (!Schema::hasTable('model_has_roles')) {
-                Log::info('hasAdminUser: model_has_roles table does not exist');
-                return false;
-            }
-            
-            // Check if any user has the admin role using the model_has_roles table
-            $hasAdmin = DB::table('model_has_roles')
-                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                ->where('roles.name', 'admin')
-                ->exists();
-                
-            Log::info('hasAdminUser: Admin user exists: ' . ($hasAdmin ? 'Yes' : 'No'));
-            return $hasAdmin;
+            // Si au moins un utilisateur existe, considérer que l'admin existe
+            return $adminExists;
         } catch (\Exception $e) {
-            Log::error('Error checking for admin user: ' . $e->getMessage());
+            Log::error("Erreur lors de la vérification de l'existence de l'administrateur: " . $e->getMessage());
             return false;
         }
     }

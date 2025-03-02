@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use App\Models\Setting;
 
 class InstallController extends Controller
 {
@@ -477,42 +478,71 @@ class InstallController extends Controller
     public function setupAdmin(Request $request)
     {
         try {
+            // Validation des champs
             $validated = $request->validate([
-            'name' => 'required|string|max:255',
+                'name' => 'required|string|max:255',
                 'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-            // Génération du nom d'utilisateur à partir de l'email si non fourni
-            if (empty($validated['username'])) {
-                $validated['username'] = explode('@', $validated['email'])[0];
-            }
-            
-            // Création de l'utilisateur admin
-            $user = \App\Models\User::create([
-                'name' => $validated['name'],
-                'username' => $validated['username'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'is_active' => true,
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8|confirmed',
             ]);
             
-            // Attribuer le rôle superAdmin
-            $user->assignRole('superAdmin');
+            // Création de l'utilisateur admin
+            $admin = new User();
+            $admin->name = $validated['name'];
+            $admin->username = $validated['username'];
+            $admin->email = $validated['email'];
+            $admin->password = Hash::make($validated['password']);
+            $admin->save();
             
-            // Enregistrer les informations dans la session
-            session(['admin_name' => $validated['name']]);
-            session(['admin_email' => $validated['email']]);
-            session(['admin_username' => $validated['username']]);
-            session(['admin_password' => $validated['password']]);
+            // Assignation du rôle superAdmin
+            try {
+                if (Schema::hasTable('roles')) {
+                    $superAdminRole = Role::where('name', 'superAdmin')->first();
+                    if ($superAdminRole) {
+                        $admin->assignRole($superAdminRole);
+                    } else {
+                        \Log::warning("Rôle superAdmin non trouvé. Création d'un nouveau rôle.");
+                        $superAdminRole = Role::create(['name' => 'superAdmin']);
+                        $admin->assignRole($superAdminRole);
+                    }
+                } else {
+                    \Log::warning("La table des rôles n'existe pas encore.");
+                }
+            } catch (\Exception $e) {
+                \Log::error("Erreur lors de l'assignation du rôle: " . $e->getMessage());
+                // Continue execution - role assignment is not critical for installation
+            }
             
-            Log::info('Administrateur créé avec succès: ' . $validated['email']);
+            // Stockage des informations de l'admin dans la session
+            $request->session()->put('admin_created', true);
+            
+            // Journalisation
+            \Log::info("Admin user created successfully: {$validated['username']}");
+            
+            // Réponse en fonction du type de requête
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Administrateur créé avec succès',
+                    'redirect' => route('install.complete')
+                ]);
+            }
+            
+            // Force installation step completion
+            InstallationEnvironment::completeStep('admin');
             
             return redirect()->route('install.complete')->with('success', 'Administrateur créé avec succès');
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la création de l\'administrateur: ' . $e->getMessage());
-            return redirect()->back()->withInput()->withErrors(['error' => 'Erreur lors de la création de l\'administrateur: ' . $e->getMessage()]);
+            \Log::error("Error creating admin: " . $e->getMessage());
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création de l\'administrateur: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->withErrors(['error' => 'Erreur lors de la création de l\'administrateur: ' . $e->getMessage()]);
         }
     }
 

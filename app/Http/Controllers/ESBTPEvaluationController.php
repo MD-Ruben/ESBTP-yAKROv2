@@ -9,6 +9,7 @@ use App\Models\ESBTPMatiere;
 use App\Models\ESBTPEtudiant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ESBTPAnneeUniversitaire;
 
 class ESBTPEvaluationController extends Controller
 {
@@ -199,18 +200,101 @@ class ESBTPEvaluationController extends Controller
     public function destroy(ESBTPEvaluation $evaluation)
     {
         try {
-            // Vérifier si l'évaluation a des notes
-            if ($evaluation->notes()->count() > 0) {
-                return redirect()->back()
-                    ->with('error', 'Impossible de supprimer cette évaluation car des notes sont associées');
-            }
-            
             $evaluation->delete();
-            return redirect()->route('evaluations.index')
-                ->with('success', 'L\'évaluation a été supprimée avec succès');
+            return redirect()->route('esbtp.evaluations.index')->with('success', 'Évaluation supprimée avec succès.');
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la suppression de l\'évaluation: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Affiche les examens de l'étudiant connecté.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function etudiant(Request $request)
+    {
+        // Récupérer l'utilisateur connecté
+        $user = Auth::user();
+        
+        // Récupérer l'étudiant associé à l'utilisateur
+        $etudiant = $user->etudiant;
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Votre compte utilisateur n\'est pas associé à un étudiant.');
+        }
+        
+        // Récupérer la classe de l'étudiant
+        $inscription = $etudiant->inscriptions()->where('statut', 'active')->first();
+        
+        if (!$inscription || !$inscription->classe) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Vous n\'êtes inscrit dans aucune classe pour le moment.');
+        }
+        
+        $classe = $inscription->classe;
+        
+        // Récupérer les paramètres de filtre
+        $anneeId = $request->input('annee_universitaire_id', 
+            ESBTPAnneeUniversitaire::where('is_current', true)->first()->id ?? null);
+        $periode = $request->input('periode');
+        $statut = $request->input('statut');
+        
+        // Initialiser la requête pour récupérer les évaluations
+        $query = ESBTPEvaluation::with(['matiere', 'classe'])
+            ->where('classe_id', $classe->id);
+        
+        // Filtrer par année universitaire
+        if ($anneeId) {
+            $query->where('annee_universitaire_id', $anneeId);
+        }
+        
+        // Filtrer par période
+        if ($periode) {
+            $query->where('periode', $periode);
+        }
+        
+        // Filtrer par statut
+        if ($statut) {
+            if ($statut === 'passees') {
+                $query->where('date_evaluation', '<', now());
+            } elseif ($statut === 'a_venir') {
+                $query->where('date_evaluation', '>=', now());
+            }
+        }
+        
+        // Récupérer les évaluations paginées
+        $evaluations = $query->orderBy('date_evaluation', 'asc')->paginate(10);
+        
+        // Récupérer toutes les années universitaires pour le filtre
+        $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
+        
+        // Compter les évaluations passées et à venir
+        $evaluationsPassees = ESBTPEvaluation::where('classe_id', $classe->id)
+            ->where('date_evaluation', '<', now())->count();
+            
+        $evaluationsAVenir = ESBTPEvaluation::where('classe_id', $classe->id)
+            ->where('date_evaluation', '>=', now())->count();
+        
+        // Prochaine évaluation
+        $prochaineEvaluation = ESBTPEvaluation::where('classe_id', $classe->id)
+            ->where('date_evaluation', '>=', now())
+            ->orderBy('date_evaluation', 'asc')
+            ->first();
+        
+        return view('esbtp.evaluations.etudiant', compact(
+            'etudiant',
+            'classe',
+            'evaluations',
+            'anneesUniversitaires',
+            'anneeId',
+            'periode',
+            'statut',
+            'evaluationsPassees',
+            'evaluationsAVenir',
+            'prochaineEvaluation'
+        ));
     }
 } 

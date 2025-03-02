@@ -338,7 +338,7 @@
                 </div>
             </div>
             <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-3">
-                <a href="{{ route('welcome') }}" class="home-link">
+                <a href="{{ url('/') }}" class="home-link">
                     <i class="fas fa-arrow-left"></i> Retour à l'accueil
                 </a>
             </div>

@@ -12,6 +12,7 @@ _ Bulletin ( generate bulletin, view bulletins, edit bulletins, delete bulletins
 _ timetable ( create timetable, view timetables, edit timetables, delete timetables)
 _ Messages ( send messages )
 _ Attendance (create attendance, view attendances, edit attendances, delete attendances)
+En bref le superadmin peut tout faire il a aucune limite
 
      - Secretaire: * filières (view filières)
                    * Formations (view formations)

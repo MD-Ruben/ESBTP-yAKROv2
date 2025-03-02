@@ -6,6 +6,7 @@ use App\Models\ESBTPAttendance;
 use App\Models\ESBTPClasse;
 use App\Models\ESBTPEtudiant;
 use App\Models\ESBTPSeanceCours;
+use App\Models\ESBTPAnneeUniversitaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -201,10 +202,12 @@ class ESBTPAttendanceController extends Controller
      */
     public function destroy(ESBTPAttendance $attendance)
     {
-        $attendance->delete();
-        
-        return redirect()->route('esbtp.attendances.index')
-            ->with('success', 'La présence a été supprimée avec succès.');
+        try {
+            $attendance->delete();
+            return redirect()->route('esbtp.attendances.index')->with('success', 'Présence supprimée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -276,5 +279,33 @@ class ESBTPAttendanceController extends Controller
         $classes = ESBTPClasse::all();
         
         return view('esbtp.attendances.rapport-form', compact('classes'));
+    }
+    
+    /**
+     * Affiche les présences de l'étudiant connecté.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function studentAttendance(Request $request)
+    {
+        $user = Auth::user();
+        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
+        }
+        
+        $absences = ESBTPAttendance::where('etudiant_id', $etudiant->id)
+            ->where('status', 'absent')
+            ->orderBy('date', 'desc')
+            ->get();
+        
+        $presences = ESBTPAttendance::where('etudiant_id', $etudiant->id)
+            ->where('status', 'present')
+            ->orderBy('date', 'desc')
+            ->get();
+        
+        return view('etudiants.attendances', compact('absences', 'presences', 'etudiant'));
     }
 } 

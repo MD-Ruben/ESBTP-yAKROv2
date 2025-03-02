@@ -88,7 +88,7 @@ class User extends Authenticatable
      */
     public function isSuperAdmin()
     {
-        return $this->hasRole('super-admin');
+        return $this->hasRole('superAdmin');
     }
 
     /**
@@ -98,7 +98,7 @@ class User extends Authenticatable
      */
     public function isSecretary()
     {
-        return $this->hasRole('secretary');
+        return $this->hasRole('secretaire');
     }
 
     /**
@@ -118,7 +118,7 @@ class User extends Authenticatable
      */
     public function isStudent()
     {
-        return $this->hasRole('student');
+        return $this->hasRole('etudiant');
     }
 
     /**
@@ -138,7 +138,7 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->hasAnyRole(['admin', 'super-admin']);
+        return $this->hasAnyRole(['superAdmin']);
     }
 
     /**
@@ -152,9 +152,9 @@ class User extends Authenticatable
     /**
      * Relation avec le profil de secrétaire.
      */
-    public function secretary()
+    public function secretaire()
     {
-        return $this->hasOne(Secretary::class);
+        return $this->hasOne(Secretaire::class);
     }
 
     /**
@@ -168,9 +168,9 @@ class User extends Authenticatable
     /**
      * Relation avec le profil d'étudiant.
      */
-    public function student()
+    public function etudiant()
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(ESBTPEtudiant::class);
     }
 
     /**
@@ -178,7 +178,7 @@ class User extends Authenticatable
      */
     public function parent()
     {
-        return $this->hasOne(ParentModel::class);
+        return $this->hasOne(ESBTPParent::class);
     }
 
     /**

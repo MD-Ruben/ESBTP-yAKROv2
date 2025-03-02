@@ -314,21 +314,11 @@ class ESBTPBulletinController extends Controller
      */
     public function destroy(ESBTPBulletin $bulletin)
     {
-        DB::beginTransaction();
         try {
-            // Supprimer d'abord tous les résultats associés
-            $bulletin->resultats()->delete();
-            
-            // Puis supprimer le bulletin
             $bulletin->delete();
-            
-            DB::commit();
-            return redirect()->route('bulletins.index')
-                ->with('success', 'Le bulletin a été supprimé avec succès');
+            return redirect()->route('bulletins.index')->with('success', 'Bulletin supprimé avec succès.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la suppression du bulletin: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
     }
     
@@ -581,5 +571,139 @@ class ESBTPBulletinController extends Controller
             'etudiantsSansBulletin',
             'bulletins'
         ));
+    }
+    
+    /**
+     * Affiche le bulletin de l'étudiant connecté.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function monBulletin(Request $request)
+    {
+        // Récupérer l'utilisateur connecté
+        $user = Auth::user();
+        
+        // Récupérer l'étudiant associé à l'utilisateur
+        $etudiant = $user->etudiant;
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Votre compte utilisateur n\'est pas associé à un étudiant.');
+        }
+        
+        // Récupérer les paramètres de filtre
+        $anneeId = $request->input('annee_universitaire_id', 
+            ESBTPAnneeUniversitaire::where('is_current', true)->first()->id ?? null);
+        $periode = $request->input('periode');
+        
+        // Récupérer l'inscription active de l'étudiant
+        $inscription = $etudiant->inscriptions()
+            ->where('annee_universitaire_id', $anneeId)
+            ->where('statut', 'active')
+            ->first();
+            
+        if (!$inscription) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Vous n\'êtes pas inscrit pour l\'année universitaire sélectionnée.');
+        }
+        
+        // Récupérer la classe de l'étudiant
+        $classe = $inscription->classe;
+        
+        if (!$classe) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Votre inscription n\'est associée à aucune classe.');
+        }
+        
+        // Récupérer le bulletin de l'étudiant
+        $bulletin = ESBTPBulletin::where('etudiant_id', $etudiant->id)
+            ->where('annee_universitaire_id', $anneeId);
+            
+        if ($periode) {
+            $bulletin = $bulletin->where('periode', $periode);
+        }
+        
+        $bulletin = $bulletin->first();
+        
+        // Si le bulletin n'existe pas encore, on affiche un message
+        if (!$bulletin) {
+            // Récupérer toutes les années universitaires pour le filtre
+            $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
+            
+            return view('esbtp.bulletin.mon-bulletin', compact(
+                'etudiant',
+                'classe',
+                'anneeId',
+                'periode',
+                'anneesUniversitaires'
+            ))->with('warning', 'Le bulletin n\'est pas encore disponible pour la période sélectionnée.');
+        }
+        
+        // Récupérer les détails du bulletin
+        $detailsBulletin = ESBTPBulletinDetail::where('bulletin_id', $bulletin->id)
+            ->with(['matiere'])
+            ->get();
+            
+        // Regrouper les détails par UE si nécessaire
+        $detailsParUE = [];
+        
+        foreach ($detailsBulletin as $detail) {
+            $ueId = $detail->matiere->ue_id ?? 'sans_ue';
+            if (!isset($detailsParUE[$ueId])) {
+                $detailsParUE[$ueId] = [
+                    'ue' => $detail->matiere->ue ?? null,
+                    'details' => []
+                ];
+            }
+            $detailsParUE[$ueId]['details'][] = $detail;
+        }
+        
+        // Calculer les statistiques globales
+        $moyenneGenerale = $bulletin->moyenne_generale;
+        $rangGeneral = $bulletin->rang;
+        $effectifClasse = $bulletin->effectif_classe;
+        $creditsTotaux = $detailsBulletin->sum('credits_valides');
+        $decisionConseil = $bulletin->decision_conseil;
+        
+        // Récupérer toutes les années universitaires pour le filtre
+        $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
+        
+        return view('esbtp.bulletin.mon-bulletin', compact(
+            'etudiant',
+            'classe',
+            'bulletin',
+            'detailsBulletin',
+            'detailsParUE',
+            'moyenneGenerale',
+            'rangGeneral',
+            'effectifClasse',
+            'creditsTotaux',
+            'decisionConseil',
+            'anneeId',
+            'periode',
+            'anneesUniversitaires'
+        ));
+    }
+
+    /**
+     * Affiche les bulletins de l'étudiant connecté.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function studentBulletins()
+    {
+        $user = Auth::user();
+        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
+        }
+        
+        $bulletins = ESBTPBulletin::where('etudiant_id', $etudiant->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('etudiants.bulletins', compact('bulletins', 'etudiant'));
     }
 } 

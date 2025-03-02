@@ -3,155 +3,244 @@
 @section('title', 'Tableau de bord Secrétaire')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid px-4">
+    <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
+    <p class="text-muted">Gestion administrative ESBTP-yAKRO</p>
+
     <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
+        @if(isset($totalStudents))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <h5 class="card-title">Bienvenue dans le tableau de bord Secrétaire</h5>
-                    <p class="card-text">Gestion administrative de l'ESBTP-yAKRO</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Étudiants</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($todayAttendances))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Présences aujourd'hui</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $todayAttendances }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.today') }}" class="btn btn-sm btn-success mt-3">Gérer les présences</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($pendingJustifications))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Justifications en attente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingJustifications }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.justifications') }}" class="btn btn-sm btn-warning mt-3">Traiter les justifications</a>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <div class="row">
+        @if(isset($totalTimetables))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Emplois du temps</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalTimetables }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('timetables.index') }}" class="btn btn-sm btn-info mt-3">Gérer les emplois du temps</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($todayClasses))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Cours aujourd'hui</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $todayClasses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('timetables.today') }}" class="btn btn-sm btn-primary mt-3">Voir les cours d'aujourd'hui</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($pendingBulletins))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Bulletins en attente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingBulletins }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('bulletins.pending') }}" class="btn btn-sm btn-danger mt-3">Traiter les bulletins</a>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <!-- Étudiants récents -->
+    @if(isset($recentStudents) && $recentStudents->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Étudiants récemment inscrits</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Matricule</th>
+                                    <th>Classe</th>
+                                    <th>Date d'inscription</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentStudents as $etudiant)
+                                <tr>
+                                    <td>{{ $etudiant->nom }}</td>
+                                    <td>{{ $etudiant->prenom }}</td>
+                                    <td>{{ $etudiant->matricule }}</td>
+                                    <td>{{ $etudiant->classe->nom ?? 'Non assigné' }}</td>
+                                    <td>{{ $etudiant->created_at->format('d/m/Y') }}</td>
+                                    <td>
+                                        <a href="{{ route('etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-info">Détails</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Étudiants</h5>
-                    <p class="card-text display-4">{{ $totalStudents ?? 0 }}</p>
-                    <a href="{{ route('esbtp.students.index') }}" class="btn btn-light">Voir</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Présences d'aujourd'hui</h5>
-                    <p class="card-text display-4">{{ $todayAttendances ?? 0 }}</p>
-                    <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-light">Gérer</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Présences en attente</h5>
-                    <p class="card-text display-4">{{ $pendingAttendances ?? 0 }}</p>
-                    <a href="{{ route('esbtp.attendances.pending') }}" class="btn btn-light">Traiter</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Notifications récentes
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        @forelse($recentNotifications as $notification)
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ $notification->title }}</strong>
-                                    <p class="mb-0">{{ Str::limit($notification->message, 50) }}</p>
-                                </div>
-                                <small>{{ $notification->created_at->diffForHumans() }}</small>
-                            </li>
-                        @empty
-                            <li class="list-group-item">Aucune notification récente</li>
-                        @endforelse
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Messages récents
+    <!-- Messages récents -->
+    @if(isset($recentMessages) && $recentMessages->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Messages récents</h6>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
-                        @forelse($recentMessages as $message)
-                            <a href="{{ route('messages.show', $message) }}" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ $message->subject }}</h6>
-                                    <small>{{ $message->created_at->diffForHumans() }}</small>
-                                </div>
-                                <p class="mb-1">{{ Str::limit($message->content, 80) }}</p>
-                                <small>
-                                    De: {{ $message->sender->name ?? 'Système' }}
-                                </small>
-                            </a>
-                        @empty
-                            <div class="list-group-item">
-                                <p class="mb-0">Aucun message récent</p>
+                        @foreach($recentMessages as $message)
+                        <a href="{{ route('messages.show', $message->id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ $message->subject }}</h5>
+                                <small>{{ $message->created_at->diffForHumans() }}</small>
                             </div>
-                        @endforelse
-                        <div class="mt-3">
-                            <a href="{{ route('messages.inbox') }}" class="btn btn-outline-primary">Voir tous les messages</a>
-                        </div>
+                            <p class="mb-1">{{ Str::limit($message->content, 100) }}</p>
+                            <small>De: {{ $message->sender->name ?? 'Système' }}</small>
+                        </a>
+                        @endforeach
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('messages.index') }}" class="btn btn-primary">Voir tous les messages</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Actions rapides
+    <!-- Formulaire pour envoyer un message -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Envoyer un message</h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('esbtp.students.create') }}" class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i> Inscrire un nouvel étudiant
-                        </a>
-                        <a href="{{ route('esbtp.attendances.today') }}" class="btn btn-success">
-                            <i class="fas fa-clipboard-check"></i> Marquer les présences du jour
-                        </a>
-                        <a href="{{ route('esbtp.bulletins.index') }}" class="btn btn-info">
-                            <i class="fas fa-file-alt"></i> Générer des bulletins
-                        </a>
-                        <a href="{{ route('esbtp.timetables.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-calendar-alt"></i> Consulter les emplois du temps
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Envoyer un message
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('messages.send') }}" method="POST">
+                    <form action="{{ route('messages.store') }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label for="recipient_type" class="form-label">Destinataire</label>
                             <select class="form-select" id="recipient_type" name="recipient_type" required>
                                 <option value="">Sélectionner un destinataire</option>
-                                <option value="superAdmin">Super Admin</option>
+                                <option value="all">Tous les utilisateurs</option>
                                 <option value="etudiant">Tous les étudiants</option>
-                                <option value="specific_user">Utilisateur spécifique</option>
+                                <option value="specific_user">Étudiant spécifique</option>
+                                <option value="specific_class">Classe spécifique</option>
                             </select>
                         </div>
                         
                         <div class="mb-3" id="specific_user_container" style="display: none;">
-                            <label for="recipient_id" class="form-label">Sélectionner un utilisateur</label>
+                            <label for="recipient_id" class="form-label">Sélectionner un étudiant</label>
                             <select class="form-select" id="recipient_id" name="recipient_id">
-                                <option value="">Choisir un utilisateur</option>
-                                @foreach(App\Models\User::all() as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                <option value="">Choisir un étudiant</option>
+                                @foreach(App\Models\ESBTPEtudiant::all() as $etudiant)
+                                    <option value="{{ $etudiant->user_id }}">{{ $etudiant->nom }} {{ $etudiant->prenom }} ({{ $etudiant->matricule }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="specific_class_container" style="display: none;">
+                            <label for="recipient_group" class="form-label">Sélectionner une classe</label>
+                            <select class="form-select" id="recipient_group" name="recipient_group">
+                                <option value="">Choisir une classe</option>
+                                @foreach(App\Models\ESBTPClasse::all() as $classe)
+                                    <option value="{{ $classe->id }}">{{ $classe->nom }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -178,12 +267,18 @@
         // Afficher/masquer les conteneurs de sélection spécifiques
         const recipientType = document.getElementById('recipient_type');
         const specificUserContainer = document.getElementById('specific_user_container');
+        const specificClassContainer = document.getElementById('specific_class_container');
         
         recipientType.addEventListener('change', function() {
             if (this.value === 'specific_user') {
                 specificUserContainer.style.display = 'block';
+                specificClassContainer.style.display = 'none';
+            } else if (this.value === 'specific_class') {
+                specificUserContainer.style.display = 'none';
+                specificClassContainer.style.display = 'block';
             } else {
                 specificUserContainer.style.display = 'none';
+                specificClassContainer.style.display = 'none';
             }
         });
     });

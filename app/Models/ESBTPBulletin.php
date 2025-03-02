@@ -95,6 +95,16 @@ class ESBTPBulletin extends Model
     }
 
     /**
+     * Relation avec les détails des matières de ce bulletin.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function details()
+    {
+        return $this->hasMany(ESBTPBulletinDetail::class, 'bulletin_id');
+    }
+
+    /**
      * Relation avec l'utilisateur qui a créé le bulletin.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

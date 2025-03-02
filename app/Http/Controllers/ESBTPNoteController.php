@@ -10,6 +10,7 @@ use App\Models\ESBTPClasse;
 use App\Models\ESBTPMatiere;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ESBTPAnneeUniversitaire;
 
 class ESBTPNoteController extends Controller
 {
@@ -20,28 +21,24 @@ class ESBTPNoteController extends Controller
      */
     public function index(Request $request)
     {
-        $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        $matieres = ESBTPMatiere::orderBy('nom')->get();
-        
-        // Valeurs par défaut filtre
         $classe_id = $request->input('classe_id');
         $matiere_id = $request->input('matiere_id');
         
-        $query = ESBTPNote::with(['evaluation.matiere', 'evaluation.classe', 'etudiant', 'user']);
+        $query = ESBTPNote::with(['etudiant', 'matiere', 'evaluation']);
         
-        // Application des filtres
         if ($classe_id) {
-            $query->whereHas('evaluation', function($q) use ($classe_id) {
+            $query->whereHas('etudiant', function ($q) use ($classe_id) {
                 $q->where('classe_id', $classe_id);
             });
         }
+        
         if ($matiere_id) {
-            $query->whereHas('evaluation', function($q) use ($matiere_id) {
-                $q->where('matiere_id', $matiere_id);
-            });
+            $query->where('matiere_id', $matiere_id);
         }
         
-        $notes = $query->orderBy('created_at', 'desc')->paginate(20);
+        $notes = $query->orderBy('created_at', 'desc')->get();
+        $classes = ESBTPClasse::orderBy('nom')->get();
+        $matieres = ESBTPMatiere::orderBy('nom')->get();
         
         return view('esbtp.notes.index', compact('notes', 'classes', 'matieres', 'classe_id', 'matiere_id'));
     }
@@ -205,14 +202,10 @@ class ESBTPNoteController extends Controller
     public function destroy(ESBTPNote $note)
     {
         try {
-            $evaluationId = $note->evaluation_id;
             $note->delete();
-            
-            return redirect()->route('evaluations.show', $evaluationId)
-                ->with('success', 'La note a été supprimée avec succès');
+            return redirect()->route('esbtp.notes.index')->with('success', 'Note supprimée avec succès.');
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la suppression de la note: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la suppression de la note: ' . $e->getMessage());
         }
     }
     
@@ -300,5 +293,38 @@ class ESBTPNoteController extends Controller
                 ->with('error', 'Une erreur est survenue lors de l\'enregistrement des notes: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Affiche les notes de l'étudiant connecté.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function studentGrades(Request $request)
+    {
+        $user = Auth::user();
+        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
+        }
+        
+        $notes = ESBTPNote::where('etudiant_id', $etudiant->id)
+            ->with(['evaluation', 'matiere'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('etudiants.notes', compact('notes', 'etudiant'));
+    }
+
+    /**
+     * Affiche le formulaire de saisie rapide des notes.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function saisieRapideForm()
+    {
+        return view('esbtp.notes.saisie-rapide-form');
     }
 } 

@@ -82,66 +82,45 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <span class="badge bg-dark">{{ $filiere->classes->count() }} classe(s)</span>
+                                            <span class="badge bg-dark">{{ $filiere->classes ? $filiere->classes->count() : 0 }} classe(s)</span>
                                         </td>
                                         <td>
                                             @if($filiere->is_active)
-                                                <span class="badge bg-success">Active</span>
+                                                <span class="badge bg-success">Actif</span>
                                             @else
-                                                <span class="badge bg-danger">Inactive</span>
+                                                <span class="badge bg-danger">Inactif</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('esbtp.filieres.show', $filiere) }}" class="btn btn-sm btn-info" title="Voir les détails">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('esbtp.filieres.edit', $filiere) }}" class="btn btn-sm btn-warning" title="Modifier">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $filiere->id }}" title="Supprimer">
-                                                    <i class="fas fa-trash"></i>
+                                        <td class="text-end">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    Actions
                                                 </button>
-                                            </div>
-                                            
-                                            <!-- Modal de confirmation de suppression -->
-                                            <div class="modal fade" id="deleteModal{{ $filiere->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $filiere->id }}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="deleteModalLabel{{ $filiere->id }}">Confirmation de suppression</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p>Êtes-vous sûr de vouloir supprimer cette filière ?</p>
-                                                            <p><strong>Nom :</strong> {{ $filiere->name }}</p>
-                                                            
-                                                            @if($filiere->classes->count() > 0 || $filiere->options->count() > 0)
-                                                                <div class="alert alert-warning">
-                                                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                                                    <strong>Attention :</strong> Cette filière est liée à :
-                                                                    <ul class="mb-0 mt-1">
-                                                                        @if($filiere->classes->count() > 0)
-                                                                            <li>{{ $filiere->classes->count() }} classe(s)</li>
-                                                                        @endif
-                                                                        @if($filiere->options->count() > 0)
-                                                                            <li>{{ $filiere->options->count() }} option(s)</li>
-                                                                        @endif
-                                                                    </ul>
-                                                                    La suppression de cette filière pourrait avoir des conséquences importantes.
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <form action="{{ route('esbtp.filieres.destroy', $filiere) }}" method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li><a class="dropdown-item" href="{{ route('esbtp.filieres.show', $filiere->id) }}"><i class="fas fa-eye me-2"></i>Voir</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('esbtp.filieres.edit', $filiere->id) }}"><i class="fas fa-edit me-2"></i>Modifier</a></li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    @if(($filiere->classes ? $filiere->classes->count() : 0) > 0 || ($filiere->options ? $filiere->options->count() : 0) > 0)
+                                                        <li><span class="dropdown-item text-muted"><i class="fas fa-lock me-2"></i>Suppression impossible</span></li>
+                                                        <li>
+                                                            <a class="dropdown-item text-info" href="#" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="Cette filière ne peut pas être supprimée car elle a des dépendances.">
+                                                                <i class="fas fa-info-circle me-2"></i>Pourquoi ?
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <ul class="ps-3 mb-0 small text-muted">
+                                                                @if($filiere->classes ? $filiere->classes->count() : 0 > 0)
+                                                                    <li>{{ ($filiere->classes ? $filiere->classes->count() : 0) }} classe(s)</li>
+                                                                @endif
+                                                                @if($filiere->options ? $filiere->options->count() : 0 > 0)
+                                                                    <li>{{ ($filiere->options ? $filiere->options->count() : 0) }} option(s)</li>
+                                                                @endif
+                                                            </ul>
+                                                        </li>
+                                                    @endif
+                                                </ul>
                                             </div>
                                         </td>
                                     </tr>

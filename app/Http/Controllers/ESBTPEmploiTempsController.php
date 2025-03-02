@@ -8,6 +8,7 @@ use App\Models\ESBTPSeanceCours;
 use App\Models\ESBTPClasse;
 use App\Models\ESBTPMatiere;
 use App\Models\User;
+use App\Models\ESBTPEtudiant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,11 +21,8 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function index()
     {
-        $emploisTemps = ESBTPEmploiTemps::with(['classe', 'seances', 'createdBy'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
-        return view('esbtp.emplois-temps.index', compact('emploisTemps'));
+        $emploisTemps = ESBTPEmploiTemps::orderBy('date_debut', 'desc')->get();
+        return view('esbtp.emploi-temps.index', compact('emploisTemps'));
     }
 
     /**
@@ -243,5 +241,40 @@ class ESBTPEmploiTempsController extends Controller
             return redirect()->back()
                 ->with('error', 'Une erreur est survenue lors de la suppression de l\'emploi du temps: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Affiche l'emploi du temps de l'étudiant connecté.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function studentTimetable()
+    {
+        $user = Auth::user();
+        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+        
+        if (!$etudiant) {
+            return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
+        }
+        
+        $emploiTemps = ESBTPEmploiTemps::where('classe_id', $etudiant->classe_id)
+            ->where('is_current', true)
+            ->first();
+            
+        if (!$emploiTemps) {
+            return view('etudiants.emploi-temps', [
+                'etudiant' => $etudiant,
+                'emploiTemps' => null,
+                'seances' => collect()
+            ])->with('warning', 'Aucun emploi du temps n\'est actuellement disponible pour votre classe.');
+        }
+        
+        $seances = $emploiTemps->seances()
+            ->orderBy('jour_semaine')
+            ->orderBy('heure_debut')
+            ->get()
+            ->groupBy('jour_semaine');
+            
+        return view('etudiants.emploi-temps', compact('etudiant', 'emploiTemps', 'seances'));
     }
 } 

@@ -3,154 +3,244 @@
 @section('title', 'Tableau de bord Étudiant')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Bienvenue {{ $student->user->name }}</h5>
-                    <p class="card-text">Votre espace étudiant ESBTP-yAKRO</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid px-4">
+    <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
+    <p class="text-muted">Votre espace étudiant ESBTP-yAKRO</p>
 
     <div class="row">
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card bg-info text-white">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <h5 class="card-title">Informations personnelles</h5>
-                    <p class="mb-1"><strong>N° d'étudiant :</strong> {{ $student->registration_number }}</p>
-                    <p class="mb-1"><strong>Filière :</strong> {{ $student->filiere->name ?? 'Non définie' }}</p>
-                    <p class="mb-1"><strong>Niveau :</strong> {{ $student->niveau->name ?? 'Non défini' }}</p>
-                    <p class="mb-0"><strong>Classe :</strong> {{ $student->classe->name ?? 'Non définie' }}</p>
-                    <div class="mt-3">
-                        <a href="{{ route('esbtp.student.profile') }}" class="btn btn-light">Voir mon profil</a>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Numéro matricule</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $etudiant->matricule }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-id-card fa-2x text-gray-300"></i>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Notifications</h5>
-                    <p class="display-4 mb-0">{{ $unreadNotifications ?? 0 }}</p>
-                    <p class="mb-0">non lues</p>
-                    <div class="mt-3">
-                        <a href="{{ route('esbtp.notifications.index') }}" class="btn btn-light">Voir toutes</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Examens à venir</h5>
-                    <p class="display-4 mb-0">{{ count($recentExams ?? []) }}</p>
-                    <p class="mb-0">prochains examens</p>
-                    <div class="mt-3">
-                        <a href="{{ route('esbtp.exams.student') }}" class="btn btn-light">Voir le calendrier</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Emploi du temps aujourd'hui
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        @forelse($todayTimetable as $session)
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="badge bg-primary">{{ $session->start_time }} - {{ $session->end_time }}</span>
-                                        <strong class="ms-2">{{ $session->subject->name ?? 'Matière inconnue' }}</strong>
-                                    </div>
-                                    <span>{{ $session->teacher->user->name ?? 'Enseignant non défini' }}</span>
-                                </div>
-                                <div class="mt-1 small text-muted">
-                                    Salle: {{ $session->classroom ?? 'Non définie' }}
-                                </div>
-                            </li>
-                        @empty
-                            <li class="list-group-item">Aucun cours prévu aujourd'hui</li>
-                        @endforelse
-                    </ul>
-                    <div class="mt-3">
-                        <a href="{{ route('esbtp.timetables.student') }}" class="btn btn-outline-primary">Voir tout l'emploi du temps</a>
-                    </div>
+                    <a href="{{ route('etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-primary mt-3">Voir mon profil</a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Dernières notes obtenues
+        @if(isset($classe))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Classe</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $classe->nom }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('classes.show', $classe->id) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($filiere))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Filière</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $filiere->nom }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <div class="row">
+        @if(isset($unreadNotifications))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Notifications non lues</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $unreadNotifications }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-warning mt-3">Voir toutes les notifications</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($attendancePercentage))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Taux de présence</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $attendancePercentage }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.student', $etudiant->id) }}" class="btn btn-sm btn-danger mt-3">Voir mes présences</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($niveau))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Niveau d'étude</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $niveau->nom }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <!-- Cours aujourd'hui -->
+    @if(isset($todayClasses) && $todayClasses->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Cours d'aujourd'hui</h6>
                 </div>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        @forelse($recentGrades as $grade)
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ $grade->subject->name ?? 'Matière inconnue' }}</strong>
-                                        <span class="text-muted">({{ $grade->exam->title ?? 'Examen' }})</span>
-                                    </div>
-                                    <span class="badge {{ $grade->score >= 10 ? 'bg-success' : 'bg-danger' }} rounded-pill">{{ $grade->score }}/20</span>
-                                </div>
-                                <div class="mt-1 small text-muted">
-                                    {{ $grade->created_at->format('d/m/Y') }}
-                                </div>
-                            </li>
-                        @empty
-                            <li class="list-group-item">Aucune note récente</li>
-                        @endforelse
-                    </ul>
-                    <div class="mt-3">
-                        <a href="{{ route('esbtp.grades.student') }}" class="btn btn-outline-primary">Voir toutes mes notes</a>
-                        <a href="{{ route('esbtp.bulletin.student') }}" class="btn btn-outline-success">Voir mon bulletin</a>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Matière</th>
+                                    <th>Horaire</th>
+                                    <th>Salle</th>
+                                    <th>Enseignant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($todayClasses as $cours)
+                                <tr>
+                                    <td>{{ $cours->matiere->nom ?? 'N/A' }}</td>
+                                    <td>{{ $cours->heure_debut->format('H:i') }} - {{ $cours->heure_fin->format('H:i') }}</td>
+                                    <td>{{ $cours->salle }}</td>
+                                    <td>{{ $cours->enseignant }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Notifications récentes
+    <!-- Examens à venir -->
+    @if(isset($upcomingExams) && $upcomingExams->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Examens à venir</h6>
                 </div>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        @forelse($recentNotifications as $notification)
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ $notification->title }}</strong>
-                                    <p class="mb-0">{{ Str::limit($notification->message, 100) }}</p>
-                                </div>
-                                <div>
-                                    <span class="badge {{ $notification->is_read ? 'bg-secondary' : 'bg-danger' }}">
-                                        {{ $notification->is_read ? 'Lu' : 'Non lu' }}
-                                    </span>
-                                    <small class="ms-2">{{ $notification->created_at->diffForHumans() }}</small>
-                                </div>
-                            </li>
-                        @empty
-                            <li class="list-group-item">Aucune notification récente</li>
-                        @endforelse
-                    </ul>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Matière</th>
+                                    <th>Date</th>
+                                    <th>Heure</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($upcomingExams as $examen)
+                                <tr>
+                                    <td>{{ $examen->type }}</td>
+                                    <td>{{ $examen->matiere->nom ?? 'N/A' }}</td>
+                                    <td>{{ $examen->date->format('d/m/Y') }}</td>
+                                    <td>{{ $examen->heure }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Notes récentes -->
+    @if(isset($recentGrades) && $recentGrades->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Notes récentes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Matière</th>
+                                    <th>Évaluation</th>
+                                    <th>Note</th>
+                                    <th>Coefficient</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentGrades as $note)
+                                <tr>
+                                    <td>{{ $note->matiere->nom ?? 'N/A' }}</td>
+                                    <td>{{ $note->evaluation->type ?? 'N/A' }}</td>
+                                    <td>{{ $note->note }}/20</td>
+                                    <td>{{ $note->coefficient }}</td>
+                                    <td>{{ $note->created_at->format('d/m/Y') }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('notes.student', $etudiant->id) }}" class="btn btn-primary">Voir toutes mes notes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection

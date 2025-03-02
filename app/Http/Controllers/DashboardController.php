@@ -10,11 +10,30 @@ use App\Models\Notification;
 use App\Models\Student;
 use App\Models\Timetable;
 use App\Models\User;
+use App\Models\ESBTPEtudiant;
+use App\Models\ESBTPParent;
+use App\Models\ESBTPClasse;
+use App\Models\ESBTPFiliere;
+use App\Models\ESBTPFormation;
+use App\Models\ESBTPNiveauEtude;
+use App\Models\ESBTPMatiere;
+use App\Models\ESBTPEvaluation;
+use App\Models\ESBTPBulletin;
+use App\Models\ESBTPEmploiTemps;
+use App\Models\ESBTPAnnonce;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    /**
+     * Constructeur qui applique le middleware auth.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Affiche le tableau de bord en fonction du rôle de l'utilisateur.
      */
@@ -28,6 +47,8 @@ class DashboardController extends Controller
             return $this->secretaireDashboard();
         } elseif ($user->hasRole('etudiant')) {
             return $this->etudiantDashboard();
+        } elseif ($user->hasRole('parent')) {
+            return $this->parentDashboard();
         }
         
         // Vue par défaut si aucun rôle spécifique n'est trouvé
@@ -41,85 +62,148 @@ class DashboardController extends Controller
      */
     private function superAdminDashboard()
     {
-        $totalStudents = Student::count();
-        $totalSecretaires = User::role('secretaire')->count();
-        $totalUsers = User::count();
+        $user = Auth::user();
+        $data = [
+            'user' => $user,
+            'totalUsers' => User::count()
+        ];
         
-        $recentUsers = User::orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-            
-        // Statistiques des filières, formations et niveaux d'études
-        try {
-            $totalFilieres = \App\Models\Filiere::count();
-            $totalNiveaux = \App\Models\NiveauEtude::count();
-            $totalFormations = \App\Models\Formation::count() ?? 0;
-            $totalClasses = \App\Models\Classe::count() ?? 0;
-        } catch (\Exception $e) {
-            $totalFilieres = 0;
-            $totalNiveaux = 0;
-            $totalFormations = 0;
-            $totalClasses = 0;
+        // Sections selon les permissions
+        
+        // Étudiants
+        if ($user->can('view students')) {
+            $data['totalStudents'] = ESBTPEtudiant::count();
+            $data['recentStudents'] = ESBTPEtudiant::orderBy('created_at', 'desc')->take(5)->get();
         }
-            
-        // Récupérer les notifications récentes seulement si la table existe
+        
+        // Secrétaires
+        if ($user->can('view users')) {
+            $data['totalSecretaires'] = User::role('secretaire')->count();
+        }
+        
+        // Filières
+        if ($user->can('view filieres')) {
+            try {
+                $data['totalFilieres'] = ESBTPFiliere::count();
+                $data['recentFilieres'] = ESBTPFiliere::orderBy('created_at', 'desc')->take(5)->get();
+            } catch (\Exception $e) {
+                $data['totalFilieres'] = 0;
+                $data['recentFilieres'] = collect();
+            }
+        }
+        
+        // Formations
+        if ($user->can('view formations')) {
+            try {
+                $data['totalFormations'] = ESBTPFormation::count();
+            } catch (\Exception $e) {
+                $data['totalFormations'] = 0;
+            }
+        }
+        
+        // Niveaux d'études
+        if ($user->can('view niveaux etudes')) {
+            try {
+                $data['totalNiveaux'] = ESBTPNiveauEtude::count();
+            } catch (\Exception $e) {
+                $data['totalNiveaux'] = 0;
+            }
+        }
+        
+        // Classes
+        if ($user->can('view classes')) {
+            try {
+                $data['totalClasses'] = ESBTPClasse::count();
+            } catch (\Exception $e) {
+                $data['totalClasses'] = 0;
+            }
+        }
+        
+        // Matières
+        if ($user->can('view matieres')) {
+            try {
+                $data['totalMatieres'] = ESBTPMatiere::count();
+            } catch (\Exception $e) {
+                $data['totalMatieres'] = 0;
+            }
+        }
+        
+        // Examens
+        if ($user->can('view exams')) {
+            try {
+                $data['totalExamens'] = ESBTPEvaluation::count();
+                $data['upcomingExamens'] = ESBTPEvaluation::where('date', '>=', now())
+                    ->orderBy('date')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['totalExamens'] = 0;
+                $data['upcomingExamens'] = collect();
+            }
+        }
+        
+        // Bulletins
+        if ($user->can('view bulletins')) {
+            try {
+                $data['totalBulletins'] = ESBTPBulletin::count();
+            } catch (\Exception $e) {
+                $data['totalBulletins'] = 0;
+            }
+        }
+        
+        // Emplois du temps
+        if ($user->can('view timetables')) {
+            try {
+                $data['totalEmploisTemps'] = ESBTPEmploiTemps::count();
+            } catch (\Exception $e) {
+                $data['totalEmploisTemps'] = 0;
+            }
+        }
+        
+        // Présences
+        if ($user->can('view attendances')) {
+            try {
+                $data['todayAttendances'] = Attendance::whereDate('date', today())->count();
+                $data['pendingAttendances'] = Attendance::whereDate('date', today())
+                    ->whereNull('status')
+                    ->count();
+            } catch (\Exception $e) {
+                $data['todayAttendances'] = 0;
+                $data['pendingAttendances'] = 0;
+            }
+        }
+        
+        // Messages
+        if ($user->can('receive messages')) {
+            try {
+                $data['recentMessages'] = Message::where(function($query) {
+                        $query->where('recipient_type', 'admins')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere(function($query) {
+                        $query->where('recipient_type', 'all')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere('recipient_id', Auth::id())
+                    ->whereNull('parent_id')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentMessages'] = collect();
+            }
+        }
+        
+        // Notifications
         try {
-            $recentNotifications = Notification::orderBy('created_at', 'desc')
+            $data['recentNotifications'] = Notification::orderBy('created_at', 'desc')
                 ->take(5)
                 ->get();
         } catch (\Exception $e) {
-            $recentNotifications = collect(); // Collection vide si erreur
-        }
-            
-        // Récupérer les messages récents seulement si la table existe
-        try {
-            $recentMessages = Message::where(function($query) {
-                    $query->where('recipient_type', 'admins')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere(function($query) {
-                    $query->where('recipient_type', 'all')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere('recipient_id', Auth::id())
-                ->whereNull('parent_id')
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentMessages = collect(); // Collection vide si erreur
+            $data['recentNotifications'] = collect();
         }
         
-        // Statistiques de présence seulement si la table existe
-        try {
-            $attendanceStats = Attendance::selectRaw('DATE(date) as attendance_date, COUNT(*) as total, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present')
-                ->groupBy('attendance_date')
-                ->orderBy('attendance_date', 'desc')
-                ->take(7)
-                ->get();
-        } catch (\Exception $e) {
-            $attendanceStats = collect([
-                [
-                    'attendance_date' => now()->format('Y-m-d'),
-                    'total' => 0,
-                    'present' => 0
-                ]
-            ]); // Collection avec des données vides pour éviter les erreurs d'affichage
-        }
-        
-        return view('dashboard.superadmin', compact(
-            'totalStudents', 
-            'totalSecretaires',
-            'totalUsers',
-            'recentUsers',
-            'totalFilieres',
-            'totalNiveaux',
-            'totalFormations',
-            'totalClasses',
-            'recentNotifications',
-            'recentMessages',
-            'attendanceStats'
-        ));
+        return view('dashboard.superadmin', $data);
     }
     
     /**
@@ -127,54 +211,80 @@ class DashboardController extends Controller
      */
     private function secretaireDashboard()
     {
-        $totalStudents = Student::count();
+        $user = Auth::user();
+        $data = [
+            'user' => $user
+        ];
         
-        // Récupérer les présences d'aujourd'hui seulement si la table existe
-        try {
-            $todayAttendances = Attendance::whereDate('date', today())->count();
-            $pendingAttendances = Attendance::whereDate('date', today())
-                ->whereNull('status')
-                ->count();
-        } catch (\Exception $e) {
-            $todayAttendances = 0;
-            $pendingAttendances = 0;
+        // Étudiants - Les secrétaires peuvent voir et créer des étudiants
+        if ($user->can('view students')) {
+            try {
+                $data['totalStudents'] = ESBTPEtudiant::count();
+                $data['recentStudents'] = ESBTPEtudiant::orderBy('created_at', 'desc')->take(5)->get();
+            } catch (\Exception $e) {
+                $data['totalStudents'] = 0;
+                $data['recentStudents'] = collect();
+            }
         }
         
-        // Récupérer les notifications récentes
-        try {
-            $recentNotifications = Notification::orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentNotifications = collect(); // Collection vide si erreur
-        }
-            
-        // Récupérer les messages récents
-        try {
-            $recentMessages = Message::where(function($query) {
-                    $query->where('recipient_type', 'secretaires')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere(function($query) {
-                    $query->where('recipient_type', 'all')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere('recipient_id', Auth::id())
-                ->whereNull('parent_id')
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentMessages = collect(); // Collection vide si erreur
+        // Présences - Les secrétaires peuvent gérer les présences
+        if ($user->can('view attendances')) {
+            try {
+                $data['todayAttendances'] = Attendance::whereDate('date', today())->count();
+                $data['pendingJustifications'] = Attendance::whereDate('date', '>=', now()->subDays(7))
+                    ->where('status', 'absent')
+                    ->where('justified', false)
+                    ->count();
+            } catch (\Exception $e) {
+                $data['todayAttendances'] = 0;
+                $data['pendingJustifications'] = 0;
+            }
         }
         
-        return view('dashboard.secretaire', compact(
-            'totalStudents',
-            'todayAttendances',
-            'pendingAttendances',
-            'recentNotifications',
-            'recentMessages'
-        ));
+        // Emplois du temps - Les secrétaires peuvent créer et consulter les emplois du temps
+        if ($user->can('view timetables')) {
+            try {
+                $data['totalTimetables'] = ESBTPEmploiTemps::count();
+                $data['todayClasses'] = ESBTPEmploiTemps::whereDate('date', today())->count();
+            } catch (\Exception $e) {
+                $data['totalTimetables'] = 0;
+                $data['todayClasses'] = 0;
+            }
+        }
+        
+        // Bulletins - Les secrétaires peuvent générer et consulter les bulletins
+        if ($user->can('view bulletins')) {
+            try {
+                $data['pendingBulletins'] = ESBTPBulletin::where('status', 'pending')->count();
+                $data['totalBulletins'] = ESBTPBulletin::count();
+            } catch (\Exception $e) {
+                $data['pendingBulletins'] = 0;
+                $data['totalBulletins'] = 0;
+            }
+        }
+        
+        // Messages récents adressés aux secrétaires
+        if ($user->can('receive messages')) {
+            try {
+                $data['recentMessages'] = Message::where(function($query) {
+                        $query->where('recipient_type', 'secretaires')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere(function($query) {
+                        $query->where('recipient_type', 'all')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere('recipient_id', Auth::id())
+                    ->whereNull('parent_id')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentMessages'] = collect();
+            }
+        }
+        
+        return view('dashboard.secretaire', $data);
     }
     
     /**
@@ -183,86 +293,190 @@ class DashboardController extends Controller
     private function etudiantDashboard()
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
         
-        if (!$student) {
-            // Au lieu de rediriger, afficher une vue spéciale pour les étudiants sans profil
-            return view('dashboard.etudiant_setup', [
-                'user' => $user
-            ]);
-        }
-        
-        // Récupérer l'emploi du temps d'aujourd'hui
+        // Récupérer les informations de l'étudiant
         try {
-            $todayTimetable = Timetable::where('class_id', $student->class_id)
-                ->where('day', strtolower(date('l')))
-                ->orderBy('start_time')
-                ->with(['subject', 'class', 'teacher'])
-                ->get();
+            $etudiant = ESBTPEtudiant::where('user_id', $user->id)->firstOrFail();
         } catch (\Exception $e) {
-            $todayTimetable = collect(); // Collection vide si erreur
+            // Rediriger vers une page de configuration si le profil étudiant n'existe pas
+            return view('dashboard.etudiant_setup', ['user' => $user]);
         }
         
-        // Récupérer les notifications récentes
+        $data = [
+            'user' => $user,
+            'etudiant' => $etudiant
+        ];
+        
+        // Récupérer la classe, filière et niveau d'étude si disponibles
         try {
-            $recentNotifications = Notification::where(function($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere(function($q) {
-                            $q->whereNull('user_id')
-                            ->where(function($sq) {
-                                $sq->where('type', 'info')
-                                    ->orWhere('type', 'warning')
-                                    ->orWhere('type', 'success');
-                            });
-                        });
-                })
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-            
-            // Compter les notifications non lues
-            $unreadNotifications = Notification::where(function($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere(function($q) {
-                            $q->whereNull('user_id')
-                            ->where(function($sq) {
-                                $sq->where('type', 'info')
-                                    ->orWhere('type', 'warning')
-                                    ->orWhere('type', 'success');
-                            });
-                        });
-                })
-                ->where('is_read', false)
+            $data['classe'] = $etudiant->classe;
+            if ($data['classe']) {
+                $data['filiere'] = $data['classe']->filiere;
+                $data['niveau'] = $data['classe']->niveauEtude;
+            }
+        } catch (\Exception $e) {
+            $data['classe'] = null;
+            $data['filiere'] = null;
+            $data['niveau'] = null;
+        }
+        
+        // Notifications non lues
+        try {
+            $data['unreadNotifications'] = Notification::where('user_id', $user->id)
+                ->where('read', false)
                 ->count();
         } catch (\Exception $e) {
-            $recentNotifications = collect(); // Collection vide si erreur
-            $unreadNotifications = 0;
+            $data['unreadNotifications'] = 0;
         }
         
-        // Récupérer les derniers examens et notes
-        try {
-            $recentExams = \App\Models\Exam::where('class_id', $student->class_id)
-                ->orderBy('date', 'desc')
-                ->take(3)
-                ->get();
+        // Examens à venir si l'étudiant peut voir ses examens
+        if ($user->can('view own exams')) {
+            try {
+                $data['upcomingExams'] = ESBTPEvaluation::where('date', '>=', now())
+                    ->whereHas('classe', function($query) use ($etudiant) {
+                        $query->where('id', $etudiant->classe_id);
+                    })
+                    ->orderBy('date')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['upcomingExams'] = collect();
+            }
+        }
+        
+        // Emploi du temps de l'étudiant
+        if ($user->can('view own timetable')) {
+            try {
+                $data['todayClasses'] = ESBTPEmploiTemps::where('classe_id', $etudiant->classe_id)
+                    ->whereDate('date', today())
+                    ->orderBy('heure_debut')
+                    ->get();
+            } catch (\Exception $e) {
+                $data['todayClasses'] = collect();
+            }
+        }
+        
+        // Présences de l'étudiant
+        if ($user->can('view own attendances')) {
+            try {
+                $data['attendanceStats'] = Attendance::where('etudiant_id', $etudiant->id)
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->get()
+                    ->pluck('total', 'status')
+                    ->toArray();
                 
-            $recentGrades = Grade::where('student_id', $student->id)
-                ->with(['exam', 'subject'])
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentExams = collect(); // Collection vide si erreur
-            $recentGrades = collect(); // Collection vide si erreur
+                $total = array_sum($data['attendanceStats']);
+                $present = $data['attendanceStats']['present'] ?? 0;
+                
+                $data['attendancePercentage'] = $total > 0 ? round(($present / $total) * 100) : 0;
+            } catch (\Exception $e) {
+                $data['attendanceStats'] = [];
+                $data['attendancePercentage'] = 0;
+            }
         }
         
-        return view('dashboard.etudiant', compact(
-            'student',
-            'todayTimetable',
-            'recentNotifications',
-            'unreadNotifications',
-            'recentExams',
-            'recentGrades'
-        ));
+        // Notes récentes
+        if ($user->can('view own grades')) {
+            try {
+                $data['recentGrades'] = Grade::where('etudiant_id', $etudiant->id)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentGrades'] = collect();
+            }
+        }
+        
+        return view('dashboard.etudiant', $data);
+    }
+    
+    /**
+     * Tableau de bord pour les parents.
+     */
+    private function parentDashboard()
+    {
+        $user = Auth::user();
+        
+        // Récupérer les informations du parent
+        try {
+            $parent = ESBTPParent::where('user_id', $user->id)->firstOrFail();
+        } catch (\Exception $e) {
+            // Rediriger vers une page de configuration si le profil parent n'existe pas
+            return view('dashboard.parent_setup', ['user' => $user]);
+        }
+        
+        $data = [
+            'user' => $user,
+            'parent' => $parent
+        ];
+        
+        // Récupérer les étudiants liés à ce parent
+        try {
+            $data['etudiants'] = $parent->etudiants;
+            $data['totalEtudiants'] = $data['etudiants']->count();
+        } catch (\Exception $e) {
+            $data['etudiants'] = collect();
+            $data['totalEtudiants'] = 0;
+        }
+        
+        // Notifications non lues
+        try {
+            $data['unreadNotifications'] = Notification::where('user_id', $user->id)
+                ->where('read', false)
+                ->count();
+        } catch (\Exception $e) {
+            $data['unreadNotifications'] = 0;
+        }
+        
+        // Bulletins récents des enfants
+        if ($user->can('view children bulletins')) {
+            try {
+                $etudiantIds = $data['etudiants']->pluck('id')->toArray();
+                $data['recentBulletins'] = ESBTPBulletin::whereIn('etudiant_id', $etudiantIds)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentBulletins'] = collect();
+            }
+        }
+        
+        // Présences des enfants
+        if ($user->can('view children attendances')) {
+            try {
+                $etudiantIds = $data['etudiants']->pluck('id')->toArray();
+                $data['recentAbsences'] = Attendance::whereIn('etudiant_id', $etudiantIds)
+                    ->where('status', 'absent')
+                    ->orderBy('date', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentAbsences'] = collect();
+            }
+        }
+        
+        // Messages adressés au parent
+        if ($user->can('receive messages')) {
+            try {
+                $data['recentMessages'] = Message::where(function($query) {
+                        $query->where('recipient_type', 'parents')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere(function($query) {
+                        $query->where('recipient_type', 'all')
+                            ->whereNull('recipient_group');
+                    })
+                    ->orWhere('recipient_id', Auth::id())
+                    ->whereNull('parent_id')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $data['recentMessages'] = collect();
+            }
+        }
+        
+        return view('dashboard.parent', $data);
     }
 } 

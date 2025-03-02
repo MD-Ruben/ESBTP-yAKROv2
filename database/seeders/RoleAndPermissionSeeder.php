@@ -19,171 +19,143 @@ class RoleAndPermissionSeeder extends Seeder
         // Réinitialiser les caches des rôles et permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Créer les permissions par catégorie
-        $permissionsArray = [
-            // Permissions générales
-            'Général' => [
-                'view-dashboard' => 'Accéder au tableau de bord',
-                'manage-system' => 'Gérer les paramètres système',
-            ],
+        // Vérifier si les tables sont vides ou si nous devons réinitialiser
+        if ($this->shouldReset()) {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::table('model_has_permissions')->truncate();
+            DB::table('model_has_roles')->truncate();
+            DB::table('role_has_permissions')->truncate();
+            DB::table('permissions')->truncate();
+            DB::table('roles')->truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             
-            // Gestion des utilisateurs
-            'Utilisateurs' => [
-                'create-users' => 'Créer des utilisateurs',
-                'view-users' => 'Voir les utilisateurs',
-                'edit-users' => 'Modifier les utilisateurs',
-                'delete-users' => 'Supprimer des utilisateurs',
-                'view-own-profile' => 'Voir son propre profil',
-                'edit-own-profile' => 'Modifier son propre profil',
-            ],
+            $this->command->info('Tables des permissions et rôles réinitialisées');
+        } else {
+            // Sinon, nous allons mettre à jour les permissions existantes
+            $this->command->info('Mise à jour des permissions existantes');
+        }
+
+        // Création des permissions
+        $permissions = [
+            // Filières
+            'create filieres', 'view filieres', 'edit filieres', 'delete filieres',
             
-            // Gestion académique
-            'Académique' => [
-                'manage-filieres' => 'Gérer les filières',
-                'manage-niveaux' => 'Gérer les niveaux d\'études',
-                'manage-annees' => 'Gérer les années universitaires',
-                'manage-classes' => 'Gérer les classes',
-                'manage-matieres' => 'Gérer les matières',
-                'manage-coefficients' => 'Gérer les coefficients',
-                'manage-salles' => 'Gérer les salles',
-            ],
+            // Formations
+            'create formations', 'view formations', 'edit formations', 'delete formations',
             
-            // Gestion des étudiants
-            'Étudiants' => [
-                'create-student' => 'Créer des étudiants',
-                'view-student' => 'Voir les étudiants',
-                'edit-student' => 'Modifier les étudiants',
-                'delete-student' => 'Supprimer des étudiants',
-            ],
+            // Niveaux d'études
+            'create niveaux etudes', 'view niveaux etudes', 'edit niveaux etudes', 'delete niveaux etudes',
             
-            // Notes et évaluations
-            'Notes' => [
-                'create-notes' => 'Créer des notes',
-                'view-notes' => 'Voir les notes',
-                'edit-notes' => 'Modifier les notes',
-                'delete-notes' => 'Supprimer des notes',
-                'view-own-notes' => 'Voir ses propres notes',
-                'calculate-moyennes' => 'Calculer les moyennes',
-            ],
+            // Classes
+            'create classes', 'view classes', 'edit classes', 'delete classes',
             
-            // Présences
-            'Présences' => [
-                'mark-presences' => 'Marquer les présences',
-                'view-presences' => 'Voir les présences',
-                'edit-presences' => 'Modifier les présences',
-                'view-own-presences' => 'Voir ses propres présences',
-            ],
+            // Étudiants
+            'create students', 'view students', 'edit students', 'delete students', 'view own profile',
             
-            // Messagerie
-            'Messagerie' => [
-                'send-messages' => 'Envoyer des messages',
-                'view-messages' => 'Voir les messages',
-                'delete-messages' => 'Supprimer des messages',
-                'view-own-messages' => 'Voir ses propres messages',
-            ],
+            // Examens
+            'create exams', 'view exams', 'edit exams', 'delete exams', 'view own exams',
+            
+            // Matières
+            'create matieres', 'view matieres', 'edit matieres', 'delete matieres',
+            
+            // Notes
+            'create grades', 'view grades', 'edit grades', 'delete grades', 'view own grades',
+            
+            // Bulletins
+            'generate bulletin', 'view bulletins', 'edit bulletins', 'delete bulletins', 'view own bulletin',
             
             // Emplois du temps
-            'Emploi du temps' => [
-                'create-emploi-temps' => 'Créer des emplois du temps',
-                'view-emploi-temps' => 'Voir les emplois du temps',
-                'edit-emploi-temps' => 'Modifier les emplois du temps',
-                'view-own-emploi-temps' => 'Voir son propre emploi du temps',
-            ],
+            'create timetable', 'view timetables', 'edit timetables', 'delete timetables', 'view own timetable',
+            
+            // Messages
+            'send messages', 'receive messages',
+            
+            // Présences
+            'create attendance', 'view attendances', 'edit attendances', 'delete attendances', 'view own attendances',
         ];
 
-        // Créer les permissions dans la base de données
-        foreach ($permissionsArray as $category => $permissions) {
-            foreach ($permissions as $name => $description) {
-                Permission::create([
-                    'name' => $name,
-                    'category' => $category,
-                    'description' => $description,
-                    'guard_name' => 'web'
-                ]);
+        // Créer les permissions si elles n'existent pas déjà
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+        
+        $this->command->info(count($permissions) . ' permissions créées ou mises à jour');
+
+        // Définition des rôles et leurs permissions associées
+        $roles = [
+            'superAdmin' => [
+                'create filieres', 'view filieres', 'edit filieres', 'delete filieres',
+                'create formations', 'view formations', 'edit formations', 'delete formations',
+                'create niveaux etudes', 'view niveaux etudes', 'edit niveaux etudes', 'delete niveaux etudes',
+                'create classes', 'view classes', 'edit classes', 'delete classes',
+                'create students', 'view students', 'edit students', 'delete students',
+                'create exams', 'view exams', 'edit exams', 'delete exams',
+                'create matieres', 'view matieres', 'edit matieres', 'delete matieres',
+                'create grades', 'view grades', 'edit grades', 'delete grades',
+                'generate bulletin', 'view bulletins', 'edit bulletins', 'delete bulletins',
+                'create timetable', 'view timetables', 'edit timetables', 'delete timetables',
+                'send messages', 'receive messages',
+                'create attendance', 'view attendances', 'edit attendances', 'delete attendances'
+            ],
+            'secretaire' => [
+                'view filieres',
+                'view formations',
+                'view niveaux etudes',
+                'view classes',
+                'create students', 'view students',
+                'view exams',
+                'view matieres',
+                'create grades', 'view grades',
+                'generate bulletin', 'view bulletins',
+                'create timetable', 'view timetables',
+                'send messages', 'receive messages',
+                'create attendance', 'view attendances'
+            ],
+            'etudiant' => [
+                'view own profile',
+                'view own exams',
+                'view own grades',
+                'view own bulletin',
+                'view own timetable',
+                'receive messages',
+                'view own attendances'
+            ],
+            'parent' => [
+                'view students', // Pour voir les profils de ses enfants
+                'view own profile',
+                'view exams', // Pour voir les examens de ses enfants
+                'view grades', // Pour voir les notes de ses enfants
+                'view bulletins', // Pour voir les bulletins de ses enfants
+                'view timetables', // Pour voir les emplois du temps de ses enfants
+                'send messages', 'receive messages',
+                'view attendances' // Pour voir les présences de ses enfants
+            ]
+        ];
+
+        // Créer les rôles et assigner les permissions
+        foreach ($roles as $roleName => $rolePermissions) {
+            $role = Role::firstOrCreate(['name' => $roleName]);
+            $role->syncPermissions($rolePermissions);
+            $this->command->info("Rôle '{$roleName}' créé ou mis à jour avec " . count($rolePermissions) . " permissions");
+        }
+    }
+
+    /**
+     * Détermine si les tables doivent être réinitialisées.
+     * 
+     * @return bool
+     */
+    private function shouldReset()
+    {
+        // Vérifier si nous sommes dans un environnement de développement
+        if (app()->environment('local')) {
+            // Dans l'environnement local, demander à l'utilisateur s'il souhaite réinitialiser
+            if ($this->command->confirm('Voulez-vous réinitialiser les tables de rôles et permissions?', false)) {
+                return true;
             }
         }
-
-        // Création des rôles principaux avec leurs descriptions
-        $roles = [
-            'superadmin' => 'Administrateur système avec accès complet à toutes les fonctionnalités',
-            'data-analyst' => 'Gestionnaire de données responsable de l\'encodage et la gestion des informations',
-            'etudiant' => 'Étudiant inscrit à l\'établissement',
-            'parent' => 'Parent ou tuteur d\'un ou plusieurs étudiants',
-            'enseignant' => 'Enseignant responsable de cours et d\'évaluations',
-            'secretaire' => 'Secrétaire administratif(ve) gérant les inscriptions et les dossiers',
-        ];
-
-        foreach ($roles as $name => $description) {
-            Role::create([
-                'name' => $name,
-                'description' => $description,
-                'guard_name' => 'web'
-            ]);
-        }
-
-        // Attribution des permissions aux rôles
         
-        // Le superadmin a toutes les permissions
-        $superadmin = Role::findByName('superadmin');
-        $superadmin->givePermissionTo(Permission::all());
-        
-        // Data Analyst / Secrétaire académique
-        $dataAnalyst = Role::findByName('data-analyst');
-        $dataAnalyst->givePermissionTo([
-            'view-dashboard',
-            'create-users', 'view-users', 'edit-users',
-            'view-own-profile', 'edit-own-profile',
-            'manage-classes', 'manage-matieres',
-            'create-student', 'view-student', 'edit-student',
-            'create-notes', 'view-notes', 'edit-notes', 'calculate-moyennes',
-            'mark-presences', 'view-presences', 'edit-presences',
-            'send-messages', 'view-messages', 'delete-messages', 'view-own-messages',
-            'create-emploi-temps', 'view-emploi-temps', 'edit-emploi-temps', 'view-own-emploi-temps',
-        ]);
-        
-        // Étudiant
-        $etudiant = Role::findByName('etudiant');
-        $etudiant->givePermissionTo([
-            'view-dashboard',
-            'view-own-profile', 'edit-own-profile',
-            'view-own-notes',
-            'view-own-presences',
-            'view-own-messages',
-            'view-own-emploi-temps',
-        ]);
-        
-        // Parent
-        $parent = Role::findByName('parent');
-        $parent->givePermissionTo([
-            'view-dashboard',
-            'view-own-profile', 'edit-own-profile',
-            'view-own-messages',
-        ]);
-        
-        // Enseignant
-        $enseignant = Role::findByName('enseignant');
-        $enseignant->givePermissionTo([
-            'view-dashboard',
-            'view-own-profile', 'edit-own-profile',
-            'view-student',
-            'create-notes', 'view-notes', 'edit-notes', 'calculate-moyennes',
-            'mark-presences', 'view-presences',
-            'send-messages', 'view-messages', 'view-own-messages',
-            'view-emploi-temps', 'view-own-emploi-temps',
-        ]);
-        
-        // Secrétaire
-        $secretaire = Role::findByName('secretaire');
-        $secretaire->givePermissionTo([
-            'view-dashboard',
-            'view-users', 'view-own-profile', 'edit-own-profile',
-            'create-student', 'view-student', 'edit-student',
-            'view-notes',
-            'view-presences',
-            'send-messages', 'view-messages', 'view-own-messages',
-            'view-emploi-temps',
-        ]);
-
-        $this->command->info('Rôles et permissions créés avec succès!');
+        // Par défaut, ne pas réinitialiser
+        return false;
     }
 } 

@@ -61,34 +61,6 @@
                 </div>
             </div>
 
-            <!-- Informations école -->
-            <div class="border-t border-gray-200 pt-6 mt-6">
-                <h3 class="text-lg font-medium text-gray-800 mb-4">Informations de l'école</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="school_name" class="block text-sm font-medium text-gray-700 mb-1">Nom de l'école</label>
-                        <input type="text" id="school_name" v-model="form.school_name" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="École ESBTP-Yakro">
-                    </div>
-                    
-                    <div>
-                        <label for="school_email" class="block text-sm font-medium text-gray-700 mb-1">Email de contact</label>
-                        <input type="email" id="school_email" v-model="form.school_email" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="contact@ecole.fr">
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <label for="school_address" class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
-                    <input type="text" id="school_address" v-model="form.school_address" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="123 Rue de l'École, 75000 Paris">
-                </div>
-            </div>
-
             <!-- Messages d'erreur et de succès -->
             <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
                 <div class="flex items-center">
@@ -96,7 +68,7 @@
                         <i class="fas fa-exclamation-circle text-red-500"></i>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm text-red-700">@{{ error }}</p>
+                        <p class="text-sm text-red-700" v-html="error"></p>
                     </div>
                 </div>
             </div>
@@ -135,22 +107,50 @@
         data: {
             form: {
                 name: '',
+                username: '',
                 email: '',
                 password: '',
-                password_confirmation: '',
-                school_name: '',
-                school_email: '',
-                school_address: ''
+                password_confirmation: ''
             },
             loading: false,
             error: null,
             success: null
         },
         methods: {
-            createAdmin() {
+            validateForm() {
+                // Réinitialiser l'erreur
+                this.error = null;
+                
+                // Vérifier que tous les champs sont remplis
+                if (!this.form.name || !this.form.username || !this.form.email || !this.form.password || !this.form.password_confirmation) {
+                    this.error = 'Tous les champs sont obligatoires';
+                    return false;
+                }
+                
+                // Vérifier que l'email est valide
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(this.form.email)) {
+                    this.error = 'Veuillez entrer une adresse email valide';
+                    return false;
+                }
+                
                 // Vérifier que les mots de passe correspondent
                 if (this.form.password !== this.form.password_confirmation) {
                     this.error = 'Les mots de passe ne correspondent pas';
+                    return false;
+                }
+                
+                // Vérifier la longueur du mot de passe
+                if (this.form.password.length < 8) {
+                    this.error = 'Le mot de passe doit contenir au moins 8 caractères';
+                    return false;
+                }
+                
+                return true;
+            },
+            createAdmin() {
+                // Valider le formulaire
+                if (!this.validateForm()) {
                     return;
                 }
                 
@@ -159,30 +159,84 @@
                 this.success = null;
                 this.loading = true;
                 
+                // Préparation des données au format attendu par le serveur
+                const formData = {
+                    name: this.form.name.trim(),
+                    username: this.form.username.trim(),
+                    email: this.form.email.trim(),
+                    password: this.form.password,
+                    password_confirmation: this.form.password_confirmation
+                };
+                
+                console.log('Envoi des données au serveur:', formData); // Pour debug
+                
+                // Token CSRF
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                
                 // Envoyer la requête au serveur
-                axios.post('{{ route("install.setup-admin") }}', this.form)
-                    .then(response => {
-                        this.loading = false;
-                        if (response.data.status === 'success') {
-                            this.success = response.data.message || 'Administrateur créé avec succès!';
-                            // Rediriger vers la page suivante après 2 secondes
-                            setTimeout(() => {
-                                window.location.href = response.data.redirect || '{{ route("install.complete") }}';
-                            }, 2000);
+                axios.post('{{ route("install.setup-admin") }}', formData, {
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    this.loading = false;
+                    console.log('Réponse du serveur:', response.data); // Pour debug
+                    
+                    if (response.data && response.data.status === 'success') {
+                        this.success = response.data.message || 'Administrateur créé avec succès!';
+                        
+                        // Log de succès
+                        console.log('Redirection vers:', response.data.redirect || '{{ route("install.complete") }}');
+                        
+                        // Rediriger vers la page suivante après 2 secondes
+                        setTimeout(() => {
+                            window.location.href = response.data.redirect || '{{ route("install.complete") }}';
+                        }, 2000);
+                    } else {
+                        this.error = (response.data && response.data.message) ? response.data.message : 'Une erreur est survenue';
+                        console.error('Erreur détectée dans la réponse:', this.error);
+                    }
+                })
+                .catch(error => {
+                    this.loading = false;
+                    console.error('Erreur complète:', error); // Pour debug
+                    console.error('Détails de la réponse d\'erreur:', error.response); // Pour debug
+                    
+                    if (error.response && error.response.data) {
+                        if (error.response.data.errors) {
+                            // Récupérer les messages d'erreur de validation
+                            const errorMessages = [];
+                            for (const field in error.response.data.errors) {
+                                const fieldErrors = error.response.data.errors[field];
+                                if (Array.isArray(fieldErrors)) {
+                                    errorMessages.push(`${field}: ${fieldErrors.join('. ')}`);
+                                } else {
+                                    errorMessages.push(`${field}: ${fieldErrors}`);
+                                }
+                            }
+                            this.error = errorMessages.join('<br>');
+                            console.error('Erreurs de validation:', errorMessages);
+                        } else if (error.response.data.message) {
+                            this.error = error.response.data.message;
+                            console.error('Message d\'erreur:', error.response.data.message);
+                        } else if (error.response.data.error) {
+                            this.error = error.response.data.error;
+                            console.error('Message d\'erreur:', error.response.data.error);
                         } else {
-                            this.error = response.data.message || 'Une erreur est survenue';
+                            this.error = 'Une erreur est survenue lors de la création de l\'administrateur. Consultez la console pour plus de détails.';
+                            console.error('Erreur sans message spécifique:', error.response.data);
                         }
-                    })
-                    .catch(error => {
-                        this.loading = false;
-                        if (error.response && error.response.data && error.response.data.errors) {
-                            // Récupérer le premier message d'erreur
-                            const errorMessages = Object.values(error.response.data.errors);
-                            this.error = errorMessages.length > 0 ? errorMessages[0][0] : 'Une erreur est survenue';
-                        } else {
-                            this.error = 'Une erreur est survenue lors de la création de l\'administrateur';
-                        }
-                    });
+                    } else if (error.message) {
+                        this.error = 'Erreur de connexion: ' + error.message;
+                        console.error('Message d\'erreur général:', error.message);
+                    } else {
+                        this.error = 'Une erreur de connexion est survenue. Veuillez réessayer.';
+                        console.error('Erreur non spécifiée');
+                    }
+                });
             }
         }
     });

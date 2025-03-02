@@ -57,6 +57,9 @@ class ExtendUsersTable extends Migration
             if (!Schema::hasColumn('users', 'deleted_at')) {
                 $table->softDeletes();
             }
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->enum('role', ['superAdmin', 'secretaire', 'etudiant'])->default('etudiant');
+            }
         });
     }
 
@@ -71,7 +74,7 @@ class ExtendUsersTable extends Migration
             $table->dropColumn([
                 'first_name', 'last_name', 'birth_date', 'gender', 'nationality',
                 'address', 'city', 'postal_code', 'country', 'phone', 'mobile_phone',
-                'profile_photo_path', 'is_active', 'deleted_at'
+                'profile_photo_path', 'is_active', 'deleted_at', 'role'
             ]);
         });
     }

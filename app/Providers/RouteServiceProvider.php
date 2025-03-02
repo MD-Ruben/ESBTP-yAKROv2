@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,9 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
+        // Vérifier l'état d'installation
+        $this->checkInstallation();
+
         $this->routes(function () {
             Route::prefix('api')
                 ->middleware('api')
@@ -48,9 +52,11 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/web.php'));
                 
             // Charger les routes ESBTP
-            Route::middleware('web')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/esbtp.php'));
+            if (file_exists(base_path('routes/esbtp.php'))) {
+                Route::middleware('web')
+                    ->namespace($this->namespace)
+                    ->group(base_path('routes/esbtp.php'));
+            }
         });
     }
 
@@ -64,5 +70,55 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
+    }
+
+    /**
+     * Vérifie si l'application est installée et redirige vers l'installation si nécessaire
+     */
+    protected function checkInstallation()
+    {
+        try {
+            // Ne pas rediriger si on est déjà sur la page d'accueil ou les routes d'authentification
+            if (request()->is('/') || request()->is('login') || request()->is('register')) {
+                return;
+            }
+            
+            // Vérifier si la base de données est configurée
+            if (!config('database.connections.' . config('database.default') . '.database')) {
+                $this->redirectToInstall();
+                return;
+            }
+
+            // Vérifier si le fichier .env existe
+            if (!file_exists(base_path('.env'))) {
+                $this->redirectToInstall();
+                return;
+            }
+
+            // Vérifier si la table users existe
+            if (!Schema::hasTable('users')) {
+                $this->redirectToInstall();
+                return;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erreur lors de la vérification de l\'installation: ' . $e->getMessage());
+            $this->redirectToInstall();
+        }
+    }
+
+    /**
+     * Redirige vers la page d'installation
+     */
+    protected function redirectToInstall()
+    {
+        if (request()->is('install') || request()->is('install/*')) {
+            return;
+        }
+
+        // Rediriger vers l'installation sauf pour certains chemins
+        if (!request()->is('assets/*') && !request()->is('css/*') && !request()->is('js/*')) {
+            header('Location: ' . url('/install'));
+            exit;
+        }
     }
 }

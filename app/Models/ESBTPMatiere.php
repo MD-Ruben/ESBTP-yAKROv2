@@ -78,6 +78,16 @@ class ESBTPMatiere extends Model
     }
 
     /**
+     * Relation avec les filières (alias de filiere pour la compatibilité).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function filieres()
+    {
+        return $this->filiere();
+    }
+
+    /**
      * Relation avec les évaluations.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -164,5 +174,15 @@ class ESBTPMatiere extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Récupère l'unité d'enseignement associée à la matière.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function uniteEnseignement()
+    {
+        return $this->belongsTo(UniteEnseignement::class, 'unite_enseignement_id');
     }
 } 

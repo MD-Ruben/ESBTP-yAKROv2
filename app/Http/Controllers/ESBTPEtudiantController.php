@@ -609,4 +609,36 @@ class ESBTPEtudiantController extends Controller
             
         return response()->json($inscriptions);
     }
+
+    /**
+     * Affiche le profil de l'étudiant connecté.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+        
+        // Récupérer l'étudiant associé à l'utilisateur connecté
+        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+            
+        // Récupérer l'inscription active de l'étudiant
+        $inscriptionActive = DB::table('esbtp_inscriptions')
+            ->join('esbtp_annee_universitaires', 'esbtp_inscriptions.annee_universitaire_id', '=', 'esbtp_annee_universitaires.id')
+            ->join('esbtp_classes', 'esbtp_inscriptions.classe_id', '=', 'esbtp_classes.id')
+            ->join('esbtp_niveau_etudes', 'esbtp_classes.niveau_etude_id', '=', 'esbtp_niveau_etudes.id')
+            ->join('esbtp_filieres', 'esbtp_classes.filiere_id', '=', 'esbtp_filieres.id')
+            ->select(
+                'esbtp_inscriptions.*',
+                'esbtp_annee_universitaires.libelle as annee',
+                'esbtp_classes.nom as classe',
+                'esbtp_niveau_etudes.libelle as niveau',
+                'esbtp_filieres.nom as filiere'
+            )
+            ->where('esbtp_inscriptions.etudiant_id', $etudiant->id)
+            ->where('esbtp_annee_universitaires.est_actif', 1)
+            ->first();
+            
+        return view('esbtp.etudiants.profile', compact('etudiant', 'inscriptionActive'));
+    }
 } 

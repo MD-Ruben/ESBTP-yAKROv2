@@ -1,391 +1,295 @@
 @extends('layouts.app')
 
-@section('title', 'Tableau de bord parent')
+@section('title', 'Tableau de bord parent | ESBTP-yAKRO')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Hero Section -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card border-0 bg-gradient-primary text-white overflow-hidden animate__animated animate__fadeIn" 
-                 style="background: linear-gradient(135deg, var(--esbtp-green), var(--esbtp-green-dark)); border-radius: 15px;">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h2 class="display-5 fw-bold mb-3 animate__animated animate__fadeInUp">Bienvenue, {{ Auth::user()->name }}</h2>
-                            <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1">Suivez la scolarité de vos enfants depuis votre tableau de bord parent.</p>
-                            <div class="d-flex gap-2 animate__animated animate__fadeInUp animate__delay-2">
-                                <a href="{{ route('children.index') }}" class="btn btn-light px-4 py-2">
-                                    <i class="fas fa-users me-2"></i> Voir mes enfants
-                                </a>
-                                <a href="{{ route('payments.index') }}" class="btn btn-outline-light px-4 py-2">
-                                    <i class="fas fa-credit-card me-2"></i> Gérer les paiements
-                                </a>
-                            </div>
+<div class="container-fluid px-4">
+    <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
+    <p class="text-muted">Récapitulatif des informations concernant vos enfants</p>
+
+    @if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Mes enfants</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalEtudiants }}</div>
                         </div>
-                        <div class="col-md-6 d-none d-md-block position-relative">
-                            <div class="position-absolute top-0 end-0 mt-3 me-4 animate__animated animate__fadeInRight">
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-white rounded-circle p-3 me-3 shadow-sm">
-                                        <i class="fas fa-calendar-alt text-success fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 text-white">{{ now()->format('d M Y') }}</h6>
-                                        <small class="text-white-50">{{ now()->format('l') }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <img src="https://img.freepik.com/free-vector/happy-family-concept-illustration_114360-1549.jpg" 
-                                 alt="Family" class="img-fluid rounded-3 mt-3 animate__animated animate__fadeInUp" style="max-height: 200px; opacity: 0.9;">
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                </div>
-                <div class="position-absolute bottom-0 end-0 mb-n3 me-n3 d-none d-lg-block">
-                    <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="100" cy="100" r="100" fill="rgba(255,255,255,0.1)"/>
-                    </svg>
+                    <a href="{{ route('parent.etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Voir mes enfants</a>
                 </div>
             </div>
         </div>
+
+        @if(isset($unreadNotifications))
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Notifications non lues</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $unreadNotifications }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('parent.notifications.index') }}" class="btn btn-sm btn-warning mt-3">Voir toutes les notifications</a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(isset($recentAbsences) && $recentAbsences->count() > 0)
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Absences récentes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $recentAbsences->count() }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('parent.attendances.index') }}" class="btn btn-sm btn-danger mt-3">Voir les présences</a>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
-    <!-- Statistiques -->
-    <div class="row mb-4">
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp">
-                <div class="card-body position-relative">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Mes enfants</h6>
-                            <h2 class="mb-0 display-5 fw-bold">{{ $childrenCount ?? 0 }}</h2>
-                        </div>
-                        <div class="stat-icon bg-primary-light rounded-circle p-3">
-                            <i class="fas fa-users text-primary fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
-                    </div>
-                    <a href="{{ route('children.index') }}" class="stretched-link text-decoration-none">
-                        <div class="d-flex align-items-center mt-3">
-                            <small class="text-primary fw-semibold">Voir détails</small>
-                            <i class="fas fa-arrow-right ms-auto text-primary"></i>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-1">
-                <div class="card-body position-relative">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Notifications</h6>
-                            <h2 class="mb-0 display-5 fw-bold">{{ $unreadNotifications ?? 0 }}</h2>
-                        </div>
-                        <div class="stat-icon bg-warning-light rounded-circle p-3">
-                            <i class="fas fa-bell text-warning fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
-                    </div>
-                    <a href="{{ route('notifications.index') }}" class="stretched-link text-decoration-none">
-                        <div class="d-flex align-items-center mt-3">
-                            <small class="text-warning fw-semibold">Voir toutes</small>
-                            <i class="fas fa-arrow-right ms-auto text-warning"></i>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-2">
-                <div class="card-body position-relative">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <h6 class="text-uppercase fw-semibold text-muted mb-1">Paiements</h6>
-                            <h2 class="mb-0 display-5 fw-bold">{{ $pendingPayments ?? 0 }}</h2>
-                        </div>
-                        <div class="stat-icon bg-success-light rounded-circle p-3">
-                            <i class="fas fa-credit-card text-success fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
-                    </div>
-                    <a href="{{ route('payments.index') }}" class="stretched-link text-decoration-none">
-                        <div class="d-flex align-items-center mt-3">
-                            <small class="text-success fw-semibold">Voir détails</small>
-                            <i class="fas fa-arrow-right ms-auto text-success"></i>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mes enfants -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
-                <div class="card-header bg-white py-3 d-flex align-items-center">
-                    <i class="fas fa-users text-primary me-2"></i>
-                    <h5 class="card-title mb-0 fw-bold">Mes enfants</h5>
+    <!-- Liste des enfants -->
+    @if(isset($etudiants) && $etudiants->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Mes enfants</h6>
                 </div>
                 <div class="card-body">
-                    @if(isset($children) && $children->count() > 0)
-                        <div class="row g-3">
-                            @foreach($children as $child)
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card student-card border-0 shadow-sm h-100">
-                                        <div class="card-body p-4">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <div class="flex-shrink-0">
-                                                    <div class="avatar-wrapper rounded-circle overflow-hidden bg-light" style="width: 70px; height: 70px;">
-                                                        <img src="{{ $child->profile_photo ?? asset('images/default-avatar.png') }}" 
-                                                             alt="{{ $child->name }}" class="w-100 h-100 object-fit-cover">
-                                                    </div>
-                                                </div>
-                                                <div class="flex-grow-1 ms-3">
-                                                    <h5 class="mb-1 fw-bold">{{ $child->name }}</h5>
-                                                    <p class="mb-0 text-muted">
-                                                        <i class="fas fa-graduation-cap me-1"></i>
-                                                        {{ $child->class->name ?? 'N/A' }} {{ $child->section->name ?? '' }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="student-stats mb-3">
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <div class="stat-item p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Moyenne</small>
-                                                            <span class="badge {{ ($child->average_grade ?? 0) >= 10 ? 'bg-success' : 'bg-danger' }} rounded-pill px-2 py-1">
-                                                                {{ $child->average_grade ?? 'N/A' }}/20
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="stat-item p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Présence</small>
-                                                            <span class="badge bg-primary rounded-pill px-2 py-1">
-                                                                {{ $child->attendance_percentage ?? 'N/A' }}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <a href="{{ route('children.show', $child->id) }}" class="btn btn-primary w-100">
-                                                <i class="fas fa-eye me-2"></i> Voir détails
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="fas fa-users fa-3x text-muted"></i>
-                            </div>
-                            <h6 class="text-muted">Aucun enfant enregistré</h6>
-                            <p class="text-muted small mb-0">Contactez l'administration pour ajouter vos enfants</p>
-                        </div>
-                    @endif
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Matricule</th>
+                                    <th>Classe</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($etudiants as $etudiant)
+                                <tr>
+                                    <td>{{ $etudiant->nom }}</td>
+                                    <td>{{ $etudiant->prenom }}</td>
+                                    <td>{{ $etudiant->matricule }}</td>
+                                    <td>{{ $etudiant->classe->nom ?? 'Non assigné' }}</td>
+                                    <td>
+                                        <a href="{{ route('parent.etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-info">Détails</a>
+                                        <a href="{{ route('parent.bulletins.index', ['etudiant_id' => $etudiant->id]) }}" class="btn btn-sm btn-primary">Bulletins</a>
+                                        <a href="{{ route('parent.attendances.show', $etudiant->id) }}" class="btn btn-sm btn-warning">Présences</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
-    <!-- Notifications et Paiements -->
-    <div class="row mb-4">
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInUp animate__delay-1">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-bell text-warning me-2"></i>
-                        <h5 class="card-title mb-0 fw-bold">Notifications récentes</h5>
+    <!-- Bulletins récents -->
+    @if(isset($recentBulletins) && $recentBulletins->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Bulletins récents</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Étudiant</th>
+                                    <th>Classe</th>
+                                    <th>Période</th>
+                                    <th>Moyenne</th>
+                                    <th>Rang</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentBulletins as $bulletin)
+                                <tr>
+                                    <td>{{ $bulletin->etudiant->nom }} {{ $bulletin->etudiant->prenom }}</td>
+                                    <td>{{ $bulletin->classe->nom ?? 'N/A' }}</td>
+                                    <td>{{ $bulletin->periode }}</td>
+                                    <td>{{ number_format($bulletin->moyenne_generale, 2) }}/20</td>
+                                    <td>{{ $bulletin->rang ?? 'N/A' }}</td>
+                                    <td>
+                                        <a href="{{ route('parent.bulletins.show', $bulletin->id) }}" class="btn btn-sm btn-info">Voir</a>
+                                        <a href="{{ route('parent.bulletins.download', $bulletin->id) }}" class="btn btn-sm btn-danger">PDF</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                    <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-outline-warning rounded-pill">
-                        Voir toutes
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    @if(isset($recentNotifications) && $recentNotifications->count() > 0)
-                        <div class="notification-list">
-                            @foreach($recentNotifications as $notification)
-                                <div class="notification-item p-3 border-bottom">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0">
-                                            <div class="notification-icon bg-light rounded-circle p-2">
-                                                <i class="fas fa-info-circle text-warning"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="mb-1 fw-semibold">{{ $notification->title }}</h6>
-                                            <p class="mb-1 text-muted small">{{ Str::limit($notification->message, 80) }}</p>
-                                            <div class="d-flex align-items-center">
-                                                <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                                <span class="ms-auto">
-                                                    <a href="#" class="btn btn-sm btn-link text-decoration-none p-0">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="fas fa-bell-slash fa-3x text-muted"></i>
-                            </div>
-                            <h6 class="text-muted">Aucune notification récente</h6>
-                            <p class="text-muted small mb-0">Les nouvelles notifications apparaîtront ici</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInUp animate__delay-2">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-credit-card text-success me-2"></i>
-                        <h5 class="card-title mb-0 fw-bold">Paiements récents</h5>
-                    </div>
-                    <a href="{{ route('payments.index') }}" class="btn btn-sm btn-outline-success rounded-pill">
-                        Voir tous
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    @if(isset($recentPayments) && $recentPayments->count() > 0)
-                        <div class="payment-list">
-                            @foreach($recentPayments as $payment)
-                                <div class="payment-item p-3 border-bottom">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0">
-                                            <div class="payment-icon bg-light rounded-circle p-2">
-                                                <i class="fas fa-receipt text-success"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="mb-1 fw-semibold">{{ $payment->description }}</h6>
-                                            <p class="mb-1 text-muted small">
-                                                <i class="fas fa-user me-1"></i> {{ $payment->student->name }}
-                                            </p>
-                                            <div class="d-flex align-items-center">
-                                                <span class="badge {{ $payment->status === 'paid' ? 'bg-success' : 'bg-warning' }} rounded-pill">
-                                                    {{ $payment->status === 'paid' ? 'Payé' : 'En attente' }}
-                                                </span>
-                                                <span class="ms-2 fw-semibold">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</span>
-                                                <small class="text-muted ms-auto">{{ $payment->created_at->format('d/m/Y') }}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="fas fa-file-invoice fa-3x text-muted"></i>
-                            </div>
-                            <h6 class="text-muted">Aucun paiement récent</h6>
-                            <p class="text-muted small mb-0">Les paiements récents apparaîtront ici</p>
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Absences récentes -->
+    @if(isset($recentAbsences) && $recentAbsences->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Absences récentes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Étudiant</th>
+                                    <th>Date</th>
+                                    <th>Cours</th>
+                                    <th>Justifié</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentAbsences as $absence)
+                                <tr>
+                                    <td>{{ $absence->etudiant->nom }} {{ $absence->etudiant->prenom }}</td>
+                                    <td>{{ $absence->date->format('d/m/Y') }}</td>
+                                    <td>{{ $absence->matiere->nom ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($absence->justified)
+                                            <span class="badge bg-success">Oui</span>
+                                        @else
+                                            <span class="badge bg-danger">Non</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if(!$absence->justified)
+                                            <a href="{{ route('parent.attendances.justify', $absence->id) }}" class="btn btn-sm btn-warning">Justifier</a>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Messages récents -->
+    @if(isset($recentMessages) && $recentMessages->count() > 0)
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Messages récents</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        @foreach($recentMessages as $message)
+                        <a href="{{ route('parent.messages.show', $message->id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ $message->subject }}</h5>
+                                <small>{{ $message->created_at->diffForHumans() }}</small>
+                            </div>
+                            <p class="mb-1">{{ Str::limit($message->content, 100) }}</p>
+                            <small>De: {{ $message->sender->name ?? 'Système' }}</small>
+                        </a>
+                        @endforeach
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('parent.messages.index') }}" class="btn btn-primary">Voir tous les messages</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+@endsection
 
+@section('scripts')
+<script>
+    // Graphiques et scripts spécifiques au tableau de bord
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialiser les tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
 <style>
-    /* Styles pour les cartes statistiques */
-    .stat-card {
-        transition: all 0.3s ease;
-        border-radius: 15px;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .stat-icon {
-        width: 60px;
-        height: 60px;
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s ease;
+        font-size: 1.5rem;
     }
     
-    .bg-primary-light {
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-    
-    .bg-success-light {
+    .bg-light-green {
         background-color: rgba(25, 135, 84, 0.1);
     }
     
-    .bg-warning-light {
+    .bg-light-orange {
         background-color: rgba(255, 193, 7, 0.1);
     }
     
-    .bg-danger-light {
-        background-color: rgba(220, 53, 69, 0.1);
+    .bg-light-blue {
+        background-color: rgba(13, 110, 253, 0.1);
     }
     
-    .bg-info-light {
-        background-color: rgba(13, 202, 240, 0.1);
+    .bg-light-purple {
+        background-color: rgba(111, 66, 193, 0.1);
     }
     
-    /* Styles pour les cartes d'étudiant */
-    .student-card {
-        transition: all 0.3s ease;
-        border-radius: 15px;
-    }
-    
-    .student-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Styles pour les notifications et paiements */
-    .notification-list, .payment-list {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-    
-    .notification-item, .payment-item {
-        transition: all 0.2s ease;
-    }
-    
-    .notification-item:hover, .payment-item:hover {
-        background-color: rgba(0, 0, 0, 0.02);
-    }
-    
-    .notification-icon, .payment-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    /* Animation */
-    .animate__delay-1 {
-        animation-delay: 0.1s;
-    }
-    
-    .animate__delay-2 {
-        animation-delay: 0.2s;
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease-in-out;
     }
 </style>
 @endsection 

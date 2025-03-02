@@ -17,22 +17,27 @@ class CheckInstalled
      */
     public function handle(Request $request, Closure $next)
     {
+        // Toujours autoriser l'accès à la page d'accueil et aux assets
+        if ($request->is('/') || $request->is('assets/*') || $request->is('css/*') || $request->is('js/*') || 
+            $request->is('logout') || $request->is('register')) {
+            return $next($request);
+        }
+        
         // Vérifier si l'application est installée et si les migrations correspondent
         $installationStatus = InstallationHelper::getInstallationStatus();
         $installed = $installationStatus['installed'];
         $matchPercentage = $installationStatus['match_percentage'] ?? 0;
         $hasAdminUser = InstallationHelper::hasAdminUser();
         
+        // Si un administrateur existe, considérer l'application comme installée
+        if ($hasAdminUser) {
+            $installed = true;
+        }
+        
         // Journaliser l'état de l'installation pour le débogage
         \Log::info("Middleware CheckInstalled - Installation status: " . ($installed ? 'Installed' : 'Not installed') . 
                   ", Match: {$matchPercentage}%, Admin user: " . ($hasAdminUser ? 'Yes' : 'No') . 
                   ", Route: " . $request->path());
-        
-        // Toujours autoriser l'accès aux assets et aux routes d'authentification
-        if ($request->is('assets/*') || $request->is('css/*') || $request->is('js/*') || 
-            $request->is('logout') || $request->is('register')) {
-            return $next($request);
-        }
         
         // Si nous sommes sur les routes d'installation, toujours permettre l'accès
         if ($request->is('install') || $request->is('install/*')) {
@@ -42,7 +47,7 @@ class CheckInstalled
         
         // Si l'application n'est pas installée du tout ou s'il n'y a pas d'utilisateur admin, 
         // rediriger vers l'installation
-        if (!$installed || !$hasAdminUser) {
+        if (!$installed && !$hasAdminUser) {
             \Log::info("Redirecting to installation page (Not installed or no admin user)");
             return redirect()->route('install.index');
         }

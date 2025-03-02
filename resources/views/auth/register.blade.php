@@ -94,7 +94,7 @@
             </div>
             <div class="text-center mt-3">
                 <p>Vous avez déjà un compte ? <a href="{{ route('login') }}" class="text-decoration-none">Connectez-vous</a></p>
-                <a href="{{ route('welcome') }}" class="text-decoration-none">
+                <a href="{{ url('/') }}" class="text-decoration-none">
                     Retour à l'accueil
                 </a>
             </div>

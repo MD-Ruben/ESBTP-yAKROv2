@@ -1,68 +1,163 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ESBTPFiliereController;
-use App\Http\Controllers\ESBTPNiveauEtudeController;
-use App\Http\Controllers\ESBTPAnneeUniversitaireController;
-use App\Http\Controllers\ESBTPInscriptionController;
-use App\Http\Controllers\ESBTPSalleController;
+use App\Http\Controllers\ESBTP\SuperAdminController;
+use App\Http\Controllers\ESBTP\SecretaireController;
+use App\Http\Controllers\ESBTP\EtudiantController;
+use App\Http\Controllers\ESBTPFiliereController as FiliereController;
+use App\Http\Controllers\ESBTPNiveauEtudeController as NiveauEtudeController;
+use App\Http\Controllers\ESBTPAnneeUniversitaireController as AnneeUniversitaireController;
+use App\Http\Controllers\ESBTPFormationController as FormationController;
+use App\Http\Controllers\ESBTPClasseController as ClasseController;
+use App\Http\Controllers\ESBTP\EtudiantController as AdminEtudiantController;
+use App\Http\Controllers\ESBTPInscriptionController as InscriptionController;
+use App\Http\Controllers\ESBTPMatiereController as MatiereController;
+use App\Http\Controllers\ESBTPEvaluationController as EvaluationController;
+use App\Http\Controllers\ESBTPNoteController as NoteController;
+use App\Http\Controllers\ESBTPBulletinController as BulletinController;
+use App\Http\Controllers\ESBTPAnnonceController as AnnonceController;
+use App\Http\Controllers\ESBTPEmploiTempsController as EmploiTempsController;
+use App\Http\Controllers\ESBTPAttendanceController as AbsenceController;
+use App\Http\Controllers\ESBTP\ParentController;
+use App\Http\Controllers\ParentNotificationController;
+use App\Http\Controllers\ParentMessageController;
+use App\Http\Controllers\ParentPaymentController;
+use App\Http\Controllers\ParentProfileController;
+use App\Http\Controllers\ParentDashboardController;
+use App\Http\Controllers\ParentStudentController;
+use App\Http\Controllers\ESBTP\ParentAbsenceController;
+use App\Http\Controllers\ESBTP\SecretaireAdminController;
 
 /*
 |--------------------------------------------------------------------------
 | Routes ESBTP
 |--------------------------------------------------------------------------
 |
-| Ce fichier contient toutes les routes pour le module ESBTP-YAKRO.
-| Ces routes sont chargées par le RouteServiceProvider.
+| Routes spécifiques à l'application ESBTP-yAKRO
 |
 */
 
-// Préfixe 'esbtp' pour toutes les routes
-Route::prefix('esbtp')->name('esbtp.')->middleware(['auth'])->group(function () {
+Route::prefix('esbtp')->name('esbtp.')->group(function () {
     
-    // Routes pour les filières
-    Route::get('/filieres', [ESBTPFiliereController::class, 'index'])->name('filieres.index');
-    Route::get('/filieres/create', [ESBTPFiliereController::class, 'create'])->name('filieres.create');
-    Route::post('/filieres', [ESBTPFiliereController::class, 'store'])->name('filieres.store');
-    Route::get('/filieres/{filiere}', [ESBTPFiliereController::class, 'show'])->name('filieres.show');
-    Route::get('/filieres/{filiere}/edit', [ESBTPFiliereController::class, 'edit'])->name('filieres.edit');
-    Route::put('/filieres/{filiere}', [ESBTPFiliereController::class, 'update'])->name('filieres.update');
-    Route::delete('/filieres/{filiere}', [ESBTPFiliereController::class, 'destroy'])->name('filieres.destroy');
+    // Routes publiques
+    Route::get('/', function () {
+        return view('esbtp.welcome');
+    })->name('welcome');
     
-    // Routes pour les niveaux d'études
-    Route::get('/niveaux-etudes', [ESBTPNiveauEtudeController::class, 'index'])->name('niveaux-etudes.index');
-    Route::get('/niveaux-etudes/create', [ESBTPNiveauEtudeController::class, 'create'])->name('niveaux-etudes.create');
-    Route::post('/niveaux-etudes', [ESBTPNiveauEtudeController::class, 'store'])->name('niveaux-etudes.store');
-    Route::get('/niveaux-etudes/{niveau}', [ESBTPNiveauEtudeController::class, 'show'])->name('niveaux-etudes.show');
-    Route::get('/niveaux-etudes/{niveau}/edit', [ESBTPNiveauEtudeController::class, 'edit'])->name('niveaux-etudes.edit');
-    Route::put('/niveaux-etudes/{niveau}', [ESBTPNiveauEtudeController::class, 'update'])->name('niveaux-etudes.update');
-    Route::delete('/niveaux-etudes/{niveau}', [ESBTPNiveauEtudeController::class, 'destroy'])->name('niveaux-etudes.destroy');
+    Route::get('/login', function () {
+        return redirect()->route('login');
+    })->name('login');
     
-    // Routes pour les années universitaires
-    Route::get('/annees-universitaires', [ESBTPAnneeUniversitaireController::class, 'index'])->name('annees-universitaires.index');
-    Route::get('/annees-universitaires/create', [ESBTPAnneeUniversitaireController::class, 'create'])->name('annees-universitaires.create');
-    Route::post('/annees-universitaires', [ESBTPAnneeUniversitaireController::class, 'store'])->name('annees-universitaires.store');
-    Route::get('/annees-universitaires/{annee}', [ESBTPAnneeUniversitaireController::class, 'show'])->name('annees-universitaires.show');
-    Route::get('/annees-universitaires/{annee}/edit', [ESBTPAnneeUniversitaireController::class, 'edit'])->name('annees-universitaires.edit');
-    Route::put('/annees-universitaires/{annee}', [ESBTPAnneeUniversitaireController::class, 'update'])->name('annees-universitaires.update');
-    Route::delete('/annees-universitaires/{annee}', [ESBTPAnneeUniversitaireController::class, 'destroy'])->name('annees-universitaires.destroy');
-    Route::post('/annees-universitaires/{annee}/set-current', [ESBTPAnneeUniversitaireController::class, 'setCurrent'])->name('annees-universitaires.set-current');
+    // Routes protégées par le middleware auth et superAdmin
+    Route::middleware(['auth', 'role:superAdmin'])->group(function () {
+        Route::resource('filieres', FiliereController::class);
+        Route::resource('niveaux-etudes', NiveauEtudeController::class);
+        Route::resource('annees-universitaires', AnneeUniversitaireController::class);
+        Route::resource('formations', FormationController::class);
+        Route::resource('classes', ClasseController::class);
+        
+        // Gestion des utilisateurs
+        // Commentaire des routes qui font référence à des contrôleurs qui n'existent pas
+        // Route::resource('utilisateurs', UserController::class);
+        // Route::resource('roles', RoleController::class);
+        // Route::resource('permissions', PermissionController::class);
+        
+        // Dashboard superAdmin
+        Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    });
     
-    // Routes pour les inscriptions
-    Route::get('/inscriptions', [ESBTPInscriptionController::class, 'index'])->name('inscriptions.index');
-    Route::get('/inscriptions/create', [ESBTPInscriptionController::class, 'create'])->name('inscriptions.create');
-    Route::post('/inscriptions', [ESBTPInscriptionController::class, 'store'])->name('inscriptions.store');
-    Route::get('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'show'])->name('inscriptions.show');
-    Route::get('/inscriptions/{inscription}/edit', [ESBTPInscriptionController::class, 'edit'])->name('inscriptions.edit');
-    Route::put('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'update'])->name('inscriptions.update');
-    Route::delete('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'destroy'])->name('inscriptions.destroy');
+    // Routes accessibles aux secrétaires et superAdmin
+    Route::middleware(['auth', 'role:superAdmin,secretaire'])->group(function () {
+        // Etudiants (sauf suppression)
+        Route::resource('etudiants', AdminEtudiantController::class)->except(['destroy']);
+        
+        // Inscriptions (sauf suppression)
+        Route::resource('inscriptions', InscriptionController::class)->except(['destroy']);
+        
+        // Matières (le secrétaire peut seulement consulter)
+        Route::get('matieres', [MatiereController::class, 'index'])->name('matieres.index');
+        Route::get('matieres/{matiere}', [MatiereController::class, 'show'])->name('matieres.show');
+        
+        // Evaluations (le secrétaire peut seulement consulter)
+        Route::get('evaluations', [EvaluationController::class, 'index'])->name('evaluations.index');
+        Route::get('evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
+        
+        // Notes
+        Route::resource('notes', NoteController::class);
+        
+        // Bulletins (sauf suppression)
+        Route::resource('bulletins', BulletinController::class)->except(['destroy']);
+        
+        // Annonces
+        Route::resource('annonces', AnnonceController::class);
+        
+        // Emplois du temps
+        Route::resource('emplois-temps', EmploiTempsController::class);
+        
+        // Absences
+        Route::resource('absences', AbsenceController::class);
+        
+        // Dashboard secrétaire
+        Route::get('/secretaire/dashboard', [SecretaireController::class, 'dashboard'])->name('secretaire.dashboard');
+    });
     
-    // Routes pour les salles de classe
-    Route::get('/salles', [ESBTPSalleController::class, 'index'])->name('salles.index');
-    Route::get('/salles/create', [ESBTPSalleController::class, 'create'])->name('salles.create');
-    Route::post('/salles', [ESBTPSalleController::class, 'store'])->name('salles.store');
-    Route::get('/salles/{salle}', [ESBTPSalleController::class, 'show'])->name('salles.show');
-    Route::get('/salles/{salle}/edit', [ESBTPSalleController::class, 'edit'])->name('salles.edit');
-    Route::put('/salles/{salle}', [ESBTPSalleController::class, 'update'])->name('salles.update');
-    Route::delete('/salles/{salle}', [ESBTPSalleController::class, 'destroy'])->name('salles.destroy');
+    // Routes exclusives au superAdmin pour créer, modifier et supprimer des matières et évaluations
+    Route::middleware(['auth', 'role:superAdmin'])->group(function () {
+        Route::resource('matieres', MatiereController::class)->except(['index', 'show']);
+        Route::resource('evaluations', EvaluationController::class)->except(['index', 'show']);
+        Route::delete('etudiants/{etudiant}', [AdminEtudiantController::class, 'destroy'])->name('etudiants.destroy');
+        Route::delete('bulletins/{bulletin}', [BulletinController::class, 'destroy'])->name('bulletins.destroy');
+        
+        // Routes pour la gestion des secrétaires
+        Route::resource('secretaires', SecretaireAdminController::class);
+    });
+    
+    // Routes pour les étudiants (commentées car redondantes avec web.php)
+    // Route::middleware(['auth', 'role:etudiant'])->prefix('etudiant')->name('etudiant.')->group(function () {
+    //     Route::get('/dashboard', [EtudiantController::class, 'dashboard'])->name('dashboard');
+    //     Route::get('/profile', [EtudiantController::class, 'profile'])->name('profile');
+    //     Route::get('/notes', [EtudiantController::class, 'notes'])->name('notes');
+    //     Route::get('/emploi-temps', [EtudiantController::class, 'emploiTemps'])->name('emploi-temps');
+    //     Route::get('/bulletins', [EtudiantController::class, 'bulletins'])->name('bulletins');
+    //     Route::get('/bulletins/{bulletin}', [EtudiantController::class, 'showBulletin'])->name('bulletins.show');
+    //     Route::get('/absences', [EtudiantController::class, 'absences'])->name('absences');
+    // });
+    
+    // Routes pour les parents (commentées car redondantes avec web.php)
+    // Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->group(function () {
+    //     Route::get('/dashboard', [ParentController::class, 'dashboard'])->name('dashboard');
+    //     Route::get('/etudiant/{id}', [ParentStudentController::class, 'show'])->name('student.show');
+    //     Route::get('/notifications', [ParentController::class, 'notifications'])->name('notifications.index');
+    //     Route::get('/notifications/{id}/marquer-comme-lu', [ParentNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    //     Route::get('/notifications/marquer-tout-comme-lu', [ParentNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    //     
+    //     // Messages
+    //     Route::get('/messages', [ParentMessageController::class, 'index'])->name('messages.index');
+    //     Route::get('/messages/creer', [ParentMessageController::class, 'create'])->name('messages.create');
+    //     Route::post('/messages', [ParentMessageController::class, 'store'])->name('messages.store');
+    //     Route::get('/messages/{id}', [ParentMessageController::class, 'show'])->name('messages.show');
+    //     Route::get('/messages/{id}/repondre', [ParentMessageController::class, 'reply'])->name('messages.reply');
+    //     Route::post('/messages/{id}/repondre', [ParentMessageController::class, 'storeReply'])->name('messages.store-reply');
+    //     Route::get('/messages/{id}/marquer-comme-lu', [ParentMessageController::class, 'markAsRead'])->name('messages.mark-read');
+    //     Route::get('/messages/marquer-tout-comme-lu', [ParentMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
+    //     
+    //     // Paiements
+    //     Route::get('/paiements', [ParentController::class, 'payments'])->name('payments.index');
+    //     Route::get('/paiements/{etudiant_id}/historique', [ParentPaymentController::class, 'studentHistory'])->name('payments.student-history');
+    //     Route::get('/paiements/{payment_id}', [ParentPaymentController::class, 'show'])->name('payments.show');
+    //     Route::get('/paiements/{payment_id}/telecharger-recu', [ParentPaymentController::class, 'downloadReceipt'])->name('payments.download-receipt');
+    //     
+    //     // Absences
+    //     Route::get('/absences', [ParentAbsenceController::class, 'summary'])->name('absences.summary');
+    //     Route::get('/absences/{etudiant_id}', [ParentAbsenceController::class, 'index'])->name('absences.index');
+    //     Route::get('/absences/{etudiant_id}/{absence_id}', [ParentAbsenceController::class, 'show'])->name('absences.show');
+    //     Route::get('/absences/{etudiant_id}/{absence_id}/justifier', [ParentAbsenceController::class, 'edit'])->name('absences.edit');
+    //     Route::put('/absences/{etudiant_id}/{absence_id}', [ParentAbsenceController::class, 'update'])->name('absences.update');
+    //     
+    //     // Paramètres
+    //     Route::get('/parametres', [ParentController::class, 'settings'])->name('settings');
+    //     Route::put('/parametres', [ParentProfileController::class, 'update'])->name('settings.update');
+    //     Route::put('/mot-de-passe', [ParentProfileController::class, 'updatePassword'])->name('password.update');
+    //     Route::post('/photo', [ParentProfileController::class, 'updatePhoto'])->name('photo.update');
+    // });
 }); 

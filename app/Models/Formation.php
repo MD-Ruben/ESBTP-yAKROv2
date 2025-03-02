@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Formation extends Model
+class Formation extends ESBTPFormation
 {
     use HasFactory, SoftDeletes;
 
