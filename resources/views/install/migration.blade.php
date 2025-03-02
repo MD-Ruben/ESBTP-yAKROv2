@@ -187,7 +187,7 @@
                             </div>
                         @endif
                         
-                        @if($dbStatus['existing_tables_count'] > 0 && !$dbStatus['all_tables_exist'])
+                        @if(($dbStatus['existing_tables_count'] ?? 0) > 0 && !($dbStatus['all_tables_exist'] ?? false))
                             <div class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                                 <div class="flex items-start">
                                     <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
@@ -204,7 +204,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @elseif($dbStatus['existing_tables_count'] > 0 && $dbStatus['all_tables_exist'])
+                        @elseif(($dbStatus['existing_tables_count'] ?? 0) > 0 && ($dbStatus['all_tables_exist'] ?? false))
                             <div class="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                                 <div class="flex items-start">
                                     <i class="fas fa-info-circle text-green-500 mt-0.5 mr-2"></i>
@@ -347,7 +347,7 @@
                         <i class="fas fa-forward mr-2"></i>
                         <span>Passer la migration</span>
                     </button>
-                    @elseif($dbStatus['existing_tables_count'] > 0 && $dbStatus['all_tables_exist'])
+                    @elseif(($dbStatus['existing_tables_count'] ?? 0) > 0 && ($dbStatus['all_tables_exist'] ?? false))
                     <a href="{{ route('install.admin') }}" class="btn-success">
                         <i class="fas fa-forward mr-2"></i>
                         <span>Passer à l'étape suivante</span>
