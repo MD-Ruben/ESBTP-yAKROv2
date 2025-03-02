@@ -185,7 +185,7 @@
                     this.loading = false;
                     console.log('Réponse du serveur:', response.data); // Pour debug
                     
-                    if (response.data && response.data.status === 'success') {
+                    if (response.data && (response.data.status === 'success' || response.data.success === true)) {
                         this.success = response.data.message || 'Administrateur créé avec succès!';
                         
                         // Log de succès
