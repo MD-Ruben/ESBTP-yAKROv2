@@ -83,7 +83,8 @@ class ESBTPNiveauEtude extends Model
      */
     public function matieres()
     {
-        return $this->belongsToMany(ESBTPMatiere::class, 'esbtp_niveau_matiere', 'niveau_id', 'matiere_id')
+        return $this->belongsToMany(ESBTPMatiere::class, 'esbtp_matiere_niveau', 'niveau_etude_id', 'matiere_id')
+                    ->withPivot('coefficient', 'heures_cours', 'is_active')
                     ->withTimestamps();
     }
     

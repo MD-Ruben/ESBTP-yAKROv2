@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
+use App\Models\ESBTPParent;
 
 class ESBTPEtudiantController extends Controller
 {
@@ -640,5 +641,31 @@ class ESBTPEtudiantController extends Controller
             ->first();
             
         return view('esbtp.etudiants.profile', compact('etudiant', 'inscriptionActive'));
+    }
+
+    /**
+     * Recherche de parents pour la sélection lors de l'ajout/édition d'un étudiant
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function searchParents(Request $request)
+    {
+        $search = $request->input('q', '');
+        
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+        
+        $parents = ESBTPParent::where(function($query) use ($search) {
+            $query->where('nom', 'like', "%{$search}%")
+                  ->orWhere('prenoms', 'like', "%{$search}%")
+                  ->orWhere('telephone', 'like', "%{$search}%");
+        })
+        ->select('id', 'nom', 'prenoms', 'telephone')
+        ->limit(10)
+        ->get();
+        
+        return response()->json($parents);
     }
 } 

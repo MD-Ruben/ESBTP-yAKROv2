@@ -81,6 +81,7 @@ class SecretaireAdminController extends Controller
             $secretaire = new User();
             $secretaire->first_name = $validated['first_name'];
             $secretaire->last_name = $validated['last_name'];
+            $secretaire->name = $validated['first_name'] . ' ' . $validated['last_name'];
             $secretaire->email = $validated['email'];
             $secretaire->username = $validated['username'];
             $secretaire->password = Hash::make($validated['password']);
@@ -174,6 +175,7 @@ class SecretaireAdminController extends Controller
             // Mettre à jour les informations de l'utilisateur
             $secretaire->first_name = $validated['first_name'];
             $secretaire->last_name = $validated['last_name'];
+            $secretaire->name = $validated['first_name'] . ' ' . $validated['last_name'];
             $secretaire->email = $validated['email'];
             $secretaire->username = $validated['username'];
             

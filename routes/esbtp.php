@@ -1,5 +1,18 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| ROUTES ACTUELLEMENT NON UTILISÉES
+|--------------------------------------------------------------------------
+|
+| ATTENTION: Ce fichier semble contenir des routes qui ne sont pas utilisées
+| car elles sont définies en parallèle dans le fichier web.php. Ce fichier
+| n'est pas inclus dans l'application, ce qui peut causer des confusions.
+| Toutes les routes devraient être consolidées dans web.php ou correctement
+| incluses via RouteServiceProvider.
+|
+*/
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ESBTP\SuperAdminController;
 use App\Http\Controllers\ESBTP\SecretaireController;
@@ -160,4 +173,10 @@ Route::prefix('esbtp')->name('esbtp.')->group(function () {
     //     Route::put('/mot-de-passe', [ParentProfileController::class, 'updatePassword'])->name('password.update');
     //     Route::post('/photo', [ParentProfileController::class, 'updatePhoto'])->name('photo.update');
     // });
+});
+
+Route::prefix('esbtp')->middleware('web')->group(function () {
+    // Routes API utilisées par les formulaires
+    Route::get('/api/search-parents', [App\Http\Controllers\ESBTPEtudiantController::class, 'searchParents'])->name('esbtp.api.search-parents');
+    Route::get('/api/get-classes', [App\Http\Controllers\ESBTPEtudiantController::class, 'getClasses'])->name('esbtp.api.get-classes');
 }); 

@@ -34,6 +34,20 @@ class EtudiantController extends Controller
     }
 
     /**
+     * Afficher le formulaire de création d'un nouvel étudiant
+     */
+    public function create()
+    {
+        // Récupérer les données nécessaires pour le formulaire
+        $filieres = \App\Models\ESBTPFiliere::where('is_active', true)->orderBy('name')->get();
+        $niveaux = \App\Models\ESBTPNiveauEtude::where('is_active', true)->orderBy('name')->get();
+        $annees = \App\Models\ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+        $parents = \App\Models\ESBTPParent::orderBy('nom')->get();
+        
+        return view('esbtp.etudiants.create', compact('filieres', 'niveaux', 'annees', 'parents'));
+    }
+
+    /**
      * Affiche le tableau de bord de l'étudiant.
      */
     public function dashboard()

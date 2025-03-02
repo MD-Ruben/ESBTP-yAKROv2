@@ -241,8 +241,8 @@ class ESBTPInscriptionController extends Controller
             DB::commit();
             
             return redirect()
-                ->route('inscriptions.show', $inscription->id)
-                ->with('success', 'Inscription créée avec succès!');
+                ->route('esbtp.inscriptions.show', $inscription->id)
+                ->with('success', 'Inscription créée avec succès.');
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -285,7 +285,7 @@ class ESBTPInscriptionController extends Controller
         // Vérifier si l'inscription peut être modifiée
         if ($inscription->status === 'terminée') {
             return redirect()
-                ->route('inscriptions.show', $inscription->id)
+                ->route('esbtp.inscriptions.show', $inscription->id)
                 ->with('error', 'Les inscriptions terminées ne peuvent pas être modifiées.');
         }
         
@@ -320,7 +320,7 @@ class ESBTPInscriptionController extends Controller
         // Vérifier si l'inscription peut être modifiée
         if ($inscription->status === 'terminée') {
             return redirect()
-                ->route('inscriptions.show', $inscription->id)
+                ->route('esbtp.inscriptions.show', $inscription->id)
                 ->with('error', 'Les inscriptions terminées ne peuvent pas être modifiées.');
         }
         
@@ -394,8 +394,8 @@ class ESBTPInscriptionController extends Controller
             DB::commit();
             
             return redirect()
-                ->route('inscriptions.show', $inscription->id)
-                ->with('success', 'Inscription mise à jour avec succès!');
+                ->route('esbtp.inscriptions.show', $inscription->id)
+                ->with('success', 'Inscription mise à jour avec succès.');
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -416,8 +416,8 @@ class ESBTPInscriptionController extends Controller
             
             if ($result['success']) {
                 return redirect()
-                    ->route('inscriptions.show', $inscription->id)
-                    ->with('success', 'Inscription validée avec succès!');
+                    ->route('esbtp.inscriptions.show', $inscription->id)
+                    ->with('success', 'Inscription validée avec succès.');
             } else {
                 throw new \Exception($result['message']);
             }
@@ -451,8 +451,8 @@ class ESBTPInscriptionController extends Controller
             
             if ($result['success']) {
                 return redirect()
-                    ->route('inscriptions.show', $inscription->id)
-                    ->with('success', 'Inscription annulée avec succès!');
+                    ->route('esbtp.inscriptions.show', $inscription->id)
+                    ->with('success', 'Inscription annulée avec succès.');
             } else {
                 throw new \Exception($result['message']);
             }
@@ -503,5 +503,24 @@ class ESBTPInscriptionController extends Controller
             ->get(['id', 'name', 'code', 'capacity']);
             
         return response()->json($classes);
+    }
+
+    /**
+     * Supprimer une inscription.
+     */
+    public function destroy(ESBTPInscription $inscription)
+    {
+        try {
+            $inscription->delete();
+            
+            return redirect()
+                ->route('esbtp.inscriptions.index')
+                ->with('success', 'Inscription supprimée avec succès.');
+                
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+        }
     }
 } 

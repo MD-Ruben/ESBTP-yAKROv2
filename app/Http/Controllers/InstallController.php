@@ -177,30 +177,16 @@ class InstallController extends Controller
         // Get installation status to check migration match percentage
         $installationStatus = InstallationHelper::getInstallationStatus();
         
-        // Initialiser les structures par défaut en cas d'échec de connexion
-        if (!$dbStatus['connected']) {
-            $allTablesStatus = [
-                'all_exist' => false,
-                'missing_tables' => [],
-                'existing_tables' => [],
-                'total_tables' => 0,
-                'missing_count' => 0,
-                'existing_count' => 0
-            ];
-            
-            $moduleStatus = [];
-        } else {
-            // Check table status by module (category)
-            $moduleStatus = InstallationHelper::checkTablesByCategory();
-            
-            // Get complete table status
-            $allTablesStatus = InstallationHelper::checkAllRequiredTables();
-        }
+        // Check table status by module (category)
+        $moduleStatus = InstallationHelper::checkTablesByCategory();
+        
+        // Get complete table status
+        $allTablesStatus = InstallationHelper::checkAllRequiredTables();
         
         // Merge all status information
         $dbStatus = array_merge($dbStatus, [
-            'match_percentage' => $installationStatus['match_percentage'] ?? 0,
-            'can_skip_migration' => ($installationStatus['match_percentage'] ?? 0) == 100,
+            'match_percentage' => $installationStatus['match_percentage'],
+            'can_skip_migration' => $installationStatus['match_percentage'] == 100,
             'installation_status' => $installationStatus,
             'module_status' => $moduleStatus,
             'all_tables_status' => $allTablesStatus
@@ -933,24 +919,12 @@ class InstallController extends Controller
             
             return [
                 'connected' => false,
-                'message' => $connection['message'],
-                'existing_tables_count' => 0,
-                'migration_tables_count' => 0,
-                'matching_tables_count' => 0,
-                'match_percentage' => 0,
-                'migration_files_count' => 0,
-                'all_tables_exist' => false
+                'message' => $connection['message']
             ];
         } catch (Exception $e) {
             return [
                 'connected' => false,
-                'message' => 'Database connection failed: ' . $e->getMessage(),
-                'existing_tables_count' => 0,
-                'migration_tables_count' => 0,
-                'matching_tables_count' => 0,
-                'match_percentage' => 0,
-                'migration_files_count' => 0,
-                'all_tables_exist' => false
+                'message' => 'Database connection failed: ' . $e->getMessage()
             ];
         }
     }

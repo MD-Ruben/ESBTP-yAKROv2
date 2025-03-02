@@ -57,6 +57,7 @@ Route::prefix('install')->group(function () {
     Route::post('/admin', [InstallController::class, 'setupAdmin'])->name('install.setup-admin');
     Route::get('/complete', [InstallController::class, 'complete'])->name('install.complete');
     Route::post('/complete', [InstallController::class, 'finalize'])->name('install.finalize');
+    Route::get('/finalize', [InstallController::class, 'finalize'])->name('install.finalize.get');
 });
 
 // Routes d'authentification simplifiées
@@ -114,8 +115,21 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('etudiants', ESBTPEtudiantController::class)
                 ->middleware(['permission:view students|create student|edit students|delete students']);
             
-            // Routes pour les inscriptions ESBTP
-            Route::resource('inscriptions', ESBTPInscriptionController::class);
+            // Routes pour les inscriptions ESBTP - définies ici plutôt que dans le groupe parent
+            Route::get('/inscriptions', [ESBTPInscriptionController::class, 'index'])->name('inscriptions.index');
+            Route::get('/inscriptions/create', [ESBTPInscriptionController::class, 'create'])->name('inscriptions.create');
+            Route::post('/inscriptions', [ESBTPInscriptionController::class, 'store'])->name('inscriptions.store');
+            Route::get('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'show'])->name('inscriptions.show');
+            Route::get('/inscriptions/{inscription}/edit', [ESBTPInscriptionController::class, 'edit'])->name('inscriptions.edit');
+            Route::put('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'update'])->name('inscriptions.update');
+            Route::delete('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'destroy'])->name('inscriptions.destroy');
+            Route::put('/inscriptions/{inscription}/valider', [ESBTPInscriptionController::class, 'valider'])->name('inscriptions.valider');
+            Route::put('/inscriptions/{inscription}/annuler', [ESBTPInscriptionController::class, 'annuler'])->name('inscriptions.annuler');
+            Route::get('/inscriptions/getClasses', [ESBTPInscriptionController::class, 'getClasses'])->name('inscriptions.getClasses');
+            
+            // Routes API utilisées par les formulaires
+            Route::get('/api/search-parents', [ESBTPEtudiantController::class, 'searchParents'])->name('esbtp.api.search-parents');
+            Route::get('/api/get-classes', [ESBTPEtudiantController::class, 'getClasses'])->name('esbtp.api.get-classes');
             
             // Routes pour les matières - visualisation seulement pour secrétaire
             Route::resource('matieres', ESBTPMatiereController::class)

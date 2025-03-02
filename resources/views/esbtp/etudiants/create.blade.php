@@ -212,7 +212,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div id="parents-container">
-                                            <!-- Les parents seront ajoutés ici dynamiquement -->
+                                            <!-- Premier parent (toujours présent) -->
                                             <div class="parent-item mb-4 p-3 border rounded">
                                                 <div class="d-flex justify-content-between mb-3">
                                                     <h6>Parent / Tuteur #1</h6>
@@ -229,10 +229,16 @@
                                                         <div class="col-md-4 mb-3">
                                                             <label for="parent_nom_0" class="form-label">Nom <span class="text-danger">*</span></label>
                                                             <input type="text" class="form-control" id="parent_nom_0" name="parents[0][nom]" value="{{ old('parents.0.nom') }}">
+                                                            @error('parents.0.nom')
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                            @enderror
                                                         </div>
                                                         <div class="col-md-4 mb-3">
                                                             <label for="parent_prenoms_0" class="form-label">Prénom(s) <span class="text-danger">*</span></label>
                                                             <input type="text" class="form-control" id="parent_prenoms_0" name="parents[0][prenoms]" value="{{ old('parents.0.prenoms') }}">
+                                                            @error('parents.0.prenoms')
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                            @enderror
                                                         </div>
                                                         <div class="col-md-4 mb-3">
                                                             <label for="parent_relation_0" class="form-label">Relation <span class="text-danger">*</span></label>
@@ -243,6 +249,9 @@
                                                                 <option value="Tuteur" {{ old('parents.0.relation') == 'Tuteur' ? 'selected' : '' }}>Tuteur</option>
                                                                 <option value="Autre" {{ old('parents.0.relation') == 'Autre' ? 'selected' : '' }}>Autre</option>
                                                             </select>
+                                                            @error('parents.0.relation')
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                            @enderror
                                                         </div>
                                                     </div>
                                                     <div class="row">
@@ -326,8 +335,11 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        console.log('Document ready - Initializing form...');
+        
         // Initialisation de Select2 pour les sélecteurs si disponible
         if (typeof $.fn.select2 !== 'undefined') {
+            console.log('Select2 is available - Initializing selects...');
             $('#filiere_id, #niveau_etude_id, #annee_universitaire_id, #classe_id, #genre, #statut').select2({
                 theme: 'bootstrap4',
                 placeholder: 'Sélectionner une option',
@@ -362,10 +374,13 @@
                     cache: true
                 }
             });
+        } else {
+            console.warn('Warning: Select2 library is not available!');
         }
         
         // Toggle parent existant/nouveau
         $(document).on('change', '[id^="parent_existant_"]', function() {
+            console.log('Parent toggle changed');
             const parentItem = $(this).closest('.parent-item');
             const isExistant = $(this).is(':checked');
             
@@ -408,8 +423,13 @@
         });
         
         // Ajout de parents
-        let parentCount = 1;
-        $('#add-parent').on('click', function() {
+        let parentCount = 1; // Commence à 1 car nous avons déjà un parent par défaut
+        
+        // Gestionnaire d'événement pour le bouton "Ajouter un parent"
+        $('#add-parent').on('click', function(e) {
+            e.preventDefault();
+            console.log('Add parent button clicked');
+            
             if (parentCount >= 2) {
                 alert('Vous ne pouvez ajouter que 2 parents maximum.');
                 return;
@@ -525,10 +545,21 @@
         });
         
         // Suppression de parents
-        $(document).on('click', '.remove-parent', function() {
+        $(document).on('click', '.remove-parent', function(e) {
+            e.preventDefault();
+            console.log('Remove parent button clicked');
             $(this).closest('.parent-item').remove();
             parentCount--;
+            
+            // Mise à jour des index des parents restants
+            $('.parent-item').each(function(index) {
+                $(this).find('h6').text(`Parent / Tuteur #${index + 1}`);
+            });
         });
+        
+        // Débogage général
+        console.log('Total parents container:', $('#parents-container').length);
+        console.log('Add parent button exists:', $('#add-parent').length);
     });
 </script>
 @endsection 
