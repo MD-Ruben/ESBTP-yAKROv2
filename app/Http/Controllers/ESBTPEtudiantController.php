@@ -622,7 +622,19 @@ class ESBTPEtudiantController extends Controller
         
         // Récupérer l'étudiant associé à l'utilisateur connecté
         $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
-            
+        
+        // Si l'utilisateur n'est pas un étudiant (par exemple, superAdmin, secretaire), afficher une vue alternative
+        if (!$etudiant) {
+            if ($user->hasRole('superAdmin')) {
+                return view('esbtp.admin.profile', compact('user'));
+            } elseif ($user->hasRole('secretaire')) {
+                return view('esbtp.secretaires.profile', compact('user'));
+            } else {
+                // Redirection par défaut si le rôle n'est pas reconnu
+                return redirect()->route('esbtp.welcome')->with('error', 'Profil non disponible');
+            }
+        }
+        
         // Récupérer l'inscription active de l'étudiant
         $inscriptionActive = DB::table('esbtp_inscriptions')
             ->join('esbtp_annee_universitaires', 'esbtp_inscriptions.annee_universitaire_id', '=', 'esbtp_annee_universitaires.id')
@@ -652,9 +664,14 @@ class ESBTPEtudiantController extends Controller
     public function searchParents(Request $request)
     {
         $search = $request->input('q', '');
+        $page = $request->input('page', 1);
+        $perPage = 10;
         
         if (strlen($search) < 2) {
-            return response()->json([]);
+            return response()->json([
+                'items' => [],
+                'pagination' => ['more' => false]
+            ]);
         }
         
         $parents = ESBTPParent::where(function($query) use ($search) {
@@ -663,9 +680,79 @@ class ESBTPEtudiantController extends Controller
                   ->orWhere('telephone', 'like', "%{$search}%");
         })
         ->select('id', 'nom', 'prenoms', 'telephone')
-        ->limit(10)
+        ->skip(($page - 1) * $perPage)
+        ->take($perPage + 1) // Take one more to check if there are more pages
         ->get();
         
-        return response()->json($parents);
+        $hasMorePages = $parents->count() > $perPage;
+        
+        if ($hasMorePages) {
+            $parents = $parents->take($perPage);
+        }
+        
+        return response()->json([
+            'items' => $parents,
+            'pagination' => ['more' => $hasMorePages]
+        ]);
+    }
+
+    /**
+     * Met à jour le profil de l'administrateur
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAdminProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $user = Auth::user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->hasFile('profile_photo')) {
+            // Supprimer l'ancienne photo de profil si elle existe
+            if ($user->profile_photo_path) {
+                Storage::delete($user->profile_photo_path);
+            }
+            
+            // Sauvegarder la nouvelle photo
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        $user->save();
+
+        return redirect()->route('esbtp.mon-profil.index')->with('success', 'Profil mis à jour avec succès');
+    }
+
+    /**
+     * Met à jour le mot de passe de l'administrateur
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAdminPassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Vérifier si le mot de passe actuel est correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Le mot de passe actuel est incorrect']);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('esbtp.mon-profil.index')->with('success', 'Mot de passe mis à jour avec succès');
     }
 } 

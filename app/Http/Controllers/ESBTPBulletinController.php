@@ -26,10 +26,26 @@ class ESBTPBulletinController extends Controller
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
         
+        // Périodes disponibles (définir les périodes pour la vue)
+        $periodes = [
+            (object)['id' => 'semestre1', 'nom' => 'Premier Semestre', 'annee_scolaire' => date('Y') . '-' . (date('Y') + 1)],
+            (object)['id' => 'semestre2', 'nom' => 'Deuxième Semestre', 'annee_scolaire' => date('Y') . '-' . (date('Y') + 1)],
+            (object)['id' => 'annuel', 'nom' => 'Annuel', 'annee_scolaire' => date('Y') . '-' . (date('Y') + 1)]
+        ];
+        
+        // Statistiques pour les widgets
+        $stats = [
+            'total' => ESBTPBulletin::count(),
+            'published' => ESBTPBulletin::where('is_published', true)->count(),
+            'pending' => ESBTPBulletin::where('is_published', false)->count(),
+            'periodes' => count($periodes)
+        ];
+        
         // Valeurs par défaut filtre
         $classe_id = $request->input('classe_id');
         $annee_id = $request->input('annee_universitaire_id', 
             ESBTPAnneeUniversitaire::where('is_current', true)->first()->id ?? null);
+        $periode_id = $request->input('periode_id');
         
         $query = ESBTPBulletin::with(['etudiant', 'classe', 'anneeUniversitaire']);
         
@@ -42,10 +58,23 @@ class ESBTPBulletinController extends Controller
             $query->where('annee_universitaire_id', $annee_id);
         }
         
-        $bulletins = $query->orderBy('created_at', 'desc')->get();
+        if ($periode_id) {
+            $query->where('periode', $periode_id);
+        }
         
-        return view('esbtp.bulletins.index', compact('bulletins', 'classes', 'anneesUniversitaires', 
-            'classe_id', 'annee_id'));
+        // Utiliser paginate() au lieu de get() pour permettre l'utilisation de appends()
+        $bulletins = $query->orderBy('created_at', 'desc')->paginate(15);
+        
+        return view('esbtp.bulletins.index', compact(
+            'bulletins', 
+            'classes', 
+            'anneesUniversitaires', 
+            'classe_id', 
+            'annee_id',
+            'periodes',
+            'periode_id',
+            'stats'
+        ));
     }
 
     /**

@@ -124,11 +124,10 @@
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label for="status" class="form-label">Statut</label>
-                                        <select class="form-select" id="status" name="status">
+                                        <select class="form-select" id="status" name="is_published">
                                             <option value="">Tous les statuts</option>
-                                            <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Publiée</option>
-                                            <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Brouillon</option>
-                                            <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Programmée</option>
+                                            <option value="1" {{ request('is_published') == '1' ? 'selected' : '' }}>Publiée</option>
+                                            <option value="0" {{ request('is_published') == '0' ? 'selected' : '' }}>Non publiée</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3 mb-3">
@@ -219,12 +218,10 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($annonce->status == 'published')
+                                            @if($annonce->is_published)
                                                 <span class="badge bg-success">Publiée</span>
-                                            @elseif($annonce->status == 'draft')
-                                                <span class="badge bg-secondary">Brouillon</span>
-                                            @elseif($annonce->status == 'scheduled')
-                                                <span class="badge bg-info">Programmée</span>
+                                            @else
+                                                <span class="badge bg-secondary">Non publiée</span>
                                             @endif
                                         </td>
                                         <td>

@@ -69,16 +69,17 @@
                                         <h6 class="mb-0">Options de publication</h6>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="status" class="form-label">Statut de publication</label>
-                                            <select class="form-select @error('status') is-invalid @enderror" id="status" name="status">
-                                                <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Brouillon</option>
-                                                <option value="scheduled" {{ old('status') == 'scheduled' ? 'selected' : '' }}>Planifiée</option>
-                                                <option value="published" {{ old('status') == 'published' ? 'selected' : '' }}>Publier immédiatement</option>
-                                            </select>
-                                            @error('status')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="status">Statut de publication <span class="text-danger">*</span></label>
+                                                <select name="is_published" id="status" class="form-select @error('is_published') is-invalid @enderror" required>
+                                                    <option value="0" {{ old('is_published') == '0' ? 'selected' : '' }}>Brouillon</option>
+                                                    <option value="1" {{ old('is_published') == '1' ? 'selected' : '' }}>Publiée</option>
+                                                </select>
+                                                @error('is_published')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
                                         
                                         <div class="mb-3" id="date-publication-container" style="display: none;">

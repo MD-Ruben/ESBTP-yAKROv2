@@ -9,6 +9,8 @@ use App\Models\ESBTPEtudiant;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\ESBTPFiliere;
+use App\Models\ESBTPNiveauEtude;
 
 class ESBTPAnnonceController extends Controller
 {
@@ -21,14 +23,14 @@ class ESBTPAnnonceController extends Controller
     {
         $annonces = ESBTPAnnonce::with(['classes', 'etudiants', 'user'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
         
         // Préparation des statistiques
         $stats = [
             'total' => ESBTPAnnonce::count(),
-            'published' => ESBTPAnnonce::where('status', 'published')->count(),
-            'pending' => ESBTPAnnonce::whereIn('status', ['draft', 'scheduled'])->count(),
-            'urgent' => ESBTPAnnonce::where('is_urgent', true)->count()
+            'published' => ESBTPAnnonce::where('is_published', true)->count(),
+            'pending' => ESBTPAnnonce::where('is_published', false)->count(),
+            'urgent' => ESBTPAnnonce::where('priorite', 2)->count()
         ];
         
         return view('esbtp.annonces.index', compact('annonces', 'stats'));
@@ -43,8 +45,10 @@ class ESBTPAnnonceController extends Controller
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $etudiants = ESBTPEtudiant::orderBy('nom')->get();
+        $filieres = ESBTPFiliere::where('is_active', true)->orderBy('name')->get();
+        $niveaux = ESBTPNiveauEtude::where('is_active', true)->orderBy('name')->get();
         
-        return view('esbtp.annonces.create', compact('classes', 'etudiants'));
+        return view('esbtp.annonces.create', compact('classes', 'etudiants', 'filieres', 'niveaux'));
     }
 
     /**

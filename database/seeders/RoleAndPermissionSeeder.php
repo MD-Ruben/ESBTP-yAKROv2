@@ -88,14 +88,14 @@ class RoleAndPermissionSeeder extends Seeder
                 'create formations', 'view formations', 'edit formations', 'delete formations',
                 'create niveaux etudes', 'view niveaux etudes', 'edit niveaux etudes', 'delete niveaux etudes',
                 'create classes', 'view classes', 'edit classes', 'delete classes',
-                'create students', 'view students', 'edit students', 'delete students',
+                'create students', 'view students', 'edit students', 'delete students', 'view own profile',
                 'create exams', 'view exams', 'edit exams', 'delete exams',
                 'create matieres', 'view matieres', 'edit matieres', 'delete matieres',
                 'create grades', 'view grades', 'edit grades', 'delete grades',
                 'generate bulletin', 'view bulletins', 'edit bulletins', 'delete bulletins',
                 'create timetable', 'view timetables', 'edit timetables', 'delete timetables',
                 'send messages', 'receive messages',
-                'create attendance', 'view attendances', 'edit attendances', 'delete attendances'
+                'create attendance', 'view attendances', 'edit attendances', 'delete attendances', 'view own attendances'
             ],
             'secretaire' => [
                 'view filieres',

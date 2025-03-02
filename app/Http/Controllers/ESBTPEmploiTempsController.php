@@ -9,6 +9,9 @@ use App\Models\ESBTPClasse;
 use App\Models\ESBTPMatiere;
 use App\Models\User;
 use App\Models\ESBTPEtudiant;
+use App\Models\ESBTPFiliere;
+use App\Models\ESBTPNiveauEtude;
+use App\Models\ESBTPAnneeUniversitaire;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +25,36 @@ class ESBTPEmploiTempsController extends Controller
     public function index()
     {
         $emploisTemps = ESBTPEmploiTemps::orderBy('date_debut', 'desc')->get();
-        return view('esbtp.emploi-temps.index', compact('emploisTemps'));
+        
+        // Ajout des filières pour le filtre
+        $filieres = ESBTPFiliere::where('is_active', true)->orderBy('name')->get();
+        
+        // Ajout des niveaux pour le filtre
+        $niveaux = ESBTPNiveauEtude::orderBy('name')->get();
+        
+        // Ajout des années universitaires pour le filtre
+        $annees = ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+        
+        // Récupérer l'année universitaire en cours
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_active', true)->first();
+        
+        // Statistiques
+        $totalEmploisTemps = $emploisTemps->count();
+        $emploisTempsActifs = $emploisTemps->where('is_active', true)->count();
+        $totalSeances = ESBTPSeanceCours::count();
+        
+        // Emplois du temps de l'année en cours
+        $emploisTempsAnneeEnCours = 0;
+        if ($anneeEnCours) {
+            // Trouver tous les emplois du temps associés à des classes de l'année en cours
+            $classesAnneeEnCours = ESBTPClasse::where('annee_universitaire_id', $anneeEnCours->id)->pluck('id')->toArray();
+            $emploisTempsAnneeEnCours = $emploisTemps->whereIn('classe_id', $classesAnneeEnCours)->count();
+        }
+        
+        return view('esbtp.emplois-temps.index', compact(
+            'emploisTemps', 'filieres', 'niveaux', 'annees',
+            'totalEmploisTemps', 'emploisTempsActifs', 'totalSeances', 'emploisTempsAnneeEnCours'
+        ));
     }
 
     /**
@@ -33,7 +65,8 @@ class ESBTPEmploiTempsController extends Controller
     public function create()
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        return view('esbtp.emplois-temps.create', compact('classes'));
+        $annees = ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+        return view('esbtp.emplois-temps.create', compact('classes', 'annees'));
     }
 
     /**
@@ -47,200 +80,111 @@ class ESBTPEmploiTempsController extends Controller
         $validated = $request->validate([
             'titre' => 'required|string|max:255',
             'classe_id' => 'required|exists:esbtp_classes,id',
-            'semestre' => 'nullable|string|max:50',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
-            'is_active' => 'boolean'
-        ], [
-            'titre.required' => 'Le titre est obligatoire',
-            'classe_id.required' => 'La classe est obligatoire',
-            'date_debut.required' => 'La date de début est obligatoire',
-            'date_fin.required' => 'La date de fin est obligatoire',
-            'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début'
+            'description' => 'nullable|string',
         ]);
         
-        // Vérifier s'il existe déjà un emploi du temps actif pour cette classe avec des dates qui se chevauchent
-        if ($request->input('is_active', true)) {
-            $emploiTempsExistant = ESBTPEmploiTemps::where('classe_id', $request->classe_id)
-                ->where('is_active', true)
-                ->where(function ($query) use ($request) {
-                    $query->whereBetween('date_debut', [$request->date_debut, $request->date_fin])
-                        ->orWhereBetween('date_fin', [$request->date_debut, $request->date_fin])
-                        ->orWhere(function ($q) use ($request) {
-                            $q->where('date_debut', '<=', $request->date_debut)
-                                ->where('date_fin', '>=', $request->date_fin);
-                        });
-                })->exists();
-            
-            if ($emploiTempsExistant) {
-                return redirect()->back()
-                    ->with('error', 'Il existe déjà un emploi du temps actif pour cette classe pendant cette période')
-                    ->withInput();
-            }
-        }
+        $emploiTemps = new ESBTPEmploiTemps();
+        $emploiTemps->titre = $validated['titre'];
+        $emploiTemps->classe_id = $validated['classe_id'];
+        $emploiTemps->date_debut = $validated['date_debut'];
+        $emploiTemps->date_fin = $validated['date_fin'];
+        $emploiTemps->description = $validated['description'];
+        $emploiTemps->is_active = true;
+        $emploiTemps->created_by = Auth::id();
+        $emploiTemps->save();
         
-        DB::beginTransaction();
-        try {
-            $emploiTemps = new ESBTPEmploiTemps();
-            $emploiTemps->titre = $request->titre;
-            $emploiTemps->classe_id = $request->classe_id;
-            $emploiTemps->semestre = $request->semestre;
-            $emploiTemps->date_debut = $request->date_debut;
-            $emploiTemps->date_fin = $request->date_fin;
-            $emploiTemps->is_active = $request->input('is_active', true);
-            $emploiTemps->created_by = Auth::id();
-            $emploiTemps->save();
-            
-            DB::commit();
-            return redirect()->route('esbtp.emplois-temps.show', $emploiTemps)
-                ->with('success', 'L\'emploi du temps a été créé avec succès');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la création de l\'emploi du temps: ' . $e->getMessage())
-                ->withInput();
-        }
+        return redirect()->route('esbtp.emplois-temps.show', $emploiTemps)
+            ->with('success', 'L\'emploi du temps a été créé avec succès. Vous pouvez maintenant ajouter des séances.');
     }
 
     /**
      * Affiche un emploi du temps spécifique.
      *
-     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemps
+     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemp
      * @return \Illuminate\Http\Response
      */
     public function show(ESBTPEmploiTemps $emploiTemp)
     {
-        $emploiTemps = $emploiTemp; // Pour faciliter la lecture
-        $emploiTemps->load(['classe', 'seances.matiere', 'seances.enseignant']);
-        
-        // Organiser les séances par jour de la semaine
-        $seancesParJour = $emploiTemps->getSeancesParJour();
-        
-        // Définir les heures de début et de fin pour l'affichage de l'emploi du temps
-        $heuresDebut = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
-        $heuresFin = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
-        
+        // Charger les séances pour cet emploi du temps
+        $emploiTemp->load('seances');
+
+        // Grouper les séances par jour
+        $seancesParJour = $emploiTemp->getSeancesParJour();
+
+        // Récupérer les heures de début et de fin pour l'affichage
+        $heuresDebut = ['08:00', '10:00', '13:00', '15:00', '17:00'];
+        $heuresFin = ['10:00', '12:00', '15:00', '17:00', '19:00'];
+
+        // Noms des jours pour l'affichage
         $joursNoms = [
-            0 => 'Lundi',
-            1 => 'Mardi',
-            2 => 'Mercredi',
-            3 => 'Jeudi',
-            4 => 'Vendredi',
-            5 => 'Samedi',
-            6 => 'Dimanche'
+            1 => 'Lundi',
+            2 => 'Mardi',
+            3 => 'Mercredi',
+            4 => 'Jeudi',
+            5 => 'Vendredi',
+            6 => 'Samedi',
         ];
-        
-        return view('esbtp.emplois-temps.show', compact('emploiTemps', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms'));
+
+        return view('esbtp.emplois-temps.show', compact('emploiTemp', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms'));
     }
 
     /**
-     * Affiche le formulaire d'édition d'un emploi du temps.
+     * Affiche le formulaire de modification d'un emploi du temps.
      *
-     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemps
+     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemp
      * @return \Illuminate\Http\Response
      */
     public function edit(ESBTPEmploiTemps $emploiTemp)
     {
-        $emploiTemps = $emploiTemp; // Pour faciliter la lecture
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        return view('esbtp.emplois-temps.edit', compact('emploiTemps', 'classes'));
+        return view('esbtp.emplois-temps.edit', compact('emploiTemp', 'classes'));
     }
 
     /**
-     * Met à jour un emploi du temps spécifique.
+     * Met à jour un emploi du temps.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemps
+     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemp
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, ESBTPEmploiTemps $emploiTemp)
     {
-        $emploiTemps = $emploiTemp; // Pour faciliter la lecture
-        
         $validated = $request->validate([
             'titre' => 'required|string|max:255',
             'classe_id' => 'required|exists:esbtp_classes,id',
-            'semestre' => 'nullable|string|max:50',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
-            'is_active' => 'boolean'
-        ], [
-            'titre.required' => 'Le titre est obligatoire',
-            'classe_id.required' => 'La classe est obligatoire',
-            'date_debut.required' => 'La date de début est obligatoire',
-            'date_fin.required' => 'La date de fin est obligatoire',
-            'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début'
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
         ]);
         
-        // Vérifier s'il existe déjà un emploi du temps actif pour cette classe avec des dates qui se chevauchent
-        if ($request->input('is_active', true)) {
-            $emploiTempsExistant = ESBTPEmploiTemps::where('classe_id', $request->classe_id)
-                ->where('is_active', true)
-                ->where('id', '!=', $emploiTemps->id)
-                ->where(function ($query) use ($request) {
-                    $query->whereBetween('date_debut', [$request->date_debut, $request->date_fin])
-                        ->orWhereBetween('date_fin', [$request->date_debut, $request->date_fin])
-                        ->orWhere(function ($q) use ($request) {
-                            $q->where('date_debut', '<=', $request->date_debut)
-                                ->where('date_fin', '>=', $request->date_fin);
-                        });
-                })->exists();
-            
-            if ($emploiTempsExistant) {
-                return redirect()->back()
-                    ->with('error', 'Il existe déjà un emploi du temps actif pour cette classe pendant cette période')
-                    ->withInput();
-            }
-        }
+        $emploiTemp->titre = $validated['titre'];
+        $emploiTemp->classe_id = $validated['classe_id'];
+        $emploiTemp->date_debut = $validated['date_debut'];
+        $emploiTemp->date_fin = $validated['date_fin'];
+        $emploiTemp->description = $validated['description'] ?? $emploiTemp->description;
+        $emploiTemp->is_active = $request->has('is_active');
+        $emploiTemp->updated_by = Auth::id();
+        $emploiTemp->save();
         
-        DB::beginTransaction();
-        try {
-            $emploiTemps->titre = $request->titre;
-            $emploiTemps->classe_id = $request->classe_id;
-            $emploiTemps->semestre = $request->semestre;
-            $emploiTemps->date_debut = $request->date_debut;
-            $emploiTemps->date_fin = $request->date_fin;
-            $emploiTemps->is_active = $request->input('is_active', true);
-            $emploiTemps->updated_by = Auth::id();
-            $emploiTemps->save();
-            
-            DB::commit();
-            return redirect()->route('esbtp.emplois-temps.show', $emploiTemps)
-                ->with('success', 'L\'emploi du temps a été mis à jour avec succès');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la mise à jour de l\'emploi du temps: ' . $e->getMessage())
-                ->withInput();
-        }
+        return redirect()->route('esbtp.emplois-temps.show', $emploiTemp)
+            ->with('success', 'L\'emploi du temps a été modifié avec succès.');
     }
 
     /**
-     * Supprime un emploi du temps spécifique.
+     * Supprime un emploi du temps.
      *
-     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemps
+     * @param  \App\Models\ESBTPEmploiTemps  $emploiTemp
      * @return \Illuminate\Http\Response
      */
     public function destroy(ESBTPEmploiTemps $emploiTemp)
     {
-        $emploiTemps = $emploiTemp; // Pour faciliter la lecture
+        $emploiTemp->delete();
         
-        DB::beginTransaction();
-        try {
-            // Supprimer d'abord toutes les séances associées
-            $emploiTemps->seances()->delete();
-            
-            // Puis supprimer l'emploi du temps
-            $emploiTemps->delete();
-            
-            DB::commit();
-            return redirect()->route('esbtp.emplois-temps.index')
-                ->with('success', 'L\'emploi du temps a été supprimé avec succès');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la suppression de l\'emploi du temps: ' . $e->getMessage());
-        }
+        return redirect()->route('esbtp.emplois-temps.index')
+            ->with('success', 'L\'emploi du temps a été supprimé avec succès.');
     }
     
     /**

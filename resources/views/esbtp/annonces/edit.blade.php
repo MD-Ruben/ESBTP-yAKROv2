@@ -90,16 +90,17 @@
                                         <h6 class="mb-0">Options de publication</h6>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="status" class="form-label">Statut de publication</label>
-                                            <select class="form-select @error('status') is-invalid @enderror" id="status" name="status">
-                                                <option value="draft" {{ (old('status', $annonce->is_published ? 'published' : 'draft') == 'draft') ? 'selected' : '' }}>Brouillon</option>
-                                                <option value="scheduled" {{ (old('status') == 'scheduled' || ($annonce->is_published && $annonce->date_publication && $annonce->date_publication->isFuture())) ? 'selected' : '' }}>Planifiée</option>
-                                                <option value="published" {{ (old('status') == 'published' || ($annonce->is_published && (!$annonce->date_publication || !$annonce->date_publication->isFuture()))) ? 'selected' : '' }}>Publier immédiatement</option>
-                                            </select>
-                                            @error('status')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="status">Statut de publication <span class="text-danger">*</span></label>
+                                                <select name="is_published" id="status" class="form-select @error('is_published') is-invalid @enderror" required>
+                                                    <option value="0" {{ old('is_published', $annonce->is_published ? '1' : '0') == '0' ? 'selected' : '' }}>Brouillon</option>
+                                                    <option value="1" {{ old('is_published', $annonce->is_published ? '1' : '0') == '1' ? 'selected' : '' }}>Publiée</option>
+                                                </select>
+                                                @error('is_published')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
                                         
                                         <div class="mb-3" id="date-publication-container" style="display: none;">

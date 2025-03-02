@@ -107,6 +107,13 @@ Route::middleware(['auth', 'installed'])->group(function () {
             // Protéger les routes de création, modification et suppression
             Route::get('classes/{classe}/matieres', [ESBTPClasseController::class, 'matieres'])->name('classes.matieres');
             Route::post('classes/{classe}/matieres', [ESBTPClasseController::class, 'updateMatieres'])->name('classes.update-matieres');
+
+            // Routes pour la gestion du profil admin
+            Route::put('/admin/update-profile', [ESBTPEtudiantController::class, 'updateAdminProfile'])->name('admin.update-profile');
+            Route::put('/admin/update-password', [ESBTPEtudiantController::class, 'updateAdminPassword'])->name('admin.update-password');
+            
+            // Dashboard superAdmin
+            Route::get('/dashboard', [App\Http\Controllers\ESBTP\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
         });
         
         // Routes accessibles pour les secrétaires et super-admins

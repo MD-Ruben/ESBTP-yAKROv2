@@ -58,6 +58,16 @@ class ESBTPEmploiTemps extends Model
     }
 
     /**
+     * Obtient l'année universitaire associée à la classe de cet emploi du temps.
+     *
+     * @return \App\Models\ESBTPAnneeUniversitaire
+     */
+    public function getAnneeAttribute()
+    {
+        return $this->classe ? $this->classe->annee : null;
+    }
+
+    /**
      * Relation avec les séances de cours de cet emploi du temps.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

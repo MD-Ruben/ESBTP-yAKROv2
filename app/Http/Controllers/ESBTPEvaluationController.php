@@ -20,11 +20,62 @@ class ESBTPEvaluationController extends Controller
      */
     public function index()
     {
-        $evaluations = ESBTPEvaluation::with(['classe', 'matiere', 'user'])
-            ->orderBy('date', 'desc')
-            ->get();
+        $query = ESBTPEvaluation::with(['classe', 'matiere', 'user'])
+            ->orderBy('date', 'desc');
         
-        return view('esbtp.evaluations.index', compact('evaluations'));
+        // Filtres
+        if (request()->has('classe_id') && request('classe_id') != '') {
+            $query->where('classe_id', request('classe_id'));
+        }
+        
+        if (request()->has('matiere_id') && request('matiere_id') != '') {
+            $query->where('matiere_id', request('matiere_id'));
+        }
+        
+        if (request()->has('type') && request('type') != '') {
+            $query->where('type', request('type'));
+        }
+        
+        if (request()->has('is_published') && request('is_published') != '') {
+            $query->where('is_published', request('is_published'));
+        }
+        
+        if (request()->has('date_debut') && request('date_debut') != '') {
+            $query->where('date', '>=', request('date_debut'));
+        }
+        
+        if (request()->has('date_fin') && request('date_fin') != '') {
+            $query->where('date', '<=', request('date_fin'));
+        }
+        
+        // Paginer les résultats
+        $evaluations = $query->paginate(15);
+        
+        // Statistiques
+        $totalEvaluations = ESBTPEvaluation::count();
+        $evaluationsPubliees = ESBTPEvaluation::where('is_published', true)->count();
+        $examens = ESBTPEvaluation::where('type', 'examen')->count();
+        $devoirs = ESBTPEvaluation::where('type', 'devoir')->count();
+        
+        // Récupération des classes pour le filtre
+        $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
+        
+        // Récupération des matières pour le filtre
+        $matieres = ESBTPMatiere::orderBy('name')->get();
+        
+        // Récupération des types d'évaluation pour le filtre
+        $types = ESBTPEvaluation::select('type')->distinct()->pluck('type');
+        
+        return view('esbtp.evaluations.index', compact(
+            'evaluations', 
+            'classes', 
+            'matieres', 
+            'types', 
+            'totalEvaluations', 
+            'evaluationsPubliees', 
+            'examens', 
+            'devoirs'
+        ));
     }
 
     /**
@@ -35,7 +86,7 @@ class ESBTPEvaluationController extends Controller
     public function create()
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        $matieres = ESBTPMatiere::orderBy('nom')->get();
+        $matieres = ESBTPMatiere::orderBy('name')->get();
         
         return view('esbtp.evaluations.create', compact('classes', 'matieres'));
     }
@@ -122,7 +173,7 @@ class ESBTPEvaluationController extends Controller
     public function edit(ESBTPEvaluation $evaluation)
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        $matieres = ESBTPMatiere::orderBy('nom')->get();
+        $matieres = ESBTPMatiere::orderBy('name')->get();
         
         return view('esbtp.evaluations.edit', compact('evaluation', 'classes', 'matieres'));
     }

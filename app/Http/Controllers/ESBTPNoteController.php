@@ -37,8 +37,8 @@ class ESBTPNoteController extends Controller
         }
         
         $notes = $query->orderBy('created_at', 'desc')->get();
-        $classes = ESBTPClasse::orderBy('nom')->get();
-        $matieres = ESBTPMatiere::orderBy('nom')->get();
+        $classes = ESBTPClasse::orderBy('name')->get();
+        $matieres = ESBTPMatiere::orderBy('name')->get();
         
         return view('esbtp.notes.index', compact('notes', 'classes', 'matieres', 'classe_id', 'matiere_id'));
     }
