@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class InstallationHelper
 {
@@ -24,8 +25,27 @@ class InstallationHelper
      */
     public static function isInstalled(): bool
     {
-        $status = self::getInstallationStatus();
-        return $status['installed'];
+        try {
+            // Vérifier si le fichier .env indique que l'application est installée
+            $envInstalled = env('APP_INSTALLED', false);
+            
+            // Vérifier si la base de données est configurée et si au moins un superAdmin existe
+            $dbConfigured = self::isDatabaseConfigured();
+            $hasAdminUser = self::hasAdminUser();
+            
+            // Journaliser l'état de l'installation
+            \Log::info(
+                "Installation status check: ENV=" . ($envInstalled ? 'true' : 'false') . 
+                ", DB=" . ($dbConfigured ? 'true' : 'false') . 
+                ", AdminUser=" . ($hasAdminUser ? 'true' : 'false')
+            );
+            
+            // L'application est considérée comme installée si toutes les conditions sont remplies
+            return $envInstalled && $dbConfigured && $hasAdminUser;
+        } catch (\Exception $e) {
+            \Log::error("Error checking if app is installed: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -111,16 +131,22 @@ class InstallationHelper
     public static function hasAdminUser(): bool
     {
         try {
-            // Vérifier d'abord si la table users existe
-            if (!Schema::hasTable('users')) {
+            // Vérifier d'abord si les tables nécessaires existent
+            if (!Schema::hasTable('users') || !Schema::hasTable('roles') || !Schema::hasTable('model_has_roles')) {
                 return false;
             }
 
-            // Chercher directement dans la table users sans se préoccuper des rôles
-            $adminExists = DB::table('users')->count() > 0;
+            // Vérifier si un utilisateur avec le rôle 'superAdmin' existe
+            $superAdminExists = DB::table('users')
+                ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->where('roles.name', '=', 'superAdmin')
+                ->where('model_has_roles.model_type', '=', User::class)
+                ->exists();
             
-            // Si au moins un utilisateur existe, considérer que l'admin existe
-            return $adminExists;
+            Log::info('Utilisateur superAdmin existe: ' . ($superAdminExists ? 'Oui' : 'Non'));
+            
+            return $superAdminExists;
         } catch (\Exception $e) {
             Log::error("Erreur lors de la vérification de l'existence de l'administrateur: " . $e->getMessage());
             return false;
@@ -128,135 +154,101 @@ class InstallationHelper
     }
 
     /**
-     * Get detailed installation status including migration match percentage
+     * Récupère l'état complet de l'installation
      * 
-     * @return array
+     * @return array Tableau associatif avec les statuts d'installation et le pourcentage de correspondance des tables
      */
     public static function getInstallationStatus()
     {
-        // Vérifier si le fichier .env existe
-        $envExists = file_exists(base_path('.env'));
-        Log::info('Fichier .env existe: ' . ($envExists ? 'Oui' : 'Non'));
-
-        // Vérifier si l'application est marquée comme installée
-        $appInstalledFlag = env('APP_INSTALLED', false);
-        Log::info('Flag APP_INSTALLED: ' . ($appInstalledFlag ? 'Oui' : 'Non'));
-
-        // Vérifier si la base de données est configurée
-        $dbConfigured = self::isDatabaseConfigured();
-        Log::info('Base de données configurée: ' . ($dbConfigured ? 'Oui' : 'Non'));
-
-        // Initialiser les compteurs et tableaux
-        $migrationFilesCount = 0;
-        $existingTablesCount = 0;
-        $migrationTablesCount = 0;
-        $matchingTablesCount = 0;
+        $isEnvInstalled = self::isInstalled();
+        $isDatabaseConfigured = self::isDatabaseConfigured();
+        $hasAdminUser = self::hasAdminUser();
+        $allTablesPresent = false;
+        $requiredTables = ['users', 'roles', 'permissions', 'model_has_roles'];
+        $allRequiredTablesExist = false;
+        
+        // Initialisation des variables pour le calcul du match_percentage
         $matchPercentage = 0;
         $missingTables = [];
         $extraTables = [];
-        $allTablesExist = false;
-        $esbtpTablesExist = false;
-        $adminUserExists = false;
-        $moduleStatus = [];
-        $allRequiredTablesExist = false;
-
-        // Vérifier si la base de données est configurée avant de continuer
-        if ($dbConfigured) {
+        $migrationTables = [];
+        $existingTables = [];
+        $matchingTables = [];
+        $tableCount = 0;
+        
+        if ($isDatabaseConfigured) {
             try {
-                // Obtenir les tables existantes
-                $existingTables = self::getExistingTables();
-                $existingTablesCount = count($existingTables);
-                Log::info('Nombre de tables existantes: ' . $existingTablesCount);
+                // Vérifier les tables requises
+                $allRequiredTablesExist = self::checkRequiredTables($requiredTables);
+                $tableCount = self::getTableCount();
                 
-                // Obtenir les tables de migration
+                // Récupérer les tables de migration et existantes
                 $migrationTables = self::getMigrationTableNames();
-                $migrationTablesCount = count($migrationTables);
-                Log::info('Nombre de tables de migration: ' . $migrationTablesCount);
+                $existingTables = self::getExistingTables();
                 
-                // Obtenir les fichiers de migration
-                $migrationFiles = self::getMigrationFiles();
-                $migrationFilesCount = count($migrationFiles);
-                Log::info('Nombre de fichiers de migration: ' . $migrationFilesCount);
-                
-                // Calculer les tables correspondantes
+                // Calculer les tables manquantes et supplémentaires
                 $matchingTables = array_intersect($migrationTables, $existingTables);
-                $matchingTablesCount = count($matchingTables);
-                Log::info('Nombre de tables correspondantes: ' . $matchingTablesCount);
-                
-                // Calculer le pourcentage de correspondance
-                $matchPercentage = $migrationTablesCount > 0 ? round(($matchingTablesCount / $migrationTablesCount) * 100) : 0;
-                Log::info('Pourcentage de correspondance: ' . $matchPercentage . '%');
-                
-                // Déterminer les tables manquantes et supplémentaires
                 $missingTables = array_diff($migrationTables, $existingTables);
                 $extraTables = array_diff($existingTables, $migrationTables);
                 
-                // Vérifier si toutes les tables existent
-                $allTablesExist = count($missingTables) === 0 && $migrationTablesCount > 0;
-                Log::info('Toutes les tables existent: ' . ($allTablesExist ? 'Oui' : 'Non'));
+                // Calculer le pourcentage de correspondance
+                $matchPercentage = count($migrationTables) > 0 
+                    ? round((count($matchingTables) / count($migrationTables)) * 100) 
+                    : 0;
                 
-                // Vérifier si un utilisateur admin existe
-                $adminUserExists = self::hasAdminUser();
-                Log::info('Utilisateur admin existe: ' . ($adminUserExists ? 'Oui' : 'Non'));
+                $allTablesPresent = count($missingTables) === 0;
                 
-                // Vérifier si toutes les tables ESBTP existent
-                $esbtpTablesExist = self::allESBTPTablesExist();
-                Log::info('Tables ESBTP existent: ' . ($esbtpTablesExist ? 'Oui' : 'Non'));
-                
-                // Vérifier le statut des modules par catégorie
-                $moduleStatus = self::checkTablesByCategory();
-                $allModulesComplete = true;
-                
-                foreach ($moduleStatus['categories'] as $category => $info) {
-                    Log::info("Module {$category}: " . ($info['complete'] ? 'Complet' : 'Incomplet') . " ({$info['percentage']}%)");
-                    if (!$info['complete']) {
-                        $allModulesComplete = false;
-                    }
-                }
-                
-                Log::info('Tous les modules sont complets: ' . ($allModulesComplete ? 'Oui' : 'Non'));
-                
-                // Vérifier toutes les tables requises
-                $allRequiredTablesStatus = self::checkAllRequiredTables();
-                $allRequiredTablesExist = $allRequiredTablesStatus['all_exist'];
-                Log::info('Toutes les tables requises existent: ' . ($allRequiredTablesExist ? 'Oui' : 'Non'));
-                
+                // Journaliser les résultats pour le débogage
+                \Log::info("Match percentage: {$matchPercentage}%");
+                \Log::info("Missing tables: " . count($missingTables));
+                \Log::info("Extra tables: " . count($extraTables));
             } catch (\Exception $e) {
-                Log::error('Erreur lors de la vérification du statut d\'installation: ' . $e->getMessage());
+                \Log::error("Erreur lors du calcul du statut d'installation: " . $e->getMessage());
             }
         }
-
-        // Déterminer si l'installation est complète
-        $installed = $envExists && 
-                    ($appInstalledFlag || 
-                    ($dbConfigured && 
-                        (($matchPercentage >= 90 && $adminUserExists) || 
-                         ($allModulesComplete && $adminUserExists))));
-
-        // Retourner le statut d'installation
-        $status = [
-            'installed' => $installed,
-            'env_exists' => $envExists,
-            'app_installed_flag' => $appInstalledFlag,
-            'db_configured' => $dbConfigured,
-            'required_tables_exist' => $allTablesExist,
-            'migration_files_count' => $migrationFilesCount,
-            'existing_tables_count' => $existingTablesCount,
-            'migration_tables_count' => $migrationTablesCount,
-            'matching_tables_count' => $matchingTablesCount,
+        
+        // L'application est considérée comme installée si toutes les conditions sont remplies
+        $installed = $isEnvInstalled && $isDatabaseConfigured && $hasAdminUser && $allRequiredTablesExist;
+        
+        return [
+            'env_installed' => $isEnvInstalled,
+            'db_configured' => $isDatabaseConfigured,
+            'has_admin_user' => $hasAdminUser,
+            'all_tables_present' => $allTablesPresent,
+            'all_required_tables_exist' => $allRequiredTablesExist,
+            'all_tables_exist' => $allRequiredTablesExist,
+            'table_count' => $tableCount,
             'match_percentage' => $matchPercentage,
             'missing_tables' => $missingTables,
             'extra_tables' => $extraTables,
-            'all_tables_exist' => $allTablesExist,
-            'admin_user_exists' => $adminUserExists,
-            'esbtp_tables_exist' => $esbtpTablesExist,
-            'modules_complete' => $allModulesComplete,
-            'all_required_tables_exist' => $allRequiredTablesExist,
-            'module_status' => $moduleStatus['categories']
+            'migration_tables_count' => count($migrationTables),
+            'existing_tables_count' => count($existingTables),
+            'matching_tables_count' => count($matchingTables),
+            'installed' => $installed
         ];
-
-            return $status;
+    }
+    
+    /**
+     * Vérifie si toutes les tables requises existent
+     *
+     * @param array $requiredTables
+     * @return bool
+     */
+    private static function checkRequiredTables($requiredTables)
+    {
+        try {
+            foreach ($requiredTables as $table) {
+                if (!Schema::hasTable($table)) {
+                    \Log::info("Table '$table' does not exist");
+                    return false;
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            \Log::error("Error checking required tables: " . $e->getMessage());
+            return false;
         }
+    }
 
     /**
      * Normaliser un nom de table pour la vérification de correspondance
@@ -617,41 +609,97 @@ class InstallationHelper
             $tableNames = [];
             
             foreach ($migrationFiles as $file) {
-                $content = file_get_contents($file);
+                $filename = basename($file);
+                $tablesInFile = [];
                 
-                // Recherche des motifs de création de table
-                if (preg_match('/Schema::create\([\'"]([^\'"]+)[\'"]/', $content, $matches)) {
+                // D'abord, extraire le nom de la table à partir du nom de fichier
+                if (preg_match('/create_(.+)_table\.php$/', $filename, $matches)) {
                     $tableName = $matches[1];
+                    // Normaliser le nom de la table
+                    if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                        $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                    }
                     
-                    // Normalisation des noms de tables ESBTP (suppression des underscores)
-                    if (strpos($tableName, 'esbtp_') === 0) {
-                        $tableNames[] = $tableName;
-                    } else {
+                    $tablesInFile[] = $tableName;
+                }
+                
+                // Ensuite, analyser le contenu du fichier pour trouver les appels Schema::create
+                $content = file_get_contents($file);
+                if (preg_match_all('/Schema::create\([\'"]([^\'"]+)[\'"]/', $content, $contentMatches)) {
+                    foreach ($contentMatches[1] as $tableName) {
+                        // Normaliser le nom de la table
+                        if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                            $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                        }
+                        
+                        if (!in_array($tableName, $tablesInFile)) {
+                            $tablesInFile[] = $tableName;
+                        }
+                    }
+                }
+                
+                // Vérifier également la méthode createTable qui pourrait être utilisée dans certaines migrations
+                if (preg_match_all('/->createTable\([\'"]([^\'"]+)[\'"]/', $content, $createTableMatches)) {
+                    foreach ($createTableMatches[1] as $tableName) {
+                        // Normaliser le nom de la table
+                        if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
+                            $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
+                        }
+                        
+                        if (!in_array($tableName, $tablesInFile)) {
+                            $tablesInFile[] = $tableName;
+                        }
+                    }
+                }
+                
+                // Ajouter les tables trouvées dans ce fichier à nos collections
+                foreach ($tablesInFile as $tableName) {
+                    if (!in_array($tableName, $tableNames)) {
                         $tableNames[] = $tableName;
                     }
                 }
             }
             
-            Log::info('Noms de tables de migration récupérés: ' . count($tableNames));
+            // Journaliser pour le débogage
+            \Log::info('Fichiers de migration trouvés: ' . count($migrationFiles));
+            \Log::info('Noms de tables extraits: ' . count($tableNames));
+            
             return $tableNames;
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération des noms de tables de migration: ' . $e->getMessage());
+            \Log::error('Erreur lors de l\'extraction des noms de tables: ' . $e->getMessage());
             return [];
         }
     }
 
     /**
-     * Récupère les fichiers de migration
+     * Récupère tous les fichiers de migration de Laravel et ESBTP
      *
      * @return array
      */
-    public static function getMigrationFiles()
+    private static function getMigrationFiles()
     {
-        $migrationPath = database_path('migrations');
-        $files = glob($migrationPath . '/*.php');
-        
-        Log::info('Fichiers de migration récupérés: ' . count($files));
-        return $files;
+        try {
+            $migrationPaths = [
+                database_path('migrations'),
+                database_path('migrations/esbtp')
+            ];
+            
+            $files = [];
+            
+            foreach ($migrationPaths as $path) {
+                if (is_dir($path)) {
+                    $directoryFiles = glob($path . '/*.php');
+                    if ($directoryFiles !== false) {
+                        $files = array_merge($files, $directoryFiles);
+                    }
+                }
+            }
+            
+            return $files;
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des fichiers de migration: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**

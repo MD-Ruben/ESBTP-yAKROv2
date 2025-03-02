@@ -47,14 +47,24 @@ class CheckInstalled
         
         // Si l'application n'est pas installée du tout ou s'il n'y a pas d'utilisateur admin, 
         // rediriger vers l'installation
-        if (!$installed && !$hasAdminUser) {
-            \Log::info("Redirecting to installation page (Not installed or no admin user)");
-            return redirect()->route('install.index');
+        if (!$installed || !$hasAdminUser) {
+            \Log::info("Redirecting to installation page. Installed: " . ($installed ? 'Yes' : 'No') . 
+                      ", Admin user exists: " . ($hasAdminUser ? 'Yes' : 'No'));
+
+            // Si l'utilisateur essaie d'accéder au login, rediriger vers l'installation
+            if ($request->is('login')) {
+                return redirect()->route('install.index');
+            }
+            
+            // Pour les autres routes, uniquement rediriger si ce n'est pas une installation en cours
+            if (!session('installation_in_progress', false)) {
+                return redirect()->route('install.index');
+            }
         }
         
-        // Si nous sommes sur la page de login, autoriser l'accès même si les migrations ne correspondent pas à 100%
+        // Si nous sommes sur la page de login, autoriser l'accès
         if ($request->is('login')) {
-            \Log::info("Allowing access to login page even if migrations don't match 100%");
+            \Log::info("Allowing access to login page");
             return $next($request);
         }
         

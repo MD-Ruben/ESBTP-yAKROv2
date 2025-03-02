@@ -10,7 +10,7 @@ echo " 1. Clear all caches"
 echo " 2. Drop all tables and recreate them"
 echo " 3. Run all migrations"
 echo " 4. Seed the database with initial data"
-echo " 5. Create a superadmin user"
+echo " 5. Create a superadmin user during installation (not via seeder)"
 echo
 echo "Press Ctrl+C to cancel or Enter to continue..."
 read
@@ -27,8 +27,9 @@ echo "Resetting database..."
 php artisan migrate:fresh
 
 echo
-echo "Seeding database..."
-php artisan db:seed --class=SuperAdminSeeder
+echo "Seeding database with ESBTP data..."
+php artisan db:seed
+# SuperAdminSeeder a été retiré comme spécifié dans les règles
 
 echo
 echo "Generating application key..."
@@ -39,9 +40,10 @@ echo "==================================================="
 echo "Application reset completed successfully!"
 echo "==================================================="
 echo
-echo "Superadmin credentials:"
-echo "Email: admin@esbtp.ci"
-echo "Password: admin123"
+echo "Vous devez maintenant lancer l'installation pour créer un compte superadmin:"
+echo "1. Accédez à l'URL de l'application"
+echo "2. Suivez les étapes d'installation"
+echo "3. Créez un compte superadmin lors de l'installation"
 echo
 echo "You can now start the application with:"
 echo "php artisan serve"

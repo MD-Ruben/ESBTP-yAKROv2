@@ -24,20 +24,29 @@ class InstallController extends Controller
      */
     public function index()
     {
-        // Vérifier si l'application est déjà installée ET s'il existe un utilisateur admin
-        $installationStatus = InstallationHelper::getInstallationStatus();
-        $hasAdminUser = InstallationHelper::hasAdminUser();
+        // Marquer que nous sommes dans le processus d'installation
+        session(['installation_in_progress' => true]);
         
-        // Journaliser l'état pour le débogage
-        \Log::info("InstallController index - Installation status: " . 
-                  ($installationStatus['installed'] ? "Installed" : "Not installed") . 
-                  ", Match: {$installationStatus['match_percentage']}%, Admin user: " . 
-                  ($hasAdminUser ? "Yes" : "No"));
+        // Vérifier si l'application est déjà installée
+        if (InstallationHelper::isInstalled()) {
+            return redirect('/')->with('error', 'L\'application est déjà installée.');
+        }
+
+        // Journalisation de l'accès à la page d'installation
+        Log::info('Accès à la page d\'installation');
+
+        // Redirection vers l'étape appropriée en fonction de l'état d'installation
+        $status = InstallationHelper::getInstallationStatus();
         
-        // Ne rediriger vers login que si l'application est installée ET qu'un admin existe
-        if ($installationStatus['installed'] && $hasAdminUser) {
-            \Log::info("InstallController index - Redirecting to login (installed and admin exists)");
-            return redirect('/login');
+        if ($status['db_configured'] && $status['all_tables_exist'] && !$status['has_admin_user']) {
+            // Si la BDD est configurée, les tables existent mais pas d'admin, aller à l'étape admin
+            return redirect()->route('install.admin');
+        } elseif ($status['db_configured'] && !$status['all_tables_exist']) {
+            // Si la BDD est configurée mais les tables n'existent pas, aller à l'étape migration
+            return redirect()->route('install.migration');
+        } elseif (!$status['db_configured']) {
+            // Si la BDD n'est pas configurée, rester à l'étape database
+            return view('install.welcome');
         }
 
         return view('install.welcome');
@@ -200,6 +209,10 @@ class InstallController extends Controller
     public function runMigration(Request $request)
     {
         try {
+            // Augmenter le temps d'exécution maximal pour éviter les timeouts
+            ini_set('max_execution_time', 300); // 5 minutes
+            set_time_limit(300); // Alternative pour certains environnements
+            
             $databaseExists = session('database_exists', false);
             $databaseCreated = session('database_created', false);
             $forceMigrate = $request->has('forceMigrate') ? (bool)$request->forceMigrate : false;
@@ -515,6 +528,10 @@ class InstallController extends Controller
             
             // Stockage des informations de l'admin dans la session
             $request->session()->put('admin_created', true);
+            // Enregistrer les informations d'identification pour faciliter la connexion
+            $request->session()->put('admin_username', $validated['username']);
+            $request->session()->put('admin_email', $validated['email']);
+            $request->session()->put('admin_password', $validated['password']);
             
             // Journalisation
             \Log::info("Admin user created successfully: {$validated['username']}");
@@ -576,62 +593,32 @@ class InstallController extends Controller
     }
 
     /**
-     * Finalise l'installation et redirige vers le tableau de bord.
-     *
-     * @return \Illuminate\Http\Response
+     * Finaliser l'installation
      */
-    public function finalize()
+    public function finalize(Request $request)
     {
         try {
-            // Vérifier si un superadmin existe
+            // Vérifier si un admin existe déjà
             if (!InstallationHelper::hasAdminUser()) {
-                Log::error('Tentative de finalisation sans création d\'administrateur');
+                Log::error("Tentative de finalisation sans utilisateur admin");
                 return redirect()->route('install.admin')
-                    ->withErrors(['error' => 'Vous devez créer un compte superadmin avant de finaliser l\'installation.']);
+                    ->with('error', 'Vous devez d\'abord créer un compte administrateur');
             }
             
-            // Vérifier les données ESBTP
-            $esbtpDataStatus = InstallationHelper::checkESBTPData();
-            if (!$esbtpDataStatus['success']) {
-                Log::warning('Des données ESBTP sont manquantes: ' . implode(', ', $esbtpDataStatus['missing_data']));
-                session([
-                    'esbtp_warning' => true,
-                    'esbtp_missing_data' => $esbtpDataStatus['missing_data']
-                ]);
-            }
+            // Marquer l'application comme installée UNIQUEMENT si un admin existe
+            InstallationHelper::markAsInstalled();
             
-            // Marquer l'application comme installée
-            if (!InstallationHelper::markAsInstalled()) {
-                Log::error('Impossible de marquer l\'application comme installée');
-                throw new \Exception('Impossible de marquer l\'application comme installée');
-            }
-
-            // Récupérer les informations d'identification de l'administrateur depuis la session
-            $adminCredentials = [
-                'username' => session('admin_username'),
-                'email' => session('admin_email'),
-                'password' => session('admin_password')
-            ];
+            // Nettoyer la session d'installation
+            session()->forget('installation_in_progress');
             
-            // Si l'authentification réussit, rediriger vers le dashboard
-            if (Auth::attempt([
-                    filter_var($adminCredentials['username'], FILTER_VALIDATE_EMAIL) 
-                        ? 'email' 
-                        : 'username' => $adminCredentials['username'],
-                    'password' => $adminCredentials['password']
-                ])) {
-                Log::info('L\'administrateur a été connecté automatiquement: ' . session('admin_email'));
-                return redirect()->route('dashboard');
-            } else {
-                // Si l'authentification échoue, nous redirigeons vers la page de connexion
-                Log::warning('Échec de la connexion automatique de l\'administrateur');
-                return redirect()->route('login')
-                    ->with('message', 'Installation terminée. Veuillez vous connecter avec vos identifiants administrateur.');
-            }
+            // Rediriger vers la page de connexion avec un message de succès
+            return redirect('/login')
+                ->with('success', 'Installation terminée avec succès! Veuillez vous connecter.');
+                
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la finalisation de l\'installation: ' . $e->getMessage());
-            return redirect()->route('install.migration')
-                ->withErrors(['error' => 'Erreur lors de la finalisation de l\'installation: ' . $e->getMessage()]);
+            Log::error("Erreur lors de la finalisation de l'installation: " . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Une erreur s\'est produite lors de la finalisation de l\'installation: ' . $e->getMessage());
         }
     }
 
