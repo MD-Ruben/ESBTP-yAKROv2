@@ -42,7 +42,7 @@
                             <i class="fas fa-user-tie fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('users.index') }}" class="btn btn-sm btn-success mt-3">Gérer les utilisateurs</a>
+                    <a href="{{ route('esbtp.secretaires.index') }}" class="btn btn-sm btn-success mt-3">Gérer les secrétaires</a>
                 </div>
             </div>
         </div>

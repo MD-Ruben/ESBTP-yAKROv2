@@ -32,84 +32,50 @@ class SuperAdminController extends Controller
      */
     public function dashboard()
     {
+        // Récupérer l'utilisateur connecté
+        $user = auth()->user();
+        
+        // Statistiques pour le tableau de bord
         $totalStudents = ESBTPEtudiant::count();
         $totalSecretaires = User::role('secretaire')->count();
-        $totalUsers = User::count();
+        $totalFilieres = Filiere::count();
+        $totalFormations = Formation::count();
+        $totalNiveaux = NiveauEtude::count();
+        $totalClasses = Classe::count();
+        $totalMatieres = ESBTPMatiere::count();
+        $totalExamens = ESBTPEvaluation::count();
         
-        $recentUsers = User::orderBy('created_at', 'desc')
+        // Examens à venir
+        $upcomingExamens = ESBTPEvaluation::with(['classe', 'matiere'])
+            ->where('date', '>=', now())
+            ->orderBy('date', 'asc')
             ->take(5)
             ->get();
-            
-        // Statistiques des filières, formations et niveaux d'études
-        try {
-            $totalFilieres = Filiere::count();
-            $totalNiveaux = NiveauEtude::count();
-            $totalFormations = Formation::count() ?? 0;
-            $totalClasses = Classe::count() ?? 0;
-        } catch (\Exception $e) {
-            $totalFilieres = 0;
-            $totalNiveaux = 0;
-            $totalFormations = 0;
-            $totalClasses = 0;
-        }
-            
-        // Récupérer les notifications récentes seulement si la table existe
-        try {
-            $recentNotifications = Notification::orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentNotifications = collect(); // Collection vide si erreur
-        }
-            
-        // Récupérer les messages récents seulement si la table existe
-        try {
-            $recentMessages = Message::where(function($query) {
-                    $query->where('recipient_type', 'admins')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere(function($query) {
-                    $query->where('recipient_type', 'all')
-                        ->whereNull('recipient_group');
-                })
-                ->orWhere('recipient_id', Auth::id())
-                ->whereNull('parent_id')
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-        } catch (\Exception $e) {
-            $recentMessages = collect(); // Collection vide si erreur
-        }
         
-        // Statistiques de présence seulement si la table existe
-        try {
-            $attendanceStats = Attendance::selectRaw('DATE(date) as attendance_date, COUNT(*) as total, SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present')
-                ->groupBy('attendance_date')
-                ->orderBy('attendance_date', 'desc')
-                ->take(7)
-                ->get();
-        } catch (\Exception $e) {
-            $attendanceStats = collect([
-                [
-                    'attendance_date' => now()->format('Y-m-d'),
-                    'total' => 0,
-                    'present' => 0
-                ]
-            ]); // Collection avec des données vides pour éviter les erreurs d'affichage
-        }
+        // Messages récents
+        $recentMessages = Message::with('sender')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+        
+        // Notifications récentes
+        $recentNotifications = Notification::orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
         
         return view('dashboard.superadmin', compact(
-            'totalStudents', 
+            'user',
+            'totalStudents',
             'totalSecretaires',
-            'totalUsers',
-            'recentUsers',
             'totalFilieres',
-            'totalNiveaux',
             'totalFormations',
+            'totalNiveaux',
             'totalClasses',
-            'recentNotifications',
+            'totalMatieres',
+            'totalExamens',
+            'upcomingExamens',
             'recentMessages',
-            'attendanceStats'
+            'recentNotifications'
         ));
     }
 } 

@@ -365,6 +365,12 @@
                         <span>Paramètres</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.secretaires.index') }}" class="nav-link {{ request()->routeIs('esbtp.secretaires.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-tie nav-icon"></i>
+                        <span>Gestion des Secrétaires</span>
+                    </a>
+                </li>
                 @endrole
                 
                 @hasanyrole('superAdmin|secretaire')

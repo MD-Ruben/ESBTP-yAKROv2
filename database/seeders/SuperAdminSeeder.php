@@ -12,11 +12,16 @@ class SuperAdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * Ce seeder a été désactivé. Le superadmin doit être créé durant l'installation.
      *
      * @return void
      */
     public function run()
     {
+        // Ce seeder a été désactivé conformément aux exigences
+        // Le superadmin doit être créé lors de l'installation et non via un seeder
+        
+        /*
         // Créer le rôle de superadmin s'il n'existe pas
         $role = Role::firstOrCreate(['name' => 'superadmin']);
         
@@ -54,5 +59,8 @@ class SuperAdminSeeder extends Seeder
         $user->assignRole('superadmin');
         
         $this->command->info('Superadmin user created successfully!');
+        */
+        
+        $this->command->info('SuperAdmin seeder est désactivé. L\'administrateur est créé pendant l\'installation.');
     }
 } 
