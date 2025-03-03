@@ -69,12 +69,13 @@ class ESBTPNoteController extends Controller
         $request->validate([
             'evaluation_id' => 'required|exists:esbtp_evaluations,id',
             'etudiant_id' => 'required|exists:esbtp_etudiants,id',
-            'valeur' => 'required|numeric|min:0',
+            'valeur' => 'required_without:absent|numeric|min:0',
             'commentaire' => 'nullable|string',
+            'absent' => 'nullable|boolean',
         ], [
             'evaluation_id.required' => 'L\'évaluation est obligatoire',
             'etudiant_id.required' => 'L\'étudiant est obligatoire',
-            'valeur.required' => 'La valeur de la note est obligatoire',
+            'valeur.required_without' => 'La valeur de la note est obligatoire si l\'étudiant n\'est pas absent',
             'valeur.numeric' => 'La valeur doit être un nombre',
             'valeur.min' => 'La valeur doit être positive',
         ]);
@@ -107,7 +108,7 @@ class ESBTPNoteController extends Controller
             }
             
             // Vérifier que la note ne dépasse pas le barème
-            if ($request->valeur > $evaluation->bareme) {
+            if (!$request->has('absent') && $request->valeur > $evaluation->bareme) {
                 return redirect()->back()
                     ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $evaluation->bareme . ')')
                     ->withInput();
@@ -116,12 +117,13 @@ class ESBTPNoteController extends Controller
             $note = new ESBTPNote();
             $note->evaluation_id = $request->evaluation_id;
             $note->etudiant_id = $request->etudiant_id;
-            $note->valeur = $request->valeur;
+            $note->note = $request->has('absent') ? 0 : $request->valeur;
+            $note->is_absent = $request->has('absent');
             $note->commentaire = $request->commentaire;
-            $note->user_id = Auth::id();
+            $note->created_by = Auth::id();
             $note->save();
             
-            return redirect()->route('evaluations.show', $note->evaluation_id)
+            return redirect()->route('esbtp.evaluations.show', $note->evaluation_id)
                 ->with('success', 'La note a été ajoutée avec succès');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -164,27 +166,30 @@ class ESBTPNoteController extends Controller
     public function update(Request $request, ESBTPNote $note)
     {
         $request->validate([
-            'valeur' => 'required|numeric|min:0',
+            'valeur' => 'required_without:absent|numeric|min:0',
             'commentaire' => 'nullable|string',
+            'absent' => 'nullable|boolean',
         ], [
-            'valeur.required' => 'La valeur de la note est obligatoire',
+            'valeur.required_without' => 'La valeur de la note est obligatoire si l\'étudiant n\'est pas absent',
             'valeur.numeric' => 'La valeur doit être un nombre',
             'valeur.min' => 'La valeur doit être positive',
         ]);
 
         try {
             // Vérifier que la note ne dépasse pas le barème
-            if ($request->valeur > $note->evaluation->bareme) {
+            if (!$request->has('absent') && $request->valeur > $note->evaluation->bareme) {
                 return redirect()->back()
                     ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $note->evaluation->bareme . ')')
                     ->withInput();
             }
             
-            $note->valeur = $request->valeur;
+            $note->note = $request->has('absent') ? 0 : $request->valeur;
+            $note->is_absent = $request->has('absent');
             $note->commentaire = $request->commentaire;
+            $note->updated_by = Auth::id();
             $note->save();
             
-            return redirect()->route('evaluations.show', $note->evaluation_id)
+            return redirect()->route('esbtp.evaluations.show', $note->evaluation_id)
                 ->with('success', 'La note a été mise à jour avec succès');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -246,6 +251,7 @@ class ESBTPNoteController extends Controller
             'notes.*.etudiant_id' => 'required|exists:esbtp_etudiants,id',
             'notes.*.valeur' => 'nullable|numeric|min:0|max:' . $evaluation->bareme,
             'notes.*.commentaire' => 'nullable|string',
+            'notes.*.absent' => 'nullable|boolean',
         ], [
             'notes.*.valeur.numeric' => 'La valeur doit être un nombre',
             'notes.*.valeur.min' => 'La valeur doit être positive',
@@ -255,8 +261,12 @@ class ESBTPNoteController extends Controller
         DB::beginTransaction();
         try {
             foreach ($request->notes as $noteData) {
-                // Ignorer les entrées sans valeur
-                if (!isset($noteData['valeur']) || $noteData['valeur'] === null || $noteData['valeur'] === '') {
+                // Vérifier si nous avons une valeur de note ou si l'étudiant est marqué comme absent
+                $hasValue = isset($noteData['valeur']) && $noteData['valeur'] !== null && $noteData['valeur'] !== '';
+                $isAbsent = isset($noteData['absent']) && $noteData['absent'] == '1';
+                
+                // Ignorer les entrées sans valeur et non marquées comme absentes
+                if (!$hasValue && !$isAbsent) {
                     continue;
                 }
                 
@@ -269,23 +279,26 @@ class ESBTPNoteController extends Controller
                 
                 if ($note) {
                     // Mise à jour de la note existante
-                    $note->valeur = $noteData['valeur'];
+                    $note->note = $isAbsent ? 0 : $noteData['valeur'];
+                    $note->is_absent = $isAbsent;
                     $note->commentaire = $noteData['commentaire'] ?? null;
+                    $note->updated_by = Auth::id();
                     $note->save();
                 } else {
                     // Création d'une nouvelle note
                     $note = new ESBTPNote();
                     $note->evaluation_id = $evaluation->id;
                     $note->etudiant_id = $etudiantId;
-                    $note->valeur = $noteData['valeur'];
+                    $note->note = $isAbsent ? 0 : $noteData['valeur'];
+                    $note->is_absent = $isAbsent;
                     $note->commentaire = $noteData['commentaire'] ?? null;
-                    $note->user_id = Auth::id();
+                    $note->created_by = Auth::id();
                     $note->save();
                 }
             }
             
             DB::commit();
-            return redirect()->route('evaluations.show', $evaluation)
+            return redirect()->route('esbtp.evaluations.show', $evaluation)
                 ->with('success', 'Les notes ont été enregistrées avec succès');
         } catch (\Exception $e) {
             DB::rollBack();

@@ -10,6 +10,9 @@
                 <div class="card-header">
                     <h3 class="card-title">Liste des matières</h3>
                     <div class="card-tools">
+                        <a href="{{ route('esbtp.matieres.attach-form') }}" class="btn btn-success mr-2">
+                            <i class="fas fa-link"></i> Attacher à une classe
+                        </a>
                         <a href="{{ route('esbtp.matieres.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Ajouter une matière
                         </a>

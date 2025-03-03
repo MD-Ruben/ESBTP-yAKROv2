@@ -240,18 +240,81 @@ class ESBTPClasseController extends Controller
         // Réinitialiser les matières existantes
         $classe->matieres()->detach();
         
-        // Ajouter les matières avec leurs coefficients et heures spécifiques
+        // Ajouter les nouvelles matières avec leurs coefficients
         foreach ($validatedData['matieres'] as $matiere) {
             $classe->matieres()->attach($matiere['id'], [
                 'coefficient' => $matiere['coefficient'],
                 'total_heures' => $matiere['total_heures'],
-                'is_active' => $matiere['is_active'] ?? false,
+                'is_active' => isset($matiere['is_active']) ? $matiere['is_active'] : true,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
         }
         
         return redirect()->route('esbtp.classes.show', $classe)
-            ->with('success', 'Les matières de la classe ont été mises à jour avec succès.');
+            ->with('success', 'Les matières ont été mises à jour avec succès.');
+    }
+    
+    /**
+     * Récupère les matières d'une classe pour l'API JavaScript.
+     *
+     * @param  \App\Models\ESBTPClasse  $classe
+     * @return \Illuminate\Http\Response
+     */
+    public function getMatieresForApi(ESBTPClasse $classe)
+    {
+        // Log pour debugging
+        \Log::info('API matières appelée pour la classe ID: ' . $classe->id);
+        \Log::info('Classe: ' . $classe->nom . ' (Filière: ' . ($classe->filiere->nom ?? 'N/A') . ', Niveau: ' . ($classe->niveauEtude->nom ?? 'N/A') . ')');
+        
+        // Récupérer les matières de la classe
+        $matieres = $classe->matieres()->where('esbtp_matieres.is_active', true)->get();
+        \Log::info('Matières directement liées à la classe: ' . $matieres->count());
+        
+        // Si aucune matière n'est trouvée, essayer de récupérer les matières de la même filière et niveau
+        if ($matieres->isEmpty()) {
+            \Log::info('Aucune matière directement liée, recherche par filière et niveau...');
+            // Récupérer des matières basées sur la filière et le niveau d'étude
+            $matieres = \App\Models\ESBTPMatiere::where('is_active', true);
+            
+            if ($classe->filiere_id) {
+                $matieres = $matieres->whereHas('filieres', function($q) use ($classe) {
+                    $q->where('esbtp_filieres.id', $classe->filiere_id);
+                });
+                \Log::info('Filtrage par filière_id: ' . $classe->filiere_id);
+            }
+            
+            if ($classe->niveau_etude_id) {
+                $matieres = $matieres->whereHas('niveaux', function($q) use ($classe) {
+                    $q->where('esbtp_niveaux_etudes.id', $classe->niveau_etude_id);
+                });
+                \Log::info('Filtrage par niveau_etude_id: ' . $classe->niveau_etude_id);
+            }
+            
+            $matieres = $matieres->get();
+            \Log::info('Matières trouvées par filière et niveau: ' . $matieres->count());
+        }
+        
+        // Si toujours aucune matière, récupérer toutes les matières actives (pas de limite de 10)
+        if ($matieres->isEmpty()) {
+            \Log::info('Aucune matière trouvée par filière/niveau, récupération de toutes les matières actives...');
+            $matieres = \App\Models\ESBTPMatiere::where('is_active', true)->get();
+            \Log::info('Toutes les matières actives trouvées: ' . $matieres->count());
+        }
+        
+        // Formater les matières pour l'API JavaScript
+        $formattedMatieres = $matieres->map(function ($matiere) {
+            $formatted = [
+                'id' => $matiere->id,
+                'name' => $matiere->nom ?? $matiere->name ?? 'Matière ' . $matiere->id,
+                'code' => $matiere->code ?? '',
+                'coefficient' => $matiere->coefficient ?? 1
+            ];
+            \Log::info('Matière formatée: ' . json_encode($formatted));
+            return $formatted;
+        });
+        
+        \Log::info('Total matières renvoyées: ' . $formattedMatieres->count());
+        return response()->json($formattedMatieres);
     }
 } 

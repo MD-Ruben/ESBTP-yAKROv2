@@ -11,11 +11,37 @@ use Spatie\Permission\Models\Role;
 
 // Liste des permissions à ajouter
 $permissions = [
+    // Permissions d'inscription
     'inscriptions.view',
     'inscriptions.create',
     'inscriptions.edit',
     'inscriptions.delete',
-    'inscriptions.validate'
+    'inscriptions.validate',
+    'edit inscriptions',
+    'valider inscriptions',
+    'annuler inscriptions',
+    'delete inscriptions',
+    
+    // Permissions de paiement
+    'create-paiements',
+    'edit-paiements',
+    'validate-paiements',
+    
+    // Permissions avec espaces au lieu de underscores
+    'view students',
+    'view users',
+    'view filieres',
+    'view formations',
+    'view niveaux etudes',
+    'view classes',
+    'view matieres',
+    'view exams',
+    'view bulletins',
+    'view timetables',
+    'view attendances',
+    'receive messages',
+    'view children bulletins',
+    'view children attendances'
 ];
 
 // Trouver le rôle superAdmin
@@ -37,4 +63,4 @@ foreach ($permissions as $permissionName) {
     }
 }
 
-echo "Toutes les permissions d'inscription ont été ajoutées au rôle superAdmin.\n"; 
+echo "Toutes les permissions ont été ajoutées au rôle superAdmin.\n"; 

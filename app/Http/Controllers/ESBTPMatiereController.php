@@ -9,6 +9,7 @@ use App\Models\ESBTPFormation;
 use App\Models\ESBTPUniteEnseignement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class ESBTPMatiereController extends Controller
 {
@@ -207,5 +208,126 @@ class ESBTPMatiereController extends Controller
         // Rediriger avec un message de succès
         return redirect()->route('esbtp.matieres.index')
             ->with('success', 'La matière a été supprimée avec succès.');
+    }
+
+    /**
+     * Affiche le formulaire pour attacher des matières à une classe
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function showAttachForm()
+    {
+        return view('esbtp.matieres.attach-to-classe');
+    }
+    
+    /**
+     * Associe des matières à une classe spécifique (méthode utilitaire)
+     * 
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function attachToClasse(Request $request)
+    {
+        $validated = $request->validate([
+            'classe_id' => 'required|exists:esbtp_classes,id',
+            'matieres' => 'required|array',
+            'matieres.*' => 'exists:esbtp_matieres,id',
+        ]);
+        
+        $classe = \App\Models\ESBTPClasse::findOrFail($validated['classe_id']);
+        
+        // Préparation des données pour l'attachement
+        $matieresData = [];
+        foreach ($validated['matieres'] as $matiereId) {
+            $matiere = \App\Models\ESBTPMatiere::findOrFail($matiereId);
+            $matieresData[$matiereId] = [
+                'coefficient' => $matiere->coefficient_default ?? 1.0,
+                'total_heures' => $matiere->total_heures_default ?? 30,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        
+        // Attacher les matières à la classe
+        $classe->matieres()->attach($matieresData);
+        
+        return redirect()->route('esbtp.classes.matieres', $classe->id)
+            ->with('success', count($matieresData) . ' matière(s) ajoutée(s) à la classe avec succès.');
+    }
+
+    /**
+     * Renvoie la liste des matières au format JSON pour les appels AJAX
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function getMatieresJson()
+    {
+        try {
+            \Log::info('Méthode getMatieresJson appelée');
+            
+            // Log whether the model exists and is accessible
+            try {
+                $matieresCount = \App\Models\ESBTPMatiere::count();
+                \Log::info('Test de connexion à la table des matières réussi. Nombre total de matières (toutes): ' . $matieresCount);
+            } catch (\Exception $dbEx) {
+                \Log::error('Erreur lors de l\'accès à la table des matières: ' . $dbEx->getMessage());
+            }
+            
+            // Vérifier si la colonne is_active existe
+            $hasIsActiveColumn = Schema::hasColumn('esbtp_matieres', 'is_active');
+            
+            // Construire la requête en fonction de la disponibilité de la colonne
+            $query = \App\Models\ESBTPMatiere::query();
+            if ($hasIsActiveColumn) {
+                $query->where('is_active', true);
+            }
+            
+            $matieres = $query->select('id', 'nom', 'name', 'code', 'coefficient')
+                ->orderBy('nom')
+                ->get();
+                
+            \Log::info('Nombre de matières trouvées: ' . $matieres->count());
+            
+            if ($matieres->isEmpty()) {
+                \Log::warning('Aucune matière active trouvée');
+                return response()->json([]);
+            }
+            
+            $formatted = $matieres->map(function ($matiere) {
+                return [
+                    'id' => $matiere->id,
+                    'name' => $matiere->nom ?? $matiere->name ?? 'Matière ' . $matiere->id,
+                    'code' => $matiere->code ?? '',
+                    'coefficient' => $matiere->coefficient ?? 1
+                ];
+            });
+        
+            return response()->json($formatted);
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans getMatieresJson: ' . $e->getMessage());
+            return response()->json(['error' => 'Une erreur est survenue lors de la récupération des matières'], 500);
+        }
+    }
+
+    /**
+     * Renvoie toutes les matières actives en format JSON
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllMatieresJson()
+    {
+        $matieres = \App\Models\ESBTPMatiere::where('is_active', true)->get();
+        
+        $formattedMatieres = $matieres->map(function ($matiere) {
+            return [
+                'id' => $matiere->id,
+                'name' => $matiere->nom ?? $matiere->name ?? 'Matière ' . $matiere->id,
+                'code' => $matiere->code ?? '',
+                'coefficient' => $matiere->coefficient ?? 1
+            ];
+        });
+        
+        return response()->json($formattedMatieres);
     }
 } 

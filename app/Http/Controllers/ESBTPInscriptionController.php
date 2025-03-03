@@ -197,6 +197,13 @@ class ESBTPInscriptionController extends Controller
                 'lieu_naissance', 'genre', 'adresse', 'ville', 'commune'
             ]);
             
+            // Conversion du genre pour correspondre à la colonne sexe de la table esbtp_etudiants
+            $etudiantData['sexe'] = $etudiantData['genre'] === 'Homme' ? 'M' : 'F';
+            unset($etudiantData['genre']); // Supprimer la clé 'genre' qui n'existe pas dans la table
+            
+            // Définir le statut comme 'actif' au lieu de 'en_attente' pour l'étudiant
+            $etudiantData['statut'] = 'actif';
+            
             // Traiter la photo si fournie
             if ($request->hasFile('photo')) {
                 $etudiantData['photo'] = $this->handlePhotoUpload($request->file('photo'));
@@ -208,6 +215,11 @@ class ESBTPInscriptionController extends Controller
                 'classe_id' => $classe->id,
                 'annee_universitaire_id' => $classe->annee_universitaire_id,
                 'status' => 'en_attente',
+                'filiere_id' => $classe->filiere_id,
+                'niveau_id' => $classe->niveau_etude_id,
+                'type_inscription' => 'première_inscription',
+                'montant_scolarite' => $request->montant_scolarite ?? 0,
+                'frais_inscription' => $request->frais_inscription ?? 0,
             ];
             
             // Si la classe a des relations filière et niveau, les ajouter aux données de l'étudiant

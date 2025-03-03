@@ -82,7 +82,6 @@ class ESBTPEmploiTempsController extends Controller
             'classe_id' => 'required|exists:esbtp_classes,id',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
-            'description' => 'nullable|string',
         ]);
         
         $emploiTemps = new ESBTPEmploiTemps();
@@ -90,7 +89,6 @@ class ESBTPEmploiTempsController extends Controller
         $emploiTemps->classe_id = $validated['classe_id'];
         $emploiTemps->date_debut = $validated['date_debut'];
         $emploiTemps->date_fin = $validated['date_fin'];
-        $emploiTemps->description = $validated['description'];
         $emploiTemps->is_active = true;
         $emploiTemps->created_by = Auth::id();
         $emploiTemps->save();
@@ -109,6 +107,9 @@ class ESBTPEmploiTempsController extends Controller
     {
         // Charger les séances pour cet emploi du temps
         $emploiTemp->load('seances');
+        
+        // Variable $seances pour la vue
+        $seances = $emploiTemp->seances;
 
         // Grouper les séances par jour
         $seancesParJour = $emploiTemp->getSeancesParJour();
@@ -127,7 +128,17 @@ class ESBTPEmploiTempsController extends Controller
             6 => 'Samedi',
         ];
 
-        return view('esbtp.emplois-temps.show', compact('emploiTemp', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms'));
+        // Calcul des statistiques par matière
+        $matiereStats = [];
+        foreach ($emploiTemp->seances as $seance) {
+            $matiereName = $seance->matiere ? $seance->matiere->name : 'Non définie';
+            if (!isset($matiereStats[$matiereName])) {
+                $matiereStats[$matiereName] = 0;
+            }
+            $matiereStats[$matiereName]++;
+        }
+
+        return view('esbtp.emplois-temps.show', compact('emploiTemp', 'seances', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms', 'matiereStats'));
     }
 
     /**

@@ -137,6 +137,13 @@ Route::middleware(['auth', 'installed'])->group(function () {
             // Routes API utilisées par les formulaires
             Route::get('/api/search-parents', [ESBTPEtudiantController::class, 'searchParents'])->name('esbtp.api.search-parents');
             Route::get('/api/get-classes', [ESBTPEtudiantController::class, 'getClasses'])->name('esbtp.api.get-classes');
+            // API fallback pour les matières (au cas où la route dans api.php ne fonctionne pas)
+            Route::get('/esbtp/api/classes/{classe}/matieres', [ESBTPClasseController::class, 'getMatieresForApi'])->name('esbtp.api.classes.matieres.fallback');
+            
+            // Routes spécifiques pour les matières - IMPORTANT: Elles doivent être déclarées AVANT les routes resource
+            Route::get('/matieres/json', [ESBTPMatiereController::class, 'getMatieresJson'])->name('matieres.json');
+            Route::get('/matieres/attach-to-classe', [ESBTPMatiereController::class, 'showAttachForm'])->name('matieres.attach-form');
+            Route::post('/matieres/attach-to-classe', [ESBTPMatiereController::class, 'attachToClasse'])->name('matieres.attach-to-classe');
             
             // Routes pour les matières - visualisation seulement pour secrétaire
             Route::resource('matieres', ESBTPMatiereController::class)

@@ -71,7 +71,7 @@ class ESBTPInscriptionService
             }
             
             // Statut par défaut pour un nouvel étudiant
-            $etudiantData['statut'] = 'en_attente';
+            $etudiantData['statut'] = 'actif';
             
             // 4. Créer l'étudiant et récupérer son instance
             $etudiant = $this->createEtudiant($etudiantData, $userId);
