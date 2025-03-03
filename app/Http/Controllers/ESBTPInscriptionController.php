@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ESBTPInscriptionController extends Controller
 {
@@ -163,40 +164,15 @@ class ESBTPInscriptionController extends Controller
      */
     public function store(Request $request)
     {
-        // Débogage - Afficher toutes les données reçues
-        \Log::info('Données reçues:', $request->all());
-        
+        // Valider la requête
         $validator = Validator::make($request->all(), [
+            'classe_id' => 'required|exists:esbtp_classes,id',
             'nom' => 'required|string|max:100',
             'prenoms' => 'required|string|max:255',
-            'date_naissance' => 'required|date|before_or_equal:today',
+            'email' => 'nullable|email|max:255',
+            'telephone' => 'required|string|max:20',
+            'date_naissance' => 'required|date',
             'genre' => 'required|in:Homme,Femme',
-            'telephone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|unique:esbtp_etudiants,email',
-            'adresse' => 'nullable|string|max:255',
-            'ville' => 'nullable|string|max:100',
-            'commune' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'date_inscription' => 'nullable|date',
-            'classe_id' => 'required|exists:esbtp_classes,id',
-            
-            // Validation des parents
-            'parents' => 'required|array|min:1',
-            'parents.*.type' => 'required|in:existant,nouveau',
-            'parents.*.parent_id' => 'required_if:parents.*.type,existant|nullable|exists:esbtp_parents,id',
-            'parents.*.nom' => 'required_if:parents.*.type,nouveau|nullable|string|max:100',
-            'parents.*.prenoms' => 'required_if:parents.*.type,nouveau|nullable|string|max:100',
-            'parents.*.telephone' => 'required_if:parents.*.type,nouveau|nullable|string|max:20',
-            'parents.*.email' => 'nullable|email',
-            'parents.*.profession' => 'nullable|string|max:100',
-            'parents.*.relation' => 'required|string|max:50',
-            
-            // Validation du paiement - rendu optionnel
-            'montant_verse' => 'nullable|numeric|min:0',
-            'methode_paiement' => 'nullable|string|in:Espèces,Chèque,Virement,Mobile Money',
-            'reference_paiement' => 'nullable|string|max:100',
-            'date_paiement' => 'nullable|date',
-            'commentaire' => 'nullable|string',
         ]);
         
         if ($validator->fails()) {
@@ -206,6 +182,9 @@ class ESBTPInscriptionController extends Controller
         }
         
         try {
+            // Log des données soumises pour débogage
+            Log::info('Données reçues:', $request->all());
+            
             DB::beginTransaction();
             
             // Récupérer les informations complètes de la classe sélectionnée
@@ -227,8 +206,18 @@ class ESBTPInscriptionController extends Controller
             $inscriptionData = [
                 'date_inscription' => $request->date_inscription ?? now()->format('Y-m-d'),
                 'classe_id' => $classe->id,
+                'annee_universitaire_id' => $classe->annee_universitaire_id,
                 'status' => 'en_attente',
             ];
+            
+            // Si la classe a des relations filière et niveau, les ajouter aux données de l'étudiant
+            if ($classe->filiere_id) {
+                $etudiantData['filiere_id'] = $classe->filiere_id;
+            }
+            
+            if ($classe->niveau_etude_id) {
+                $etudiantData['niveau_etude_id'] = $classe->niveau_etude_id;
+            }
             
             // Préparer les données de paiement
             $paiementData = null;
@@ -245,26 +234,26 @@ class ESBTPInscriptionController extends Controller
             // Préparer les données des parents
             $parentsData = [];
             
-            // Traiter les parents existants sélectionnés
-            if ($request->has('parent_existant_id')) {
-                foreach ($request->parent_existant_id as $parentId) {
-                    if (!empty($parentId)) {
-                        $parentsData[] = ['parent_id' => $parentId];
-                    }
-                }
-            }
-            
-            // Traiter les nouveaux parents
-            if ($request->has('parent_nom')) {
-                foreach ($request->parent_nom as $key => $nom) {
-                    if (!empty($nom) && !empty($request->parent_prenoms[$key])) {
+            // Traiter les parents du formulaire
+            if ($request->has('parents')) {
+                foreach ($request->parents as $parent) {
+                    if (isset($parent['type']) && $parent['type'] === 'existant' && !empty($parent['parent_id'])) {
+                        // Parent existant sélectionné
                         $parentsData[] = [
-                            'nom' => $nom,
-                            'prenoms' => $request->parent_prenoms[$key],
-                            'email' => $request->parent_email[$key] ?? null,
-                            'telephone' => $request->parent_telephone[$key],
-                            'profession' => $request->parent_profession[$key] ?? null,
-                            'relation' => $request->parent_relation[$key]
+                            'parent_id' => $parent['parent_id'],
+                            'relation' => $parent['relation'] ?? 'Autre'
+                        ];
+                    } 
+                    elseif (isset($parent['type']) && $parent['type'] === 'nouveau' && !empty($parent['nom']) && !empty($parent['prenoms'])) {
+                        // Nouveau parent
+                        $parentsData[] = [
+                            'nom' => $parent['nom'],
+                            'prenoms' => $parent['prenoms'],
+                            'email' => $parent['email'] ?? null,
+                            'telephone' => $parent['telephone'] ?? null,
+                            'profession' => $parent['profession'] ?? null,
+                            'relation' => $parent['relation'] ?? 'Autre',
+                            'adresse' => $parent['adresse'] ?? null
                         ];
                     }
                 }

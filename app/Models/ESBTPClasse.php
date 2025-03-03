@@ -83,6 +83,16 @@ class ESBTPClasse extends Model
     }
 
     /**
+     * Relation avec l'année universitaire (alias).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function anneeUniversitaire()
+    {
+        return $this->belongsTo(ESBTPAnneeUniversitaire::class, 'annee_universitaire_id');
+    }
+
+    /**
      * Relation avec les inscriptions.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -204,15 +214,5 @@ class ESBTPClasse extends Model
     public function niveauEtude()
     {
         return $this->niveau();
-    }
-
-    /**
-     * Alias pour la relation avec l'année universitaire.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function anneeUniversitaire()
-    {
-        return $this->annee();
     }
 } 

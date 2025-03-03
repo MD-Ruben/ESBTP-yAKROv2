@@ -16,62 +16,107 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use App\Models\ESBTPClasse;
+use Illuminate\Support\Str;
 
 class ESBTPInscriptionService
 {
     /**
-     * Créer une nouvelle inscription d'un étudiant
+     * Créer une nouvelle inscription d'étudiant
      *
-     * @param array $etudiantData Les données de l'étudiant
-     * @param array $inscriptionData Les données de l'inscription
-     * @param array $parentsData Les données des parents (optionnel)
-     * @param array $paiementData Les données du paiement initial (optionnel)
+     * @param array $etudiantData Données de l'étudiant
+     * @param array $inscriptionData Données de l'inscription
+     * @param array $parentsData Données des parents [optionnel]
+     * @param array $paiementData Données de paiement initial [optionnel]
      * @param int $userId ID de l'utilisateur qui crée l'inscription
-     * @return ESBTPInscription Instance de l'inscription créée
+     * @return ESBTPInscription
      */
-    public function createInscription(array $etudiantData, array $inscriptionData, array $parentsData = [], ?array $paiementData = null, int $userId)
+    public function createInscription(array $etudiantData, array $inscriptionData, array $parentsData = [], array $paiementData = [], int $userId = null)
     {
         try {
             DB::beginTransaction();
             
             // Ajout de logs pour déboguer
-            Log::info('Début de la création d\'une inscription dans le service', [
-                'etudiantData' => $etudiantData,
-                'inscriptionData' => $inscriptionData,
-                'parentsData' => $parentsData,
-                'userId' => $userId
+            Log::info('Début de création de l\'inscription', [
+                'etudiantData' => $etudiantData, 
+                'inscriptionData' => $inscriptionData
             ]);
             
-            // 1. Création de l'étudiant
+            // 1. Vérification des données minimales requises
+            if (empty($etudiantData['nom']) || empty($etudiantData['prenoms'])) {
+                throw new \Exception("Les informations de base de l'étudiant sont manquantes");
+            }
+            
+            if (empty($inscriptionData['classe_id'])) {
+                throw new \Exception("Une classe doit être sélectionnée pour l'inscription");
+            }
+            
+            // 2. Récupération des données de la classe pour remplir les données de l'inscription
+            $classe = ESBTPClasse::with(['filiere', 'niveau', 'annee'])->findOrFail($inscriptionData['classe_id']);
+            
+            // S'assurer que les données de filière, niveau et année sont disponibles
+            if (!$classe->filiere_id || !$classe->niveau_etude_id || !$classe->annee_universitaire_id) {
+                throw new \Exception("La classe sélectionnée n'a pas toutes les informations requises");
+            }
+            
+            // 3. Préparer les données de l'étudiant pour la création
+            $etudiantData['filiere_id'] = $classe->filiere_id;
+            $etudiantData['niveau_etude_id'] = $classe->niveau_etude_id;
+            $etudiantData['annee_universitaire_id'] = $classe->annee_universitaire_id;
+            $etudiantData['created_by'] = $userId;
+            $etudiantData['updated_by'] = $userId;
+            
+            // Convertir sexe en genre si nécessaire
+            if (isset($etudiantData['sexe']) && !isset($etudiantData['genre'])) {
+                $etudiantData['genre'] = $etudiantData['sexe'];
+            }
+            
+            // Statut par défaut pour un nouvel étudiant
+            $etudiantData['statut'] = 'en_attente';
+            
+            // 4. Créer l'étudiant et récupérer son instance
             $etudiant = $this->createEtudiant($etudiantData, $userId);
             
-            // Ajout de logs pour déboguer
-            Log::info('Étudiant créé', ['etudiant' => $etudiant]);
+            // Si le statut est 'actif', on active également le compte utilisateur
+            if (isset($inscriptionData['status']) && $inscriptionData['status'] === 'active') {
+                $etudiant->statut = 'actif';
+                $etudiant->save();
+                
+                if ($etudiant->user_id) {
+                    $user = User::find($etudiant->user_id);
+                    if ($user) {
+                        $user->is_active = true;
+                        $user->save();
+                    }
+                }
+            }
             
-            // 2. Création de l'inscription
+            // 5. Préparer les données d'inscription
             $inscriptionData['etudiant_id'] = $etudiant->id;
+            $inscriptionData['annee_universitaire_id'] = $classe->annee_universitaire_id;
+            $inscriptionData['filiere_id'] = $classe->filiere_id;
+            $inscriptionData['niveau_id'] = $classe->niveau_etude_id;
+            $inscriptionData['date_inscription'] = $inscriptionData['date_inscription'] ?? now()->format('Y-m-d');
+            $inscriptionData['type_inscription'] = $inscriptionData['type_inscription'] ?? 'PREMIERE';
+            $inscriptionData['status'] = $inscriptionData['status'] ?? 'en_attente';
             $inscriptionData['created_by'] = $userId;
             $inscriptionData['updated_by'] = $userId;
             
-            // Générer un numéro de reçu pour l'inscription
+            // Générer un numéro de reçu si nécessaire
             if (empty($inscriptionData['numero_recu'])) {
-                $anneeCode = substr(date('Y'), 2, 2);
-                $annee = ESBTPAnneeUniversitaire::find($inscriptionData['annee_universitaire_id']);
-                if ($annee) {
-                    $anneeCode = substr($annee->code, 2, 2);
-                }
-                $numeroRecu = 'INSC' . $anneeCode . '-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
-                $inscriptionData['numero_recu'] = $numeroRecu;
+                $annee = date('Y');
+                $anneeCode = $classe->annee->code ?? $annee;
+                $inscriptionData['numero_recu'] = 'INSC-' . $anneeCode . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
             
+            // 6. Créer l'inscription
             $inscription = ESBTPInscription::create($inscriptionData);
             
-            // 3. Création/Association des parents
+            // 7. Traiter les parents s'ils sont fournis
             if (!empty($parentsData)) {
                 $this->attachParentsToEtudiant($etudiant, $parentsData, $userId);
             }
             
-            // 4. Enregistrement du paiement initial (si fourni)
+            // 8. Enregistrement du paiement initial (si fourni)
             if ($paiementData && !empty($paiementData)) {
                 $paiementData['inscription_id'] = $inscription->id;
                 $paiementData['etudiant_id'] = $etudiant->id;
@@ -118,68 +163,39 @@ class ESBTPInscriptionService
      */
     private function createEtudiant(array $etudiantData, int $userId)
     {
-        $etudiantData['created_by'] = $userId;
-        $etudiantData['updated_by'] = $userId;
+        // Générer un username unique basé sur le prénom et le nom
+        $prenoms = explode(' ', $etudiantData['prenoms']);
+        $prenom = strtolower($prenoms[0] ?? '');
+        $nom = strtolower($etudiantData['nom'] ?? '');
         
-        // Générer le matricule de l'étudiant si non fourni
-        if (empty($etudiantData['matricule'])) {
-            // Valeurs par défaut si on n'a pas les données nécessaires
-            $filiere = 'XX';
-            $niveau = 'XX';
-            $annee = date('y'); // Année courante en format court
-            
-            // Si nous avons une classe, utiliser ses informations
-            if (isset($etudiantData['classe_id'])) {
-                $classe = ESBTPClasse::with(['filiere', 'niveauEtude', 'anneeUniversitaire'])->find($etudiantData['classe_id']);
-                if ($classe) {
-                    $filiere = $classe->filiere ? $classe->filiere->code : $filiere;
-                    $niveau = $classe->niveauEtude ? $classe->niveauEtude->code : $niveau;
-                    
-                    if ($classe->anneeUniversitaire) {
-                        $annee = substr($classe->anneeUniversitaire->code, 2, 2);
-                    }
-                }
-            } 
-            // Sinon, si nous avons une année universitaire, utiliser son code
-            elseif (isset($etudiantData['annee_universitaire_id'])) {
-                $anneeUniv = ESBTPAnneeUniversitaire::find($etudiantData['annee_universitaire_id']);
-                if ($anneeUniv) {
-                    $annee = substr($anneeUniv->code, 2, 2);
-                }
-            }
-            
-            // Générer le matricule
-            $etudiantData['matricule'] = ESBTPEtudiant::genererMatricule($filiere, $niveau, $annee);
-            
-            // Log pour déboguer
-            \Log::info('Matricule généré pour l\'étudiant', [
-                'nom' => $etudiantData['nom'] ?? 'N/A',
-                'prenoms' => $etudiantData['prenoms'] ?? 'N/A',
-                'matricule' => $etudiantData['matricule']
-            ]);
+        // Créer un username basé sur le prénom et le nom
+        $baseUsername = $prenom . '.' . $nom;
+        $baseUsername = preg_replace('/[^a-z0-9.]/', '', $baseUsername); // Supprime les caractères spéciaux
+        $username = $baseUsername;
+        
+        // Si le username existe déjà, ajouter un nombre aléatoire
+        $count = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername . '.' . $count;
+            $count++;
         }
         
-        // Création du compte utilisateur
-        // Générer un nom d'utilisateur basé sur le prénom et le nom
-        $username = ESBTPEtudiant::genererUsername(
-            $etudiantData['prenoms'], 
-            $etudiantData['nom']
-        );
+        // Générer un email basé sur le username
+        $baseEmail = $username . '@esbtp.edu';
+        $email = $baseEmail;
+        $count = 1;
+        while (User::where('email', $email)->exists()) {
+            $email = str_replace('@', '.' . $count . '@', $baseEmail);
+            $count++;
+        }
         
         // Générer un mot de passe aléatoire
-        $password = ESBTPEtudiant::genererMotDePasse();
-        
-        // Créer l'email si non fourni
-        $email = $etudiantData['email'] ?? ($username . '@esbtp.edu');
-        $emailExists = User::where('email', $email)->exists();
-        
-        if ($emailExists) {
-            // Ajouter un suffixe aléatoire à l'email
-            $email = $username . '.' . rand(100, 999) . '@esbtp.edu';
-        }
+        $password = Str::random(10);
         
         $user = User::create([
             'name' => $etudiantData['prenoms'] . ' ' . $etudiantData['nom'],
+            'first_name' => $etudiantData['prenoms'],
+            'last_name' => $etudiantData['nom'],
             'email' => $email,
             'username' => $username,
             'password' => Hash::make($password),
@@ -197,8 +213,66 @@ class ESBTPInscriptionService
         
         $etudiantData['user_id'] = $user->id;
         
+        // Générer un matricule unique pour l'étudiant si ce n'est pas déjà fait
+        if (empty($etudiantData['matricule'])) {
+            // Récupérer les références nécessaires pour générer le matricule
+            $filiereId = $etudiantData['filiere_id'] ?? null;
+            $niveauId = $etudiantData['niveau_etude_id'] ?? null;
+            $anneeId = $etudiantData['annee_universitaire_id'] ?? null;
+            
+            // Si anneeId est null, essayer de récupérer l'année universitaire active
+            if ($anneeId === null) {
+                $anneeActive = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+                if ($anneeActive) {
+                    $anneeId = $anneeActive->id;
+                    $etudiantData['annee_universitaire_id'] = $anneeId;
+                }
+            }
+            
+            $filiere = $filiereId ? ESBTPFiliere::find($filiereId) : null;
+            $niveau = $niveauId ? ESBTPNiveauEtude::find($niveauId) : null;
+            $annee = $anneeId ? ESBTPAnneeUniversitaire::find($anneeId) : null;
+            
+            // Générer les codes pour le matricule
+            $filiereCode = $filiere ? ($filiere->code ?? substr($filiere->nom, 0, 2)) : 'XX';
+            $niveauCode = $niveau ? ($niveau->code ?? ($niveau->annee ?? 'XX')) : 'XX';
+            $anneeCode = $annee ? substr($annee->code ?? date('Y'), 2, 2) : date('y');
+            
+            // Construire le préfixe du matricule
+            $matriculePrefix = strtoupper($filiereCode . $niveauCode . $anneeCode);
+            
+            // Trouver le dernier numéro séquentiel pour cette combinaison
+            $lastMatricule = ESBTPEtudiant::where('matricule', 'LIKE', $matriculePrefix . '%')
+                                        ->orderBy('matricule', 'desc')
+                                        ->first();
+            
+            $sequence = 1;
+            if ($lastMatricule) {
+                $lastSequence = (int) substr($lastMatricule->matricule, strlen($matriculePrefix));
+                $sequence = $lastSequence + 1;
+            }
+            
+            // Générer le matricule final
+            $matricule = $matriculePrefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            
+            // Journaliser la génération du matricule
+            Log::info('Matricule généré pour l\'étudiant', [
+                'nom' => $etudiantData['nom'],
+                'prenoms' => $etudiantData['prenoms'],
+                'matricule' => $matricule
+            ]);
+            
+            $etudiantData['matricule'] = $matricule;
+        }
+        
+        // Assurer que toutes les données requises sont présentes
+        $etudiantData['statut'] = $etudiantData['statut'] ?? 'en_attente';
+        
         // Créer l'étudiant
         $etudiant = ESBTPEtudiant::create($etudiantData);
+        
+        // Journaliser la création de l'étudiant
+        Log::info('Étudiant créé', ['etudiant' => $etudiant]);
         
         return $etudiant;
     }
