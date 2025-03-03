@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
+use App\Models\ESBTPClasse;
 
 class ESBTPInscriptionService
 {
@@ -120,6 +121,44 @@ class ESBTPInscriptionService
         $etudiantData['created_by'] = $userId;
         $etudiantData['updated_by'] = $userId;
         
+        // Générer le matricule de l'étudiant si non fourni
+        if (empty($etudiantData['matricule'])) {
+            // Valeurs par défaut si on n'a pas les données nécessaires
+            $filiere = 'XX';
+            $niveau = 'XX';
+            $annee = date('y'); // Année courante en format court
+            
+            // Si nous avons une classe, utiliser ses informations
+            if (isset($etudiantData['classe_id'])) {
+                $classe = ESBTPClasse::with(['filiere', 'niveauEtude', 'anneeUniversitaire'])->find($etudiantData['classe_id']);
+                if ($classe) {
+                    $filiere = $classe->filiere ? $classe->filiere->code : $filiere;
+                    $niveau = $classe->niveauEtude ? $classe->niveauEtude->code : $niveau;
+                    
+                    if ($classe->anneeUniversitaire) {
+                        $annee = substr($classe->anneeUniversitaire->code, 2, 2);
+                    }
+                }
+            } 
+            // Sinon, si nous avons une année universitaire, utiliser son code
+            elseif (isset($etudiantData['annee_universitaire_id'])) {
+                $anneeUniv = ESBTPAnneeUniversitaire::find($etudiantData['annee_universitaire_id']);
+                if ($anneeUniv) {
+                    $annee = substr($anneeUniv->code, 2, 2);
+                }
+            }
+            
+            // Générer le matricule
+            $etudiantData['matricule'] = ESBTPEtudiant::genererMatricule($filiere, $niveau, $annee);
+            
+            // Log pour déboguer
+            \Log::info('Matricule généré pour l\'étudiant', [
+                'nom' => $etudiantData['nom'] ?? 'N/A',
+                'prenoms' => $etudiantData['prenoms'] ?? 'N/A',
+                'matricule' => $etudiantData['matricule']
+            ]);
+        }
+        
         // Création du compte utilisateur
         // Générer un nom d'utilisateur basé sur le prénom et le nom
         $username = ESBTPEtudiant::genererUsername(
@@ -144,9 +183,11 @@ class ESBTPInscriptionService
             'email' => $email,
             'username' => $username,
             'password' => Hash::make($password),
-            'avatar' => null,
             'is_active' => true
         ]);
+        
+        // Enregistrer le mot de passe généré en session pour l'afficher plus tard
+        session()->put('generated_password', $password);
         
         // Assigner le rôle étudiant
         $role = Role::where('name', 'etudiant')->first();
@@ -155,9 +196,6 @@ class ESBTPInscriptionService
         }
         
         $etudiantData['user_id'] = $user->id;
-        
-        // Stocker le mot de passe généré dans la session pour l'afficher plus tard
-        session(['generated_password' => $password]);
         
         // Créer l'étudiant
         $etudiant = ESBTPEtudiant::create($etudiantData);

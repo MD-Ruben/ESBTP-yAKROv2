@@ -195,4 +195,24 @@ class ESBTPClasse extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    /**
+     * Alias pour la relation avec le niveau d'étude.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function niveauEtude()
+    {
+        return $this->niveau();
+    }
+
+    /**
+     * Alias pour la relation avec l'année universitaire.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function anneeUniversitaire()
+    {
+        return $this->annee();
+    }
 } 

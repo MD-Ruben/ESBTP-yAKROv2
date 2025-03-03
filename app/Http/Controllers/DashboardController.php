@@ -312,7 +312,7 @@ class DashboardController extends Controller
             $data['classe'] = $etudiant->classe;
             if ($data['classe']) {
                 $data['filiere'] = $data['classe']->filiere;
-                $data['niveau'] = $data['classe']->niveauEtude;
+                $data['niveau'] = $data['classe']->niveau;
             }
         } catch (\Exception $e) {
             $data['classe'] = null;

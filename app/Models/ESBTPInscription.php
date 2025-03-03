@@ -247,4 +247,14 @@ class ESBTPInscription extends Model
         
         return $this->annee_universitaire_id === $anneeEnCours->id;
     }
+
+    /**
+     * Alias pour la relation avec le niveau d'étude.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function niveauEtude()
+    {
+        return $this->niveau();
+    }
 }

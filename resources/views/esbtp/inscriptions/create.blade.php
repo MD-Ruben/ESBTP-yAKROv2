@@ -111,10 +111,10 @@
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <label for="prenom">Prénom(s)</label>
-                        <input type="text" class="form-control @error('prenom') is-invalid @enderror" 
-                               id="prenom" name="prenom" value="{{ old('prenom') }}" required>
-                        @error('prenom')
+                        <label for="prenoms">Prénom(s) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('prenoms') is-invalid @enderror" 
+                               id="prenoms" name="prenoms" value="{{ old('prenoms') }}" required>
+                        @error('prenoms')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -132,11 +132,10 @@
                     
                     <div class="col-md-4 mb-3">
                         <label for="genre">Genre</label>
-                        <select class="form-select @error('genre') is-invalid @enderror" 
-                                id="genre" name="genre" required>
-                            <option value="">Sélectionner</option>
-                            <option value="homme" {{ old('genre') == 'homme' ? 'selected' : '' }}>Homme</option>
-                            <option value="femme" {{ old('genre') == 'femme' ? 'selected' : '' }}>Femme</option>
+                        <select class="form-control @error('genre') is-invalid @enderror" id="genre" name="genre" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="Homme" {{ old('genre') == 'Homme' ? 'selected' : '' }}>Homme</option>
+                            <option value="Femme" {{ old('genre') == 'Femme' ? 'selected' : '' }}>Femme</option>
                         </select>
                         @error('genre')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -209,68 +208,70 @@
                 <!-- Container pour les parents -->
                 <div id="parents-container">
                     <!-- Premier parent (toujours présent) -->
-                    <div class="parent-item mb-4 p-3 border rounded" data-parent-index="0">
-                        <div class="d-flex justify-content-between mb-3">
-                            <h6>Parent / Tuteur #1 (Principal)</h6>
-                            <div class="form-check">
+                    <div class="parent-item card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Parent/Tuteur 1</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input parent-existant-checkbox" type="checkbox" id="parent_existant_0" name="parents[0][existant]" value="1">
-                                <label class="form-check-label" for="parent_existant_0">Sélectionner un parent existant</label>
+                                <label class="form-check-label" for="parent_existant_0">
+                                    Sélectionner un parent existant
+                                </label>
                             </div>
-                        </div>
-                        
-                        <!-- Sélection parent existant -->
-                        <div class="parent-existant-section mb-3" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="parent_id_0">Sélectionner un parent existant</label>
-                                    <select class="form-control parent-select" id="parent_id_0" name="parents[0][parent_id]" data-placeholder="Rechercher un parent...">
-                                        <option value="">Rechercher un parent...</option>
-                                    </select>
-                                </div>
+                            <!-- Champ caché pour le type de parent -->
+                            <input type="hidden" name="parents[0][type]" id="parent_type_0" value="nouveau">
+                            
+                            <!-- Sélection d'un parent existant -->
+                            <div class="form-group mb-3 parent-existant-section" style="display: none;">
+                                <label for="parent_id_0">Sélectionner un parent</label>
+                                <select class="form-control parent-select" id="parent_id_0" name="parents[0][parent_id]" data-placeholder="Rechercher un parent...">
+                                    <option value=""></option>
+                                </select>
                             </div>
-                        </div>
-                        
-                        <!-- Nouveau parent -->
-                        <div class="parent-nouveau-section">
-                <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_nom_0">Nom <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_nom_0" name="parents[0][nom]" value="{{ old('parents.0.nom') }}">
+                            
+                            <!-- Nouveau parent -->
+                            <div class="parent-nouveau-section">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_nom_0">Nom <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_nom_0" name="parents[0][nom]" value="{{ old('parents.0.nom') }}">
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_prenoms_0">Prénom(s) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_prenoms_0" name="parents[0][prenoms]" value="{{ old('parents.0.prenoms') }}">
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_relation_0">Relation <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="parent_relation_0" name="parents[0][relation]">
+                                            <option value="Père" {{ old('parents.0.relation') == 'Père' ? 'selected' : '' }}>Père</option>
+                                            <option value="Mère" {{ old('parents.0.relation') == 'Mère' ? 'selected' : '' }}>Mère</option>
+                                            <option value="Tuteur" {{ old('parents.0.relation', 'Tuteur') == 'Tuteur' ? 'selected' : '' }}>Tuteur</option>
+                                            <option value="Autre" {{ old('parents.0.relation') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_prenoms_0">Prénom(s) <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_prenoms_0" name="parents[0][prenoms]" value="{{ old('parents.0.prenoms') }}">
-                    </div>
-                    
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_relation_0">Relation <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="parent_relation_0" name="parents[0][relation]">
-                                        <option value="Père" {{ old('parents.0.relation') == 'Père' ? 'selected' : '' }}>Père</option>
-                                        <option value="Mère" {{ old('parents.0.relation') == 'Mère' ? 'selected' : '' }}>Mère</option>
-                                        <option value="Tuteur" {{ old('parents.0.relation', 'Tuteur') == 'Tuteur' ? 'selected' : '' }}>Tuteur</option>
-                                        <option value="Autre" {{ old('parents.0.relation') == 'Autre' ? 'selected' : '' }}>Autre</option>
-                                    </select>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                                    <label for="parent_telephone_0">Téléphone <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_telephone_0" name="parents[0][telephone]" 
-                                           value="{{ old('parents.0.telephone') }}" placeholder="+225 XX XX XXX XXX">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                                    <label for="parent_email_0">Email</label>
-                                    <input type="email" class="form-control" id="parent_email_0" name="parents[0][email]" value="{{ old('parents.0.email') }}">
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                                    <label for="parent_adresse_0">Adresse</label>
-                                    <textarea class="form-control" id="parent_adresse_0" name="parents[0][adresse]" rows="2">{{ old('parents.0.adresse') }}</textarea>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="parent_telephone_0">Téléphone <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_telephone_0" name="parents[0][telephone]" 
+                                               value="{{ old('parents.0.telephone') }}" placeholder="+225 XX XX XXX XXX">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="parent_email_0">Email</label>
+                                        <input type="email" class="form-control" id="parent_email_0" name="parents[0][email]" value="{{ old('parents.0.email') }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="parent_adresse_0">Adresse</label>
+                                        <textarea class="form-control" id="parent_adresse_0" name="parents[0][adresse]" rows="2">{{ old('parents.0.adresse') }}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -279,73 +280,74 @@
                 
                 <!-- Template pour ajouter de nouveaux parents (caché) -->
                 <template id="parent-template">
-                    <div class="parent-item mb-4 p-3 border rounded" data-parent-index="{index}">
-                        <div class="d-flex justify-content-between mb-3">
-                            <h6>Parent / Tuteur #{number}</h6>
-                            <div class="d-flex">
-                                <div class="form-check me-3">
-                                    <input class="form-check-input parent-existant-checkbox" type="checkbox" id="parent_existant_{index}" name="parents[{index}][existant]" value="1">
-                                    <label class="form-check-label" for="parent_existant_{index}">Sélectionner un parent existant</label>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-danger remove-parent-btn">
-                                    <i class="fas fa-times"></i> Supprimer
-                                </button>
-                            </div>
+                    <div class="parent-item card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Parent/Tuteur {number}</h5>
+                            <button type="button" class="btn btn-sm btn-danger remove-parent-btn">
+                                <i class="fas fa-times"></i> Supprimer
+                            </button>
                         </div>
-                        
-                        <!-- Sélection parent existant -->
-                        <div class="parent-existant-section mb-3" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="parent_id_{index}">Sélectionner un parent existant</label>
-                                    <select class="form-control parent-select" id="parent_id_{index}" name="parents[{index}][parent_id]" data-placeholder="Rechercher un parent...">
-                                        <option value="">Rechercher un parent...</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Nouveau parent -->
-                        <div class="parent-nouveau-section">
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_nom_{index}">Nom <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_nom_{index}" name="parents[{index}][nom]">
-                                </div>
-                                
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_prenoms_{index}">Prénom(s) <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_prenoms_{index}" name="parents[{index}][prenoms]">
-                                </div>
-                                
-                                <div class="col-md-4 mb-3">
-                                    <label for="parent_relation_{index}">Relation <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="parent_relation_{index}" name="parents[{index}][relation]">
-                                        <option value="Père">Père</option>
-                                        <option value="Mère">Mère</option>
-                                        <option value="Tuteur">Tuteur</option>
-                                        <option value="Autre">Autre</option>
-                                    </select>
-                                </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input parent-existant-checkbox" id="parent_existant_{index}" name="parents[{index}][existant]" value="1">
+                                <label class="form-check-label" for="parent_existant_{index}">
+                                    Sélectionner un parent existant
+                                </label>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="parent_telephone_{index}">Téléphone <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="parent_telephone_{index}" name="parents[{index}][telephone]" 
-                                           placeholder="+225 XX XX XXX XXX">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="parent_email_{index}">Email</label>
-                                    <input type="email" class="form-control" id="parent_email_{index}" name="parents[{index}][email]">
-                                </div>
+                            <!-- Champ caché pour le type de parent -->
+                            <input type="hidden" name="parents[{index}][type]" id="parent_type_{index}" value="nouveau">
+                            
+                            <!-- Sélection d'un parent existant -->
+                            <div class="form-group mb-3 parent-existant-section" style="display: none;">
+                                <label for="parent_id_{index}">Sélectionner un parent</label>
+                                <select class="form-control parent-select" id="parent_id_{index}" name="parents[{index}][parent_id]" data-placeholder="Rechercher un parent...">
+                                    <option value=""></option>
+                                </select>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="parent_adresse_{index}">Adresse</label>
-                                    <textarea class="form-control" id="parent_adresse_{index}" name="parents[{index}][adresse]" rows="2"></textarea>
+                            <!-- Nouveau parent -->
+                            <div class="parent-nouveau-section">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_nom_{index}">Nom <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_nom_{index}" name="parents[{index}][nom]">
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_prenoms_{index}">Prénom(s) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_prenoms_{index}" name="parents[{index}][prenoms]">
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label for="parent_relation_{index}">Relation <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="parent_relation_{index}" name="parents[{index}][relation]">
+                                            <option value="Père">Père</option>
+                                            <option value="Mère">Mère</option>
+                                            <option value="Tuteur">Tuteur</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="parent_telephone_{index}">Téléphone <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="parent_telephone_{index}" name="parents[{index}][telephone]" 
+                                               placeholder="+225 XX XX XXX XXX">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="parent_email_{index}">Email</label>
+                                        <input type="email" class="form-control" id="parent_email_{index}" name="parents[{index}][email]">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="parent_adresse_{index}">Adresse</label>
+                                        <textarea class="form-control" id="parent_adresse_{index}" name="parents[{index}][adresse]" rows="2"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -546,15 +548,23 @@
             
             // Gestion de la checkbox "parent existant"
             $('.parent-existant-checkbox').off('change').on('change', function() {
-                const parentItem = $(this).closest('.parent-item');
-                if ($(this).is(':checked')) {
+                var isChecked = $(this).is(':checked');
+                var parentItem = $(this).closest('.parent-item');
+                var typeField = parentItem.find('[id^="parent_type_"]');
+                
+                if (isChecked) {
                     parentItem.find('.parent-existant-section').show();
                     parentItem.find('.parent-nouveau-section').hide();
+                    typeField.val('existant');
                 } else {
                     parentItem.find('.parent-existant-section').hide();
                     parentItem.find('.parent-nouveau-section').show();
+                    typeField.val('nouveau');
                 }
             });
+            
+            // Initialiser l'état pour les parents existants
+            $('.parent-existant-checkbox').trigger('change');
         }
         
         // Initialiser Select2 pour les sélecteurs de parents

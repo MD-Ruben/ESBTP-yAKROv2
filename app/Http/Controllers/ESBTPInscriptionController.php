@@ -163,6 +163,9 @@ class ESBTPInscriptionController extends Controller
      */
     public function store(Request $request)
     {
+        // Débogage - Afficher toutes les données reçues
+        \Log::info('Données reçues:', $request->all());
+        
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:100',
             'prenoms' => 'required|string|max:255',
@@ -174,22 +177,26 @@ class ESBTPInscriptionController extends Controller
             'ville' => 'nullable|string|max:100',
             'commune' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'date_inscription' => 'nullable|date',
             'classe_id' => 'required|exists:esbtp_classes,id',
-            'date_inscription' => 'required|date',
-            'montant_verse' => 'required|numeric|min:0',
-            'methode_paiement' => 'required|string|in:Espèces,Chèque,Virement bancaire,Mobile Money',
+            
+            // Validation des parents
+            'parents' => 'required|array|min:1',
+            'parents.*.type' => 'required|in:existant,nouveau',
+            'parents.*.parent_id' => 'required_if:parents.*.type,existant|nullable|exists:esbtp_parents,id',
+            'parents.*.nom' => 'required_if:parents.*.type,nouveau|nullable|string|max:100',
+            'parents.*.prenoms' => 'required_if:parents.*.type,nouveau|nullable|string|max:100',
+            'parents.*.telephone' => 'required_if:parents.*.type,nouveau|nullable|string|max:20',
+            'parents.*.email' => 'nullable|email',
+            'parents.*.profession' => 'nullable|string|max:100',
+            'parents.*.relation' => 'required|string|max:50',
+            
+            // Validation du paiement - rendu optionnel
+            'montant_verse' => 'nullable|numeric|min:0',
+            'methode_paiement' => 'nullable|string|in:Espèces,Chèque,Virement,Mobile Money',
             'reference_paiement' => 'nullable|string|max:100',
-            
-            // Informations des parents (conditionnelles selon le choix de l'utilisateur)
-            'parent_nom.*' => 'required_with:parent_prenoms.*|string|max:100',
-            'parent_prenoms.*' => 'required_with:parent_nom.*|string|max:100',
-            'parent_email.*' => 'nullable|email',
-            'parent_telephone.*' => 'required_with:parent_nom.*|string|max:20',
-            'parent_profession.*' => 'nullable|string|max:100',
-            'parent_relation.*' => 'required_with:parent_nom.*|string|max:50',
-            
-            // IDs des parents existants qu'on veut associer
-            'parent_existant_id.*' => 'nullable|exists:esbtp_parents,id',
+            'date_paiement' => 'nullable|date',
+            'commentaire' => 'nullable|string',
         ]);
         
         if ($validator->fails()) {
@@ -202,7 +209,7 @@ class ESBTPInscriptionController extends Controller
             DB::beginTransaction();
             
             // Récupérer les informations complètes de la classe sélectionnée
-            $classe = ESBTPClasse::with(['filiere', 'niveauEtude', 'anneeUniversitaire'])
+            $classe = ESBTPClasse::with(['filiere', 'niveau', 'annee'])
                 ->findOrFail($request->classe_id);
             
             // Préparer les données de l'étudiant
@@ -218,22 +225,22 @@ class ESBTPInscriptionController extends Controller
             
             // Préparer les données d'inscription
             $inscriptionData = [
+                'date_inscription' => $request->date_inscription ?? now()->format('Y-m-d'),
                 'classe_id' => $classe->id,
-                'filiere_id' => $classe->filiere_id,
-                'niveau_etude_id' => $classe->niveau_etude_id,
-                'annee_universitaire_id' => $classe->annee_universitaire_id,
-                'date_inscription' => $request->date_inscription,
-                'statut' => 'En attente', // Statut par défaut
+                'status' => 'en_attente',
             ];
             
             // Préparer les données de paiement
-            $paiementData = [
-                'montant' => $request->montant_verse,
-                'methode' => $request->methode_paiement,
-                'reference' => $request->reference_paiement,
-                'date_paiement' => now(),
-                'type' => 'Frais d\'inscription'
-            ];
+            $paiementData = null;
+            if ($request->filled('montant_verse') && $request->montant_verse > 0) {
+                $paiementData = [
+                    'montant' => $request->montant_verse,
+                    'methode' => $request->methode_paiement ?? 'Espèces',
+                    'reference' => $request->reference_paiement,
+                    'date' => $request->date_paiement ?? now(),
+                    'commentaire' => $request->commentaire,
+                ];
+            }
             
             // Préparer les données des parents
             $parentsData = [];
