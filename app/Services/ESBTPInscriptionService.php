@@ -26,11 +26,11 @@ class ESBTPInscriptionService
      * @param array $etudiantData Données de l'étudiant
      * @param array $inscriptionData Données de l'inscription
      * @param array $parentsData Données des parents [optionnel]
-     * @param array $paiementData Données de paiement initial [optionnel]
+     * @param array|null $paiementData Données de paiement initial [optionnel]
      * @param int $userId ID de l'utilisateur qui crée l'inscription
      * @return ESBTPInscription
      */
-    public function createInscription(array $etudiantData, array $inscriptionData, array $parentsData = [], array $paiementData = [], int $userId = null)
+    public function createInscription(array $etudiantData, array $inscriptionData, array $parentsData = [], ?array $paiementData = null, int $userId = null)
     {
         try {
             DB::beginTransaction();
@@ -129,6 +129,9 @@ class ESBTPInscriptionService
                 }
                 
                 ESBTPPaiement::create($paiementData);
+                Log::info('Paiement créé pour l\'inscription', ['paiement' => $paiementData]);
+            } else {
+                Log::info('Aucun paiement fourni pour cette inscription');
             }
             
             DB::commit();
@@ -147,7 +150,11 @@ class ESBTPInscriptionService
             // Ajout de logs pour déboguer
             Log::error('Erreur lors de la création de l\'inscription', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'etudiantData' => $etudiantData ?? null,
+                'inscriptionData' => $inscriptionData ?? null,
+                'parentsData' => $parentsData ?? null,
+                'paiementData' => $paiementData ?? null
             ]);
             
             throw $e;
@@ -287,41 +294,65 @@ class ESBTPInscriptionService
      */
     private function attachParentsToEtudiant(ESBTPEtudiant $etudiant, array $parentsData, int $userId)
     {
+        Log::info('Début attachement des parents', ['parentsData' => $parentsData]);
+        
         foreach ($parentsData as $index => $parentData) {
             $isTuteur = $index === 0; // Le premier parent est le tuteur par défaut
             
-            // Parent existant sélectionné
-            if (isset($parentData['parent_id']) && !empty($parentData['parent_id'])) {
-                $parent = ESBTPParent::findOrFail($parentData['parent_id']);
-                
-                // Associer le parent existant à l'étudiant
-                $etudiant->parents()->syncWithoutDetaching([
-                    $parent->id => [
+            try {
+                // Parent existant sélectionné
+                if (isset($parentData['parent_id']) && !empty($parentData['parent_id'])) {
+                    $parent = ESBTPParent::findOrFail($parentData['parent_id']);
+                    
+                    // Associer le parent existant à l'étudiant
+                    $etudiant->parents()->syncWithoutDetaching([
+                        $parent->id => [
+                            'relation' => $parentData['relation'] ?? 'Tuteur',
+                            'is_tuteur' => $isTuteur
+                        ]
+                    ]);
+                    
+                    Log::info('Parent existant attaché à l\'étudiant', [
+                        'parent_id' => $parent->id,
+                        'etudiant_id' => $etudiant->id
+                    ]);
+                } 
+                // Nouveau parent
+                elseif (isset($parentData['nom']) && !empty($parentData['nom'])) {
+                    // Créer le nouveau parent
+                    $parent = ESBTPParent::create([
+                        'nom' => $parentData['nom'],
+                        'prenoms' => $parentData['prenoms'],
+                        'telephone' => $parentData['telephone'] ?? null,
+                        'email' => $parentData['email'] ?? null,
+                        'profession' => $parentData['profession'] ?? null,
+                        'created_by' => $userId,
+                        'updated_by' => $userId,
+                    ]);
+                    
+                    // Associer le nouveau parent à l'étudiant
+                    $etudiant->parents()->attach($parent->id, [
                         'relation' => $parentData['relation'] ?? 'Tuteur',
                         'is_tuteur' => $isTuteur
-                    ]
+                    ]);
+                    
+                    Log::info('Nouveau parent créé et attaché à l\'étudiant', [
+                        'parent_id' => $parent->id,
+                        'etudiant_id' => $etudiant->id
+                    ]);
+                } else {
+                    Log::warning('Données de parent incomplètes ignorées', ['parentData' => $parentData]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de l\'attachement d\'un parent', [
+                    'message' => $e->getMessage(),
+                    'parentData' => $parentData
                 ]);
-            } 
-            // Nouveau parent
-            elseif (isset($parentData['nom']) && !empty($parentData['nom'])) {
-                // Créer le nouveau parent
-                $parent = ESBTPParent::create([
-                    'nom' => $parentData['nom'],
-                    'prenoms' => $parentData['prenoms'],
-                    'telephone' => $parentData['telephone'],
-                    'email' => $parentData['email'] ?? null,
-                    'profession' => $parentData['profession'] ?? null,
-                    'created_by' => $userId,
-                    'updated_by' => $userId,
-                ]);
-                
-                // Associer le nouveau parent à l'étudiant
-                $etudiant->parents()->attach($parent->id, [
-                    'relation' => $parentData['relation'] ?? 'Tuteur',
-                    'is_tuteur' => $isTuteur
-                ]);
+                // On continue malgré l'erreur pour traiter les autres parents
             }
         }
+        
+        Log::info('Fin attachement des parents pour l\'étudiant', ['etudiant_id' => $etudiant->id]);
     }
     
     /**
