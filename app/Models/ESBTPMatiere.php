@@ -82,11 +82,12 @@ class ESBTPMatiere extends Model
     /**
      * Relation avec les filières (alias de filiere pour la compatibilité).
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function filieres()
     {
-        return $this->filiere();
+        return $this->belongsToMany(ESBTPFiliere::class, 'esbtp_matiere_filiere', 'matiere_id', 'filiere_id')
+                    ->withTimestamps();
     }
 
     /**

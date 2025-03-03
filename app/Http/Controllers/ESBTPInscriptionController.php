@@ -9,12 +9,14 @@ use App\Models\ESBTPNiveauEtude;
 use App\Models\ESBTPAnneeUniversitaire;
 use App\Models\ESBTPClasse;
 use App\Models\ESBTPPaiement;
+use App\Models\ESBTPParent;
 use App\Services\ESBTPInscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class ESBTPInscriptionController extends Controller
 {
@@ -135,17 +137,24 @@ class ESBTPInscriptionController extends Controller
      */
     public function create()
     {
-        // Récupérer les données nécessaires pour le formulaire
         $filieres = ESBTPFiliere::where('is_active', true)->get();
         $niveaux = ESBTPNiveauEtude::where('is_active', true)->get();
-        $annees = ESBTPAnneeUniversitaire::orderBy('start_date', 'desc')->get();
-        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        $annees = ESBTPAnneeUniversitaire::where('is_active', true)->get();
+        $formations = DB::table('esbtp_formations')->where('is_active', true)->get();
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_active', true)->first();
+
+        // Renommer les variables pour les utiliser dans le modal
+        $anneeUniversitaires = $annees;
+        $niveauEtudes = $niveaux;
         
         return view('esbtp.inscriptions.create', compact(
             'filieres', 
             'niveaux', 
-            'annees',
-            'anneeEnCours'
+            'annees', 
+            'formations', 
+            'anneeEnCours',
+            'anneeUniversitaires',
+            'niveauEtudes'
         ));
     }
 
@@ -154,29 +163,37 @@ class ESBTPInscriptionController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation des données
         $validator = Validator::make($request->all(), [
-            'etudiant_id' => 'required|exists:esbtp_etudiants,id',
-            'filiere_id' => 'required|exists:esbtp_filieres,id',
-            'niveau_id' => 'required|exists:esbtp_niveau_etudes,id',
-            'annee_universitaire_id' => 'required|exists:esbtp_annee_universitaires,id',
-            'classe_id' => 'nullable|exists:esbtp_classes,id',
+            'nom' => 'required|string|max:100',
+            'prenoms' => 'required|string|max:255',
+            'date_naissance' => 'required|date|before_or_equal:today',
+            'genre' => 'required|in:Homme,Femme',
+            'telephone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|unique:esbtp_etudiants,email',
+            'adresse' => 'nullable|string|max:255',
+            'ville' => 'nullable|string|max:100',
+            'commune' => 'nullable|string|max:100',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'classe_id' => 'required|exists:esbtp_classes,id',
             'date_inscription' => 'required|date',
-            'type_inscription' => 'required|in:première_inscription,réinscription,transfert',
-            'montant_scolarite' => 'required|numeric|min:0',
-            'frais_inscription' => 'required|numeric|min:0',
-            'observations' => 'nullable|string',
+            'montant_verse' => 'required|numeric|min:0',
+            'methode_paiement' => 'required|string|in:Espèces,Chèque,Virement bancaire,Mobile Money',
+            'reference_paiement' => 'nullable|string|max:100',
             
-            // Données pour le paiement initial
-            'montant_paiement' => 'nullable|numeric|min:0',
-            'mode_paiement' => 'nullable|string|max:255',
-            'reference_paiement' => 'nullable|string|max:255',
-            'date_paiement' => 'nullable|date',
+            // Informations des parents (conditionnelles selon le choix de l'utilisateur)
+            'parent_nom.*' => 'required_with:parent_prenoms.*|string|max:100',
+            'parent_prenoms.*' => 'required_with:parent_nom.*|string|max:100',
+            'parent_email.*' => 'nullable|email',
+            'parent_telephone.*' => 'required_with:parent_nom.*|string|max:20',
+            'parent_profession.*' => 'nullable|string|max:100',
+            'parent_relation.*' => 'required_with:parent_nom.*|string|max:50',
+            
+            // IDs des parents existants qu'on veut associer
+            'parent_existant_id.*' => 'nullable|exists:esbtp_parents,id',
         ]);
-
+        
         if ($validator->fails()) {
-            return redirect()
-                ->back()
+            return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -184,71 +201,98 @@ class ESBTPInscriptionController extends Controller
         try {
             DB::beginTransaction();
             
-            // Vérifier si l'étudiant est déjà inscrit pour cette année
-            $etudiantId = $request->input('etudiant_id');
-            $anneeId = $request->input('annee_universitaire_id');
+            // Récupérer les informations complètes de la classe sélectionnée
+            $classe = ESBTPClasse::with(['filiere', 'niveauEtude', 'anneeUniversitaire'])
+                ->findOrFail($request->classe_id);
             
-            $inscriptionExistante = ESBTPInscription::where('etudiant_id', $etudiantId)
-                ->where('annee_universitaire_id', $anneeId)
-                ->whereIn('status', ['active', 'en_attente'])
-                ->first();
-                
-            if ($inscriptionExistante) {
-                throw new \Exception('Cet étudiant est déjà inscrit pour cette année universitaire.');
+            // Préparer les données de l'étudiant
+            $etudiantData = $request->only([
+                'nom', 'prenoms', 'email', 'telephone', 'date_naissance',
+                'lieu_naissance', 'genre', 'adresse', 'ville', 'commune'
+            ]);
+            
+            // Traiter la photo si fournie
+            if ($request->hasFile('photo')) {
+                $etudiantData['photo'] = $this->handlePhotoUpload($request->file('photo'));
+            }
+            
+            // Préparer les données d'inscription
+            $inscriptionData = [
+                'classe_id' => $classe->id,
+                'filiere_id' => $classe->filiere_id,
+                'niveau_etude_id' => $classe->niveau_etude_id,
+                'annee_universitaire_id' => $classe->annee_universitaire_id,
+                'date_inscription' => $request->date_inscription,
+                'statut' => 'En attente', // Statut par défaut
+            ];
+            
+            // Préparer les données de paiement
+            $paiementData = [
+                'montant' => $request->montant_verse,
+                'methode' => $request->methode_paiement,
+                'reference' => $request->reference_paiement,
+                'date_paiement' => now(),
+                'type' => 'Frais d\'inscription'
+            ];
+            
+            // Préparer les données des parents
+            $parentsData = [];
+            
+            // Traiter les parents existants sélectionnés
+            if ($request->has('parent_existant_id')) {
+                foreach ($request->parent_existant_id as $parentId) {
+                    if (!empty($parentId)) {
+                        $parentsData[] = ['parent_id' => $parentId];
+                    }
+                }
+            }
+            
+            // Traiter les nouveaux parents
+            if ($request->has('parent_nom')) {
+                foreach ($request->parent_nom as $key => $nom) {
+                    if (!empty($nom) && !empty($request->parent_prenoms[$key])) {
+                        $parentsData[] = [
+                            'nom' => $nom,
+                            'prenoms' => $request->parent_prenoms[$key],
+                            'email' => $request->parent_email[$key] ?? null,
+                            'telephone' => $request->parent_telephone[$key],
+                            'profession' => $request->parent_profession[$key] ?? null,
+                            'relation' => $request->parent_relation[$key]
+                        ];
+                    }
+                }
             }
             
             // Créer l'inscription
-            $inscription = new ESBTPInscription();
-            $inscription->etudiant_id = $etudiantId;
-            $inscription->filiere_id = $request->input('filiere_id');
-            $inscription->niveau_id = $request->input('niveau_id');
-            $inscription->annee_universitaire_id = $anneeId;
-            $inscription->classe_id = $request->input('classe_id');
-            $inscription->date_inscription = $request->input('date_inscription');
-            $inscription->type_inscription = $request->input('type_inscription');
-            $inscription->status = 'en_attente';
-            $inscription->montant_scolarite = $request->input('montant_scolarite');
-            $inscription->frais_inscription = $request->input('frais_inscription');
-            $inscription->observations = $request->input('observations');
-            $inscription->numero_recu = ESBTPPaiement::genererNumeroRecu('INSC');
-            $inscription->created_by = Auth::id();
-            $inscription->save();
-            
-            // Créer le paiement initial si présent
-            if ($request->filled('montant_paiement') && $request->input('montant_paiement') > 0) {
-                $paiement = new ESBTPPaiement();
-                $paiement->inscription_id = $inscription->id;
-                $paiement->etudiant_id = $etudiantId;
-                $paiement->montant = $request->input('montant_paiement');
-                $paiement->date_paiement = $request->input('date_paiement', now()->format('Y-m-d'));
-                $paiement->mode_paiement = $request->input('mode_paiement', 'Espèces');
-                $paiement->reference_paiement = $request->input('reference_paiement');
-                $paiement->motif = 'Frais d\'inscription + Première tranche scolarité';
-                $paiement->tranche = 'Première tranche';
-                $paiement->numero_recu = ESBTPPaiement::genererNumeroRecu('PAIE');
-                $paiement->status = 'en_attente';
-                $paiement->created_by = Auth::id();
-                $paiement->save();
-            }
-            
-            // Mettre à jour l'étudiant pour s'assurer qu'il est actif
-            $etudiant = ESBTPEtudiant::find($etudiantId);
-            if ($etudiant->statut !== 'actif') {
-                $etudiant->statut = 'actif';
-                $etudiant->save();
-            }
+            $inscription = $this->inscriptionService->createInscription(
+                $etudiantData,
+                $inscriptionData,
+                $parentsData,
+                $paiementData,
+                auth()->id()
+            );
             
             DB::commit();
             
-            return redirect()
-                ->route('esbtp.inscriptions.show', $inscription->id)
-                ->with('success', 'Inscription créée avec succès.');
+            // Stocker les informations du compte dans la session
+            if ($inscription && $inscription->etudiant && $inscription->etudiant->user) {
+                $user = $inscription->etudiant->user;
+                session()->flash('account_info', [
+                    'username' => $user->username,
+                    'password' => session('generated_password'),
+                    'role' => 'Étudiant'
+                ]);
+            }
+            
+            return redirect()->route('esbtp.inscriptions.show', $inscription)
+                ->with('success', 'Inscription enregistrée avec succès !');
                 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()
-                ->back()
-                ->with('error', 'Erreur lors de la création de l\'inscription: ' . $e->getMessage())
+            \Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->with('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
                 ->withInput();
         }
     }
@@ -270,11 +314,18 @@ class ESBTPInscriptionController extends Controller
                 $q->orderBy('date_paiement', 'desc');
             },
             'createdBy',
-            'updatedBy',
-            'validatedBy'
+            'updatedBy'
         ]);
         
-        return view('esbtp.inscriptions.show', compact('inscription'));
+        // Vérifier si des infos de compte sont disponibles dans la session
+        $accountInfo = session('account_info');
+        
+        if ($accountInfo) {
+            // Supprimer les infos de la session après les avoir récupérées
+            session()->forget('account_info');
+        }
+        
+        return view('esbtp.inscriptions.show', compact('inscription', 'accountInfo'));
     }
 
     /**
@@ -493,14 +544,62 @@ class ESBTPInscriptionController extends Controller
     public function getClasses(Request $request)
     {
         $filiereId = $request->input('filiere_id');
-        $niveauId = $request->input('niveau_id');
-        $anneeId = $request->input('annee_id');
+        $niveauId = $request->input('niveau_id') ?? $request->input('niveau_etude_id');
+        $anneeId = $request->input('annee_id') ?? $request->input('annee_universitaire_id');
+        $formationId = $request->input('formation_id');
         
-        $classes = ESBTPClasse::where('is_active', true)
-            ->where('filiere_id', $filiereId)
-            ->where('niveau_etude_id', $niveauId)
-            ->where('annee_universitaire_id', $anneeId)
-            ->get(['id', 'name', 'code', 'capacity']);
+        // Ajouter des logs pour debug
+        \Illuminate\Support\Facades\Log::info('Récupération des classes (Inscription)', [
+            'filiere_id' => $filiereId,
+            'niveau_id' => $niveauId,
+            'annee_id' => $anneeId,
+            'formation_id' => $formationId,
+            'request' => $request->all()
+        ]);
+        
+        $query = ESBTPClasse::select(
+                'esbtp_classes.*', 
+                'f.name as filiere_name',
+                'n.name as niveau_name',
+                'a.name as annee_name',
+                'fo.name as formation_name'
+            )
+            ->leftJoin('esbtp_filieres as f', 'esbtp_classes.filiere_id', '=', 'f.id')
+            ->leftJoin('esbtp_niveau_etudes as n', 'esbtp_classes.niveau_etude_id', '=', 'n.id')
+            ->leftJoin('esbtp_annee_universitaires as a', 'esbtp_classes.annee_universitaire_id', '=', 'a.id')
+            ->leftJoin('esbtp_formations as fo', 'esbtp_classes.formation_id', '=', 'fo.id')
+            ->where('esbtp_classes.is_active', true);
+        
+        // Appliquer les filtres seulement s'ils sont fournis
+        if ($filiereId) {
+            $query->where('esbtp_classes.filiere_id', $filiereId);
+        }
+        
+        if ($niveauId) {
+            $query->where('esbtp_classes.niveau_etude_id', $niveauId);
+        }
+        
+        if ($anneeId) {
+            $query->where('esbtp_classes.annee_universitaire_id', $anneeId);
+        }
+        
+        if ($formationId) {
+            $query->where('esbtp_classes.formation_id', $formationId);
+        }
+        
+        // Log pour vérifier la requête SQL générée
+        \Illuminate\Support\Facades\Log::info('Requête SQL pour les classes (Inscription)', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings()
+        ]);
+        
+        $classes = $query->get();
+        
+        // Log pour vérifier les résultats
+        \Illuminate\Support\Facades\Log::info('Classes trouvées (Inscription)', [
+            'count' => $classes->count(),
+            'first_few' => $classes->take(3)
+        ]);
             
         return response()->json($classes);
     }
@@ -522,5 +621,18 @@ class ESBTPInscriptionController extends Controller
                 ->back()
                 ->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Gère l'upload de la photo de l'étudiant.
+     *
+     * @param \Illuminate\Http\UploadedFile $photo
+     * @return string
+     */
+    private function handlePhotoUpload($photo)
+    {
+        $filename = time() . '_' . Str::random(10) . '.' . $photo->getClientOriginalExtension();
+        $photo->storeAs('public/photos/etudiants', $filename);
+        return $filename;
     }
 } 

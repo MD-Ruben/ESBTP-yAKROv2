@@ -125,6 +125,7 @@ Route::middleware(['auth', 'installed'])->group(function () {
             // Routes pour les inscriptions ESBTP - définies ici plutôt que dans le groupe parent
             Route::get('/inscriptions', [ESBTPInscriptionController::class, 'index'])->name('inscriptions.index');
             Route::get('/inscriptions/create', [ESBTPInscriptionController::class, 'create'])->name('inscriptions.create');
+            Route::get('/inscriptions/getClasses', [ESBTPInscriptionController::class, 'getClasses'])->name('inscriptions.getClasses');
             Route::post('/inscriptions', [ESBTPInscriptionController::class, 'store'])->name('inscriptions.store');
             Route::get('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'show'])->name('inscriptions.show');
             Route::get('/inscriptions/{inscription}/edit', [ESBTPInscriptionController::class, 'edit'])->name('inscriptions.edit');
@@ -132,7 +133,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::delete('/inscriptions/{inscription}', [ESBTPInscriptionController::class, 'destroy'])->name('inscriptions.destroy');
             Route::put('/inscriptions/{inscription}/valider', [ESBTPInscriptionController::class, 'valider'])->name('inscriptions.valider');
             Route::put('/inscriptions/{inscription}/annuler', [ESBTPInscriptionController::class, 'annuler'])->name('inscriptions.annuler');
-            Route::get('/inscriptions/getClasses', [ESBTPInscriptionController::class, 'getClasses'])->name('inscriptions.getClasses');
             
             // Routes API utilisées par les formulaires
             Route::get('/api/search-parents', [ESBTPEtudiantController::class, 'searchParents'])->name('esbtp.api.search-parents');

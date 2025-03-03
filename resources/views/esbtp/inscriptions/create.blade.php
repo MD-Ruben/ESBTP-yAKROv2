@@ -21,6 +21,37 @@
             <form method="POST" action="{{ route('esbtp.inscriptions.store') }}" enctype="multipart/form-data">
                 @csrf
                 
+                @if(session('info'))
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ session('info') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                
                 <!-- Informations générales -->
                 <div class="row">
                     <div class="col-md-12 mb-4">
@@ -29,68 +60,35 @@
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="annee_universitaire_id">Année universitaire</label>
-                        <select class="form-control @error('annee_universitaire_id') is-invalid @enderror" 
-                                id="annee_universitaire_id" name="annee_universitaire_id" required>
-                            <option value="">Sélectionner une année</option>
-                            @foreach($annees as $annee)
-                                <option value="{{ $annee->id }}" 
-                                    {{ (old('annee_universitaire_id') == $annee->id || (isset($anneeEnCours) && $anneeEnCours->id == $annee->id)) ? 'selected' : '' }}>
-                                    {{ $annee->annee_scolaire }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('annee_universitaire_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Un compte étudiant sera automatiquement créé lors de l'inscription. Le nom d'utilisateur et le mot de passe seront affichés après la création.
                     </div>
                     
-                    <div class="col-md-4 mb-3">
-                        <label for="filiere_id">Filière</label>
-                        <select class="form-control @error('filiere_id') is-invalid @enderror" 
-                                id="filiere_id" name="filiere_id" required>
-                            <option value="">Sélectionner une filière</option>
-                            @foreach($filieres as $filiere)
-                                <option value="{{ $filiere->id }}" {{ old('filiere_id') == $filiere->id ? 'selected' : '' }}>
-                                    {{ $filiere->nom }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('filiere_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="card-title">Informations de classe</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-1"></i> La classe sélectionnée détermine automatiquement la filière, le niveau d'études, la formation et l'année universitaire.
                     </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label for="niveau_etude_id">Niveau d'études</label>
-                        <select class="form-control @error('niveau_etude_id') is-invalid @enderror" 
-                                id="niveau_etude_id" name="niveau_etude_id" required>
-                            <option value="">Sélectionner un niveau</option>
-                            @foreach($niveaux as $niveau)
-                                <option value="{{ $niveau->id }}" {{ old('niveau_etude_id') == $niveau->id ? 'selected' : '' }}>
-                                    {{ $niveau->nom }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('niveau_etude_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <label for="classe_id">Classe</label>
-                        <select class="form-control @error('classe_id') is-invalid @enderror" 
-                                id="classe_id" name="classe_id" required>
-                            <option value="">Sélectionner d'abord une filière et un niveau</option>
-                        </select>
-                        <small class="form-text text-muted">La liste des classes sera mise à jour en fonction de la filière et du niveau sélectionnés.</small>
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="classe_display">Classe <span class="text-danger">*</span></label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="hidden" id="classe_id" name="classe_id" value="{{ old('classe_id') }}">
+                                <input type="text" id="classe_display" class="form-control @error('classe_id') is-invalid @enderror" value="{{ old('classe_display') }}" readonly>
+                                <button class="btn btn-primary" type="button" onclick="ouvrirSelecteurClasse()" style="min-width: 120px;">
+                                    <i class="fas fa-search"></i> Sélectionner
+                                </button>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Cliquez sur le bouton pour ouvrir le sélecteur de classe</small>
                         @error('classe_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
+                        </div>
                     </div>
                 </div>
                 
@@ -134,7 +132,7 @@
                     
                     <div class="col-md-4 mb-3">
                         <label for="genre">Genre</label>
-                        <select class="form-control @error('genre') is-invalid @enderror" 
+                        <select class="form-select @error('genre') is-invalid @enderror" 
                                 id="genre" name="genre" required>
                             <option value="">Sélectionner</option>
                             <option value="homme" {{ old('genre') == 'homme' ? 'selected' : '' }}>Homme</option>
@@ -199,63 +197,160 @@
                 
                 <!-- Informations du parent -->
                 <div class="row mt-4">
-                    <div class="col-md-12 mb-4">
-                        <h5 class="font-weight-bold">Informations du parent/tuteur</h5>
-                        <hr>
+                    <div class="col-md-12 mb-4 d-flex justify-content-between align-items-center">
+                        <h5 class="font-weight-bold">Informations du/des parent(s)/tuteur(s)</h5>
+                        <button type="button" class="btn btn-sm btn-primary" id="add-parent-btn">
+                            <i class="fas fa-plus me-1"></i> Ajouter un parent
+                        </button>
+                    </div>
+                    <hr>
+                </div>
+                
+                <!-- Container pour les parents -->
+                <div id="parents-container">
+                    <!-- Premier parent (toujours présent) -->
+                    <div class="parent-item mb-4 p-3 border rounded" data-parent-index="0">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6>Parent / Tuteur #1 (Principal)</h6>
+                            <div class="form-check">
+                                <input class="form-check-input parent-existant-checkbox" type="checkbox" id="parent_existant_0" name="parents[0][existant]" value="1">
+                                <label class="form-check-label" for="parent_existant_0">Sélectionner un parent existant</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Sélection parent existant -->
+                        <div class="parent-existant-section mb-3" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="parent_id_0">Sélectionner un parent existant</label>
+                                    <select class="form-control parent-select" id="parent_id_0" name="parents[0][parent_id]" data-placeholder="Rechercher un parent...">
+                                        <option value="">Rechercher un parent...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nouveau parent -->
+                        <div class="parent-nouveau-section">
+                <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_nom_0">Nom <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_nom_0" name="parents[0][nom]" value="{{ old('parents.0.nom') }}">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_prenoms_0">Prénom(s) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_prenoms_0" name="parents[0][prenoms]" value="{{ old('parents.0.prenoms') }}">
+                    </div>
+                    
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_relation_0">Relation <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="parent_relation_0" name="parents[0][relation]">
+                                        <option value="Père" {{ old('parents.0.relation') == 'Père' ? 'selected' : '' }}>Père</option>
+                                        <option value="Mère" {{ old('parents.0.relation') == 'Mère' ? 'selected' : '' }}>Mère</option>
+                                        <option value="Tuteur" {{ old('parents.0.relation', 'Tuteur') == 'Tuteur' ? 'selected' : '' }}>Tuteur</option>
+                                        <option value="Autre" {{ old('parents.0.relation') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                                    </select>
                     </div>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="parent_nom">Nom</label>
-                        <input type="text" class="form-control @error('parent_nom') is-invalid @enderror" 
-                               id="parent_nom" name="parent_nom" value="{{ old('parent_nom') }}">
-                        @error('parent_nom')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                    <label for="parent_telephone_0">Téléphone <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_telephone_0" name="parents[0][telephone]" 
+                                           value="{{ old('parents.0.telephone') }}" placeholder="+225 XX XX XXX XXX">
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <label for="parent_prenom">Prénom(s)</label>
-                        <input type="text" class="form-control @error('parent_prenom') is-invalid @enderror" 
-                               id="parent_prenom" name="parent_prenom" value="{{ old('parent_prenom') }}">
-                        @error('parent_prenom')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="parent_telephone">Téléphone</label>
-                        <input type="text" class="form-control @error('parent_telephone') is-invalid @enderror" 
-                               id="parent_telephone" name="parent_telephone" value="{{ old('parent_telephone') }}" 
-                               placeholder="+225 XX XX XXX XXX">
-                        @error('parent_telephone')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="parent_email">Email</label>
-                        <input type="email" class="form-control @error('parent_email') is-invalid @enderror" 
-                               id="parent_email" name="parent_email" value="{{ old('parent_email') }}">
-                        @error('parent_email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                    <label for="parent_email_0">Email</label>
+                                    <input type="email" class="form-control" id="parent_email_0" name="parents[0][email]" value="{{ old('parents.0.email') }}">
                     </div>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label for="parent_adresse">Adresse</label>
-                        <textarea class="form-control @error('parent_adresse') is-invalid @enderror" 
-                                  id="parent_adresse" name="parent_adresse" rows="2">{{ old('parent_adresse') }}</textarea>
-                        @error('parent_adresse')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                    <label for="parent_adresse_0">Adresse</label>
+                                    <textarea class="form-control" id="parent_adresse_0" name="parents[0][adresse]" rows="2">{{ old('parents.0.adresse') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Template pour ajouter de nouveaux parents (caché) -->
+                <template id="parent-template">
+                    <div class="parent-item mb-4 p-3 border rounded" data-parent-index="{index}">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6>Parent / Tuteur #{number}</h6>
+                            <div class="d-flex">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input parent-existant-checkbox" type="checkbox" id="parent_existant_{index}" name="parents[{index}][existant]" value="1">
+                                    <label class="form-check-label" for="parent_existant_{index}">Sélectionner un parent existant</label>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger remove-parent-btn">
+                                    <i class="fas fa-times"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sélection parent existant -->
+                        <div class="parent-existant-section mb-3" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="parent_id_{index}">Sélectionner un parent existant</label>
+                                    <select class="form-control parent-select" id="parent_id_{index}" name="parents[{index}][parent_id]" data-placeholder="Rechercher un parent...">
+                                        <option value="">Rechercher un parent...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nouveau parent -->
+                        <div class="parent-nouveau-section">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_nom_{index}">Nom <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_nom_{index}" name="parents[{index}][nom]">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_prenoms_{index}">Prénom(s) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_prenoms_{index}" name="parents[{index}][prenoms]">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="parent_relation_{index}">Relation <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="parent_relation_{index}" name="parents[{index}][relation]">
+                                        <option value="Père">Père</option>
+                                        <option value="Mère">Mère</option>
+                                        <option value="Tuteur">Tuteur</option>
+                                        <option value="Autre">Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="parent_telephone_{index}">Téléphone <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="parent_telephone_{index}" name="parents[{index}][telephone]" 
+                                           placeholder="+225 XX XX XXX XXX">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="parent_email_{index}">Email</label>
+                                    <input type="email" class="form-control" id="parent_email_{index}" name="parents[{index}][email]">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="parent_adresse_{index}">Adresse</label>
+                                    <textarea class="form-control" id="parent_adresse_{index}" name="parents[{index}][adresse]" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
                 
                 <!-- Boutons de soumission -->
                 <div class="row mt-4">
@@ -272,39 +367,306 @@
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+<!-- Modal Sélecteur de Classes -->
+<div class="modal fade" id="modal-selecteur-classe" tabindex="-1" aria-labelledby="modal-selecteur-classe-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-selecteur-classe-label">Sélectionner une classe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <select id="filter_filiere" class="form-select">
+                            <option value="">Filière...</option>
+                            @foreach($filieres as $filiere)
+                                <option value="{{ $filiere->id }}">{{ $filiere->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filter_niveau" class="form-select">
+                            <option value="">Niveau...</option>
+                            @foreach($niveaux as $niveau)
+                                <option value="{{ $niveau->id }}">{{ $niveau->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filter_annee" class="form-select">
+                            <option value="">Année...</option>
+                            @foreach($annees as $annee)
+                                <option value="{{ $annee->id }}">{{ $annee->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filter_formation" class="form-select">
+                            <option value="">Formation...</option>
+                            @foreach($formations as $formation)
+                                <option value="{{ $formation->id }}">{{ $formation->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button id="btn-filtrer-classes" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <button id="btn-reset-filters" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-undo"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Code</th>
+                                <th>Filière</th>
+                                <th>Niveau</th>
+                                <th>Année</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liste-classes">
+                            <tr>
+                                <td colspan="6" style="padding: 15px; text-align: center; color: #6c757d;">
+                                    Chargement des classes...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour définir la fonction ouvrirSelecteurClasse immédiatement -->
 <script>
-    $(document).ready(function() {
-        // Mise à jour dynamique de la liste des classes en fonction de la filière et du niveau
-        $('#filiere_id, #niveau_etude_id').change(function() {
-            const filiereId = $('#filiere_id').val();
-            const niveauId = $('#niveau_etude_id').val();
-            const anneeId = $('#annee_universitaire_id').val();
-            
-            if (filiereId && niveauId) {
-                $.ajax({
-                    url: '{{ route("inscriptions.getClasses") }}',
-                    type: 'GET',
-                    data: {
-                        filiere_id: filiereId,
-                        niveau_id: niveauId,
-                        annee_id: anneeId
-                    },
-                    success: function(data) {
-                        let options = '<option value="">Sélectionner une classe</option>';
-                        data.forEach(function(classe) {
-                            options += `<option value="${classe.id}">${classe.nom}</option>`;
-                        });
-                        $('#classe_id').html(options);
-                    },
-                    error: function(xhr) {
-                        console.error('Erreur lors du chargement des classes:', xhr.responseText);
-                    }
+    function ouvrirSelecteurClasse() {
+        console.log('Ouverture du modal de sélection de classe');
+        $('#modal-selecteur-classe').modal('show');
+        
+        // Afficher une animation de chargement
+        $('#liste-classes').html('<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></td></tr>');
+        
+        // Charger toutes les classes immédiatement
+        $.ajax({
+            url: "{{ route('esbtp.api.get-classes') }}",
+            method: 'GET',
+            data: {},
+            success: function(response) {
+                console.log('Réponse API classes:', response);
+                if (response.length === 0) {
+                    $('#liste-classes').html('<tr><td colspan="6" class="text-center">Aucune classe disponible</td></tr>');
+                    return;
+                }
+                
+                var html = '';
+                $.each(response, function(index, classe) {
+                    var displayName = classe.name;
+                    var displayFiliere = classe.filiere_name || '';
+                    var displayNiveau = classe.niveau_name || '';
+                    var displayAnnee = classe.annee_name || '';
+                    
+                    html += '<tr>';
+                    html += '<td>' + displayName + '</td>';
+                    html += '<td>' + classe.code + '</td>';
+                    html += '<td>' + displayFiliere + '</td>';
+                    html += '<td>' + displayNiveau + '</td>';
+                    html += '<td>' + displayAnnee + '</td>';
+                    html += '<td><button type="button" class="btn btn-sm btn-primary" onclick="selectionnerClasse(' + classe.id + ', \'' + displayName + '\')">Sélectionner</button></td>';
+                    html += '</tr>';
                 });
+                
+                $('#liste-classes').html(html);
+            },
+            error: function(error) {
+                console.error('Erreur lors de la récupération des classes:', error);
+                $('#liste-classes').html('<tr><td colspan="6" class="text-center text-danger">Erreur lors de la récupération des classes</td></tr>');
             }
         });
+    }
+    
+    function fermerSelecteurClasse() {
+        $('#modal-selecteur-classe').modal('hide');
+    }
+</script>
+@endsection
+
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        console.log('DOM chargé - Initialisation du formulaire d\'inscription');
+        
+        // Variables pour gérer les parents
+        let parentIndex = 0;
+        
+        // Gestionnaire pour ajouter un parent
+        $('#add-parent-btn').on('click', function() {
+            // Incrémenter l'index
+            parentIndex++;
+            
+            // Récupérer le template et remplacer les index
+            let template = $('#parent-template').html();
+            template = template.replace(/{index}/g, parentIndex);
+            template = template.replace(/{number}/g, parentIndex + 1);
+            
+            // Ajouter le template au container
+            $('#parents-container').append(template);
+            
+            // Initialiser les nouveaux select2
+            initializeSelect2();
+            
+            // Ajouter les gestionnaires d'événements
+            addParentEventListeners();
+        });
+        
+        // Initialisation des gestionnaires d'événements pour parents
+        addParentEventListeners();
+        
+        // Fonction pour initialiser les gestionnaires d'événements des parents
+        function addParentEventListeners() {
+            // Gestion de la suppression d'un parent
+            $('.remove-parent-btn').off('click').on('click', function() {
+                $(this).closest('.parent-item').remove();
+            });
+            
+            // Gestion de la checkbox "parent existant"
+            $('.parent-existant-checkbox').off('change').on('change', function() {
+                const parentItem = $(this).closest('.parent-item');
+                if ($(this).is(':checked')) {
+                    parentItem.find('.parent-existant-section').show();
+                    parentItem.find('.parent-nouveau-section').hide();
+                } else {
+                    parentItem.find('.parent-existant-section').hide();
+                    parentItem.find('.parent-nouveau-section').show();
+                }
+            });
+        }
+        
+        // Initialiser Select2 pour les sélecteurs de parents
+        function initializeSelect2() {
+            $('.parent-select').select2({
+                placeholder: 'Rechercher un parent...',
+                minimumInputLength: 2,
+                ajax: {
+                    url: '{{ route("esbtp.api.search-parents") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.map(function(parent) {
+                                return {
+                                    id: parent.id,
+                                    text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+        }
+        
+        // Filtrer les classes
+        $('#btn-filtrer-classes').on('click', function() {
+            var filiereId = $('#filter_filiere').val();
+            var niveauId = $('#filter_niveau').val();
+            var anneeId = $('#filter_annee').val();
+            var formationId = $('#filter_formation').val();
+            
+            // Vérifier qu'au moins un filtre est sélectionné
+            if (!filiereId && !niveauId && !anneeId && !formationId) {
+                alert('Veuillez sélectionner au moins un filtre');
+                return;
+            }
+            
+            // Afficher une animation de chargement
+            $('#liste-classes').html('<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></td></tr>');
+            
+            // Faire une requête AJAX pour récupérer les classes
+            $.ajax({
+                url: "{{ route('esbtp.api.get-classes') }}",
+                method: 'GET',
+                data: {
+                    filiere_id: filiereId,
+                    niveau_id: niveauId,
+                    annee_id: anneeId,
+                    formation_id: formationId
+                },
+                success: function(response) {
+                    console.log('Réponse API classes:', response);
+                    if (response.length === 0) {
+                        $('#liste-classes').html('<tr><td colspan="6" class="text-center">Aucune classe trouvée avec ces critères</td></tr>');
+                        return;
+                    }
+                    
+                    var html = '';
+                    $.each(response, function(index, classe) {
+                        var displayName = classe.name;
+                        var displayFiliere = classe.filiere_name || '';
+                        var displayNiveau = classe.niveau_name || '';
+                        var displayAnnee = classe.annee_name || '';
+                        
+                        html += '<tr>';
+                        html += '<td>' + displayName + '</td>';
+                        html += '<td>' + classe.code + '</td>';
+                        html += '<td>' + displayFiliere + '</td>';
+                        html += '<td>' + displayNiveau + '</td>';
+                        html += '<td>' + displayAnnee + '</td>';
+                        html += '<td><button type="button" class="btn btn-sm btn-primary" onclick="selectionnerClasse(' + classe.id + ', \'' + displayName + '\')">Sélectionner</button></td>';
+                        html += '</tr>';
+                    });
+                    
+                    $('#liste-classes').html(html);
+                },
+                error: function(error) {
+                    console.error('Erreur lors de la récupération des classes:', error);
+                    $('#liste-classes').html('<tr><td colspan="6" class="text-center text-danger">Erreur lors de la récupération des classes</td></tr>');
+                }
+            });
+        });
+        
+        // Réinitialiser les filtres
+        $('#btn-reset-filters').on('click', function() {
+            $('#filter_filiere').val('');
+            $('#filter_niveau').val('');
+            $('#filter_annee').val('');
+            $('#filter_formation').val('');
+            $('#liste-classes').html('<tr><td colspan="6" style="padding: 15px; text-align: center; color: #6c757d;">Veuillez sélectionner au moins un filtre</td></tr>');
+        });
+        
+        window.selectionnerClasse = function(classeId, classeName) {
+            console.log('Sélection de la classe:', classeId, classeName);
+            document.getElementById('classe_id').value = classeId;
+            document.getElementById('classe_display').value = classeName;
+            document.getElementById('classe_display').classList.add('is-valid');
+            fermerSelecteurClasse();
+        };
+        
+        // Si une classe était déjà sélectionnée (en cas d'erreur de validation)
+        var classeId = $('#classe_id').val();
+        if (classeId) {
+            $('#classe_display').addClass('is-valid');
+        }
     });
 </script>
-@endsection 
+@endpush 

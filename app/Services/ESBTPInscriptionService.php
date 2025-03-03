@@ -23,65 +23,51 @@ class ESBTPInscriptionService
      *
      * @param array $etudiantData Les données de l'étudiant
      * @param array $inscriptionData Les données de l'inscription
-     * @param array $parentData Les données du parent/tuteur (optionnel)
+     * @param array $parentsData Les données des parents (optionnel)
      * @param array $paiementData Les données du paiement initial (optionnel)
      * @param int $userId ID de l'utilisateur qui crée l'inscription
-     * @return array Résultat de l'opération
+     * @return ESBTPInscription Instance de l'inscription créée
      */
-    public function createInscription(array $etudiantData, array $inscriptionData, ?array $parentData = null, ?array $paiementData = null, int $userId)
+    public function createInscription(array $etudiantData, array $inscriptionData, array $parentsData = [], ?array $paiementData = null, int $userId)
     {
         try {
             DB::beginTransaction();
             
+            // Ajout de logs pour déboguer
+            Log::info('Début de la création d\'une inscription dans le service', [
+                'etudiantData' => $etudiantData,
+                'inscriptionData' => $inscriptionData,
+                'parentsData' => $parentsData,
+                'userId' => $userId
+            ]);
+            
             // 1. Création de l'étudiant
-            $etudiant = $this->createOrUpdateEtudiant($etudiantData, $userId);
+            $etudiant = $this->createEtudiant($etudiantData, $userId);
+            
+            // Ajout de logs pour déboguer
+            Log::info('Étudiant créé', ['etudiant' => $etudiant]);
             
             // 2. Création de l'inscription
             $inscriptionData['etudiant_id'] = $etudiant->id;
             $inscriptionData['created_by'] = $userId;
             $inscriptionData['updated_by'] = $userId;
             
-            // Générer matricule si nécessaire
-            if (empty($etudiantData['matricule'])) {
-                $filiere = ESBTPFiliere::find($inscriptionData['filiere_id']);
-                $niveau = ESBTPNiveauEtude::find($inscriptionData['niveau_id']);
-                $annee = ESBTPAnneeUniversitaire::find($inscriptionData['annee_universitaire_id']);
-                
-                if ($filiere && $niveau && $annee) {
-                    $etudiant->matricule = ESBTPEtudiant::genererMatricule(
-                        $filiere->code, 
-                        $niveau->code, 
-                        substr($annee->code, 2, 2)
-                    );
-                    $etudiant->save();
-                }
-            }
-            
-            // Générer un numéro de reçu pour le paiement initial
-            if (!empty($inscriptionData['numero_recu'])) {
-                $numeroRecu = $inscriptionData['numero_recu'];
-            } else {
+            // Générer un numéro de reçu pour l'inscription
+            if (empty($inscriptionData['numero_recu'])) {
                 $anneeCode = substr(date('Y'), 2, 2);
                 $annee = ESBTPAnneeUniversitaire::find($inscriptionData['annee_universitaire_id']);
                 if ($annee) {
                     $anneeCode = substr($annee->code, 2, 2);
                 }
                 $numeroRecu = 'INSC' . $anneeCode . '-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+                $inscriptionData['numero_recu'] = $numeroRecu;
             }
-            
-            $inscriptionData['numero_recu'] = $numeroRecu;
             
             $inscription = ESBTPInscription::create($inscriptionData);
             
-            // 3. Création du parent/tuteur (si fourni)
-            if ($parentData && !empty($parentData)) {
-                $parent = $this->createOrUpdateParent($parentData, $userId);
-                
-                // Associer le parent à l'étudiant
-                $etudiant->parents()->attach($parent->id, [
-                    'relation' => $parentData['relation'] ?? 'tuteur',
-                    'is_tuteur' => $parentData['is_tuteur'] ?? true,
-                ]);
+            // 3. Création/Association des parents
+            if (!empty($parentsData)) {
+                $this->attachParentsToEtudiant($etudiant, $parentsData, $userId);
             }
             
             // 4. Enregistrement du paiement initial (si fourni)
@@ -101,174 +87,129 @@ class ESBTPInscriptionService
             
             DB::commit();
             
-            return [
-                'success' => true,
+            // Ajout de logs pour déboguer
+            Log::info('Inscription créée avec succès', [
                 'etudiant' => $etudiant,
-                'inscription' => $inscription,
-                'message' => 'Inscription créée avec succès'
-            ];
+                'inscription' => $inscription ?? null
+            ]);
+            
+            return $inscription;
             
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur lors de la création de l\'inscription: ' . $e->getMessage());
             
-            return [
-                'success' => false,
-                'message' => 'Erreur lors de la création de l\'inscription: ' . $e->getMessage()
-            ];
+            // Ajout de logs pour déboguer
+            Log::error('Erreur lors de la création de l\'inscription', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            throw $e;
         }
     }
     
     /**
-     * Créer ou mettre à jour un étudiant et son compte utilisateur
+     * Créer un nouvel étudiant et son compte utilisateur
      *
      * @param array $etudiantData Les données de l'étudiant
-     * @param int $userId ID de l'utilisateur qui crée/modifie l'étudiant
-     * @return ESBTPEtudiant Instance de l'étudiant créé/mis à jour
+     * @param int $userId ID de l'utilisateur qui crée l'étudiant
+     * @return ESBTPEtudiant Instance de l'étudiant créé
      */
-    public function createOrUpdateEtudiant(array $etudiantData, int $userId)
+    private function createEtudiant(array $etudiantData, int $userId)
     {
-        // Si l'étudiant existe déjà (mise à jour)
-        if (!empty($etudiantData['id'])) {
-            $etudiant = ESBTPEtudiant::findOrFail($etudiantData['id']);
-            $etudiant->fill($etudiantData);
-            $etudiant->updated_by = $userId;
-            $etudiant->save();
-            
-            // Mettre à jour l'utilisateur associé si nécessaire
-            if ($etudiant->user_id) {
-                $user = User::find($etudiant->user_id);
-                if ($user) {
-                    $user->name = $etudiantData['prenoms'] . ' ' . $etudiantData['nom'];
-                    $user->email = $etudiantData['email_personnel'] ?? $user->email;
-                    $user->save();
-                }
-            }
-            
-            return $etudiant;
-        }
-        
-        // Création d'un nouvel étudiant
         $etudiantData['created_by'] = $userId;
         $etudiantData['updated_by'] = $userId;
         
         // Création du compte utilisateur
-        $createUser = $etudiantData['creer_compte_utilisateur'] ?? true;
+        // Générer un nom d'utilisateur basé sur le prénom et le nom
+        $username = ESBTPEtudiant::genererUsername(
+            $etudiantData['prenoms'], 
+            $etudiantData['nom']
+        );
         
-        if ($createUser) {
-            // Générer un nom d'utilisateur basé sur le prénom et le nom
-            $username = ESBTPEtudiant::genererUsername(
-                $etudiantData['prenoms'], 
-                $etudiantData['nom']
-            );
-            
-            // Générer un mot de passe aléatoire
-            $password = ESBTPEtudiant::genererMotDePasse();
-            
-            $user = User::create([
-                'name' => $etudiantData['prenoms'] . ' ' . $etudiantData['nom'],
-                'email' => $etudiantData['email_personnel'] ?? $username . '@esbtp.edu',
-                'username' => $username,
-                'password' => Hash::make($password),
-                'avatar' => null,
-                'is_active' => true
-            ]);
-            
-            // Assigner le rôle étudiant
-            $role = Role::where('name', 'etudiant')->first();
-            if ($role) {
-                $user->assignRole($role);
-            }
-            
-            $etudiantData['user_id'] = $user->id;
-            
-            // Stocker le mot de passe en clair pour le premier login
-            $etudiantData['password_generated'] = $password;
+        // Générer un mot de passe aléatoire
+        $password = ESBTPEtudiant::genererMotDePasse();
+        
+        // Créer l'email si non fourni
+        $email = $etudiantData['email'] ?? ($username . '@esbtp.edu');
+        $emailExists = User::where('email', $email)->exists();
+        
+        if ($emailExists) {
+            // Ajouter un suffixe aléatoire à l'email
+            $email = $username . '.' . rand(100, 999) . '@esbtp.edu';
         }
         
-        // Traitement de la photo si présente
-        if (isset($etudiantData['photo_file']) && $etudiantData['photo_file']) {
-            $photo = $etudiantData['photo_file'];
-            $photoPath = $photo->store('public/etudiants/photos');
-            $etudiantData['photo'] = Storage::url($photoPath);
-            unset($etudiantData['photo_file']);
+        $user = User::create([
+            'name' => $etudiantData['prenoms'] . ' ' . $etudiantData['nom'],
+            'email' => $email,
+            'username' => $username,
+            'password' => Hash::make($password),
+            'avatar' => null,
+            'is_active' => true
+        ]);
+        
+        // Assigner le rôle étudiant
+        $role = Role::where('name', 'etudiant')->first();
+        if ($role) {
+            $user->assignRole($role);
         }
         
+        $etudiantData['user_id'] = $user->id;
+        
+        // Stocker le mot de passe généré dans la session pour l'afficher plus tard
+        session(['generated_password' => $password]);
+        
+        // Créer l'étudiant
         $etudiant = ESBTPEtudiant::create($etudiantData);
         
         return $etudiant;
     }
     
     /**
-     * Créer ou mettre à jour un parent et son compte utilisateur
+     * Attache les parents à un étudiant (existants ou nouveaux)
      *
-     * @param array $parentData Les données du parent
-     * @param int $userId ID de l'utilisateur qui crée/modifie le parent
-     * @return ESBTPParent Instance du parent créé/mis à jour
+     * @param ESBTPEtudiant $etudiant L'étudiant auquel attacher les parents
+     * @param array $parentsData Données des parents
+     * @param int $userId ID de l'utilisateur qui fait l'action
+     * @return void
      */
-    public function createOrUpdateParent(array $parentData, int $userId)
+    private function attachParentsToEtudiant(ESBTPEtudiant $etudiant, array $parentsData, int $userId)
     {
-        // Si le parent existe déjà (mise à jour)
-        if (!empty($parentData['id'])) {
-            $parent = ESBTPParent::findOrFail($parentData['id']);
-            $parent->fill($parentData);
-            $parent->updated_by = $userId;
-            $parent->save();
+        foreach ($parentsData as $index => $parentData) {
+            $isTuteur = $index === 0; // Le premier parent est le tuteur par défaut
             
-            // Mettre à jour l'utilisateur associé si nécessaire
-            if ($parent->user_id) {
-                $user = User::find($parent->user_id);
-                if ($user) {
-                    $user->name = $parentData['prenoms'] . ' ' . $parentData['nom'];
-                    $user->email = $parentData['email'] ?? $user->email;
-                    $user->save();
-                }
+            // Parent existant sélectionné
+            if (isset($parentData['parent_id']) && !empty($parentData['parent_id'])) {
+                $parent = ESBTPParent::findOrFail($parentData['parent_id']);
+                
+                // Associer le parent existant à l'étudiant
+                $etudiant->parents()->syncWithoutDetaching([
+                    $parent->id => [
+                        'relation' => $parentData['relation'] ?? 'Tuteur',
+                        'is_tuteur' => $isTuteur
+                    ]
+                ]);
+            } 
+            // Nouveau parent
+            elseif (isset($parentData['nom']) && !empty($parentData['nom'])) {
+                // Créer le nouveau parent
+                $parent = ESBTPParent::create([
+                    'nom' => $parentData['nom'],
+                    'prenoms' => $parentData['prenoms'],
+                    'telephone' => $parentData['telephone'],
+                    'email' => $parentData['email'] ?? null,
+                    'profession' => $parentData['profession'] ?? null,
+                    'created_by' => $userId,
+                    'updated_by' => $userId,
+                ]);
+                
+                // Associer le nouveau parent à l'étudiant
+                $etudiant->parents()->attach($parent->id, [
+                    'relation' => $parentData['relation'] ?? 'Tuteur',
+                    'is_tuteur' => $isTuteur
+                ]);
             }
-            
-            return $parent;
         }
-        
-        // Création d'un nouveau parent
-        $parentData['created_by'] = $userId;
-        $parentData['updated_by'] = $userId;
-        
-        // Création du compte utilisateur
-        $createUser = $parentData['creer_compte_utilisateur'] ?? true;
-        
-        if ($createUser) {
-            // Générer un nom d'utilisateur basé sur le prénom et le nom
-            $username = ESBTPParent::genererUsername(
-                $parentData['prenoms'], 
-                $parentData['nom']
-            );
-            
-            // Générer un mot de passe aléatoire
-            $password = ESBTPEtudiant::genererMotDePasse();
-            
-            $user = User::create([
-                'name' => $parentData['prenoms'] . ' ' . $parentData['nom'],
-                'email' => $parentData['email'] ?? $username . '@esbtp.edu',
-                'username' => $username,
-                'password' => Hash::make($password),
-                'avatar' => null,
-                'is_active' => true
-            ]);
-            
-            // Assigner le rôle parent
-            $role = Role::where('name', 'parent')->first();
-            if ($role) {
-                $user->assignRole($role);
-            }
-            
-            $parentData['user_id'] = $user->id;
-            
-            // Stocker le mot de passe en clair pour le premier login
-            $parentData['password_generated'] = $password;
-        }
-        
-        $parent = ESBTPParent::create($parentData);
-        
-        return $parent;
     }
     
     /**

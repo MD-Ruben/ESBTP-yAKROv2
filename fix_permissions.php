@@ -12,6 +12,7 @@ $kernel->bootstrap();
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 echo "=== Script de réparation des permissions ===\n";
 
@@ -45,6 +46,21 @@ foreach ($attendancePermissions as $permissionName) {
     ensurePermissionExists($permissionName);
 }
 
+// Vérifier et créer les permissions d'inscription si elles n'existent pas déjà
+$inscriptionPermissions = [
+    'inscriptions.view',
+    'inscriptions.create',
+    'inscriptions.edit',
+    'inscriptions.delete',
+    'inscriptions.validate'
+];
+
+echo "Vérification et création des permissions d'inscription...\n";
+foreach ($inscriptionPermissions as $permissionName) {
+    $permission = Permission::firstOrCreate(['name' => $permissionName]);
+    echo "Permission '{$permissionName}' créée ou confirmée.\n";
+}
+
 // Récupérer ou créer le rôle superAdmin
 $superAdmin = Role::where('name', 'superAdmin')->first();
 if (!$superAdmin) {
@@ -57,6 +73,17 @@ if (!$superAdmin) {
 // Attribuer les permissions au rôle superAdmin
 echo "\nAttribution des permissions au rôle superAdmin...\n";
 foreach ($attendancePermissions as $permissionName) {
+    if (!$superAdmin->hasPermissionTo($permissionName)) {
+        $superAdmin->givePermissionTo($permissionName);
+        echo "✅ Permission '{$permissionName}' attribuée au superAdmin.\n";
+    } else {
+        echo "ℹ️ superAdmin a déjà la permission '{$permissionName}'.\n";
+    }
+}
+
+// Attribuer toutes les permissions au rôle superAdmin
+echo "\nAttribution de toutes les permissions au rôle superAdmin...\n";
+foreach ($inscriptionPermissions as $permissionName) {
     if (!$superAdmin->hasPermissionTo($permissionName)) {
         $superAdmin->givePermissionTo($permissionName);
         echo "✅ Permission '{$permissionName}' attribuée au superAdmin.\n";

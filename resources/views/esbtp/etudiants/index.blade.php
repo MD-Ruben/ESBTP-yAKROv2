@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Liste des étudiants</h5>
-                    <a href="{{ route('esbtp.etudiants.create') }}" class="btn btn-primary">
+                    <a href="{{ route('esbtp.inscriptions.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus-circle me-1"></i>Ajouter un étudiant
                     </a>
                 </div>

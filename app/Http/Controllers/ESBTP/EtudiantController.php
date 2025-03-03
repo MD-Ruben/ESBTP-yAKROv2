@@ -19,7 +19,8 @@ class EtudiantController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:etudiant']);
+        $this->middleware('auth');
+        $this->middleware('role:etudiant')->except(['index', 'create', 'store']);
     }
 
     /**
@@ -38,6 +39,11 @@ class EtudiantController extends Controller
      */
     public function create()
     {
+        // Rediriger vers la page d'inscription qui est plus complète
+        return redirect()->route('esbtp.inscriptions.create')
+            ->with('info', 'Veuillez utiliser le formulaire d\'inscription pour ajouter un nouvel étudiant.');
+        
+        /* Code commenté - ancienne implémentation
         // Récupérer les données nécessaires pour le formulaire
         $filieres = \App\Models\ESBTPFiliere::where('is_active', true)->orderBy('name')->get();
         $niveaux = \App\Models\ESBTPNiveauEtude::where('is_active', true)->orderBy('name')->get();
@@ -45,6 +51,19 @@ class EtudiantController extends Controller
         $parents = \App\Models\ESBTPParent::orderBy('nom')->get();
         
         return view('esbtp.etudiants.create', compact('filieres', 'niveaux', 'annees', 'parents'));
+        */
+    }
+
+    /**
+     * Enregistrer un nouvel étudiant.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        // Déléguer au contrôleur principal
+        return app(\App\Http\Controllers\ESBTPEtudiantController::class)->store($request);
     }
 
     /**

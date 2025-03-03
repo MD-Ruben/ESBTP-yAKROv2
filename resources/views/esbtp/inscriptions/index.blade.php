@@ -28,7 +28,7 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label for="filiere">Filière</label>
-                        <select class="form-control" id="filiere" name="filiere">
+                        <select class="form-select" id="filiere" name="filiere">
                             <option value="">Toutes les filières</option>
                             @foreach($filieres as $fil)
                                 <option value="{{ $fil->id }}" {{ request('filiere') == $fil->id ? 'selected' : '' }}>
@@ -39,7 +39,7 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label for="niveau">Niveau d'études</label>
-                        <select class="form-control" id="niveau" name="niveau">
+                        <select class="form-select" id="niveau" name="niveau">
                             <option value="">Tous les niveaux</option>
                             @foreach($niveaux as $niv)
                                 <option value="{{ $niv->id }}" {{ request('niveau') == $niv->id ? 'selected' : '' }}>
@@ -50,7 +50,7 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label for="annee">Année universitaire</label>
-                        <select class="form-control" id="annee" name="annee">
+                        <select class="form-select" id="annee" name="annee">
                             <option value="">Toutes les années</option>
                             @foreach($annees as $an)
                                 <option value="{{ $an->id }}" {{ request('annee') == $an->id ? 'selected' : '' }}>
@@ -61,7 +61,7 @@
                     </div>
                     <div class="col-md-2 mb-3">
                         <label for="status">Statut</label>
-                        <select class="form-control" id="status" name="status">
+                        <select class="form-select" id="status" name="status">
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Actives</option>
                             <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Toutes</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>En attente</option>

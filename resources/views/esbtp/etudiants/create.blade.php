@@ -291,12 +291,13 @@
                                                             <select class="form-control select-parent" id="parent_id_0" name="parents[0][parent_id]" data-placeholder="Rechercher un parent...">
                                                                 <option value="">Rechercher un parent...</option>
                                                                 @if(old('parents.0.parent_id'))
-                                                                    <option value="{{ old('parents.0.parent_id') }}" selected>Parent sélectionné</option>
+                                                                    <option value="{{ old('parents.0.parent_id') }}" selected>Parent ID: {{ old('parents.0.parent_id') }}</option>
                                                                 @endif
                                                             </select>
                                                             @error('parents.0.parent_id')
                                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                                             @enderror
+                                                            <small class="form-text text-muted">Commencez à taper le nom, prénom ou téléphone du parent pour le rechercher</small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -351,6 +352,11 @@
     $(document).ready(function() {
         console.log('Document ready - initializing student form');
         
+        // Afficher les informations de débogage
+        console.log('Routes API disponibles:');
+        console.log('- Search Parents: {{ route("esbtp.api.search-parents") }}');
+        console.log('- Get Classes: {{ route("esbtp.api.get-classes") }}');
+        
         // Initialiser Select2 pour les parents existants
         $('.select-parent').select2({
             ajax: {
@@ -358,6 +364,7 @@
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
+                    console.log('Recherche de parents, terme:', params.term);
                     return {
                         q: params.term,
                         page: params.page
@@ -365,8 +372,18 @@
                 },
                 processResults: function (data, params) {
                     params.page = params.page || 1;
+                    console.log('Résultats de recherche parents:', data);
+                    
+                    // Formatage des données pour Select2
+                    const items = data.items.map(function(parent) {
+                        return {
+                            id: parent.id,
+                            text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
+                        };
+                    });
+                    
                     return {
-                        results: data.items,
+                        results: items,
                         pagination: {
                             more: data.pagination.more
                         }
@@ -379,6 +396,18 @@
             templateResult: formatParent,
             templateSelection: formatParentSelection
         });
+        
+        // Fonctions de formatage pour Select2
+        function formatParent(parent) {
+            if (parent.loading) {
+                return parent.text;
+            }
+            return $('<span>' + parent.text + '</span>');
+        }
+        
+        function formatParentSelection(parent) {
+            return parent.text || parent.id;
+        }
         
         // Initialiser le compteur de parents (1 parent déjà présent)
         let parentCount = 1;
@@ -405,15 +434,20 @@
         // Initialiser Select2 pour les autres champs
         $('.select2').select2();
         
-        // AJAX pour charger les classes en fonction de la filière et du niveau
-        $('#filiere_id, #niveau_etude_id').change(function() {
+        // AJAX pour charger les classes en fonction de la filière, du niveau et de l'année
+        $('#filiere_id, #niveau_etude_id, #annee_universitaire_id').change(function() {
             var filiereId = $('#filiere_id').val();
             var niveauId = $('#niveau_etude_id').val();
             var anneeId = $('#annee_universitaire_id').val();
             
-            console.log('Changement de filière/niveau - Filière:', filiereId, 'Niveau:', niveauId, 'Année:', anneeId);
+            console.log('Changement détecté - Filière:', filiereId, 'Niveau:', niveauId, 'Année:', anneeId);
             
             if (filiereId && niveauId && anneeId) {
+                console.log('Toutes les données sont présentes, appel AJAX pour les classes');
+                
+                // Afficher un indicateur de chargement
+                $('#classe_id').html('<option value="">Chargement des classes...</option>');
+                
                 $.ajax({
                     url: '{{ route("esbtp.api.get-classes") }}',
                     type: 'GET',
@@ -424,14 +458,27 @@
                     },
                     success: function(data) {
                         console.log('Classes reçues:', data);
+                        
+                        if (data.length === 0) {
+                            $('#classe_id').html('<option value="">Aucune classe disponible</option>');
+                            return;
+                        }
+                        
                         var options = '<option value="">Sélectionner une classe</option>';
                         $.each(data, function(index, classe) {
                             options += '<option value="' + classe.id + '">' + classe.name + ' (' + classe.code + ')</option>';
                         });
                         $('#classe_id').html(options);
+                        
+                        // Si une seule classe est disponible, la sélectionner automatiquement
+                        if (data.length === 1) {
+                            $('#classe_id').val(data[0].id);
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('Erreur lors de la récupération des classes:', error);
+                        console.error('Réponse du serveur:', xhr.responseText);
+                        $('#classe_id').html('<option value="">Erreur lors du chargement des classes</option>');
                     }
                 });
             } else {
@@ -505,8 +552,6 @@
                                 <label for="parent_profession_${index}" class="form-label">Profession</label>
                                 <input type="text" class="form-control" id="parent_profession_${index}" name="parents[${index}][profession]">
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="parent_adresse_${index}" class="form-label">Adresse</label>
                                 <textarea class="form-control" id="parent_adresse_${index}" name="parents[${index}][adresse]" rows="2"></textarea>
@@ -521,6 +566,7 @@
                                 <select class="form-control select-parent" id="parent_id_${index}" name="parents[${index}][parent_id]" data-placeholder="Rechercher un parent...">
                                     <option value="">Rechercher un parent...</option>
                                 </select>
+                                <small class="form-text text-muted">Commencez à taper le nom, prénom ou téléphone du parent pour le rechercher</small>
                             </div>
                         </div>
                     </div>
@@ -529,8 +575,8 @@
             
             $('#parents-container').append(parentHtml);
             
-            // Initialiser Select2 pour le nouveau parent existant
-            $(`#parent_id_${index}`).select2({
+            // Réinitialiser Select2 pour le nouveau parent
+            $('#parent_id_' + index).select2({
                 ajax: {
                     url: '{{ route("esbtp.api.search-parents") }}',
                     dataType: 'json',
@@ -543,8 +589,17 @@
                     },
                     processResults: function (data, params) {
                         params.page = params.page || 1;
+                        
+                        // Formatage des données pour Select2
+                        const items = data.items.map(function(parent) {
+                            return {
+                                id: parent.id,
+                                text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
+                            };
+                        });
+                        
                         return {
-                            results: data.items,
+                            results: items,
                             pagination: {
                                 more: data.pagination.more
                             }
@@ -560,45 +615,16 @@
         });
         
         // Supprimer un parent
-        $(document).on('click', '.remove-parent', function(e) {
-            e.preventDefault();
+        $(document).on('click', '.remove-parent', function() {
             console.log('Bouton Supprimer parent cliqué');
-            
             $(this).closest('.parent-item').remove();
             parentCount--;
-            
-            // Mettre à jour les numéros d'affichage des parents restants
-            $('.parent-item h6').each(function(index) {
-                $(this).text(`Parent / Tuteur #${index + 1}`);
-            });
-            
-            console.log('Nombre de parents après suppression:', parentCount);
         });
         
-        // Format parent for Select2
-        function formatParent(parent) {
-            if (!parent.id) {
-                return parent.text;
-            }
-            return $(`
-                <div>
-                    <strong>${parent.nom} ${parent.prenoms}</strong><br>
-                    <small>${parent.telephone}</small>
-                </div>
-            `);
+        // Déclencher le chargement initial des classes si toutes les valeurs sont définies
+        if ($('#filiere_id').val() && $('#niveau_etude_id').val() && $('#annee_universitaire_id').val()) {
+            $('#annee_universitaire_id').trigger('change');
         }
-        
-        // Format parent selection for Select2
-        function formatParentSelection(parent) {
-            if (!parent.id) {
-                return parent.text;
-            }
-            return parent.nom + ' ' + parent.prenoms;
-        }
-        
-        // Vérification de débogage
-        console.log('Total de conteneurs de parents:', $('#parents-container .parent-item').length);
-        console.log('Bouton Add Parent existe:', $('#add-parent').length > 0);
     });
 </script>
 @endsection 

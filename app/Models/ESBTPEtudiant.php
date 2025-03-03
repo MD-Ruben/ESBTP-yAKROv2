@@ -305,8 +305,8 @@ class ESBTPEtudiant extends Model
      */
     private static function nettoyerChaine($chaine)
     {
-        // Retirer les accents
-        $chaine = transliterator_transliterate('Any-Latin; Latin-ASCII', $chaine);
+        // Utiliser directement la méthode alternative sans vérifier l'extension intl
+        $chaine = self::removeAccents($chaine);
         
         // Remplacer les caractères spéciaux par des espaces
         $chaine = preg_replace('/[^a-zA-Z0-9]/', ' ', $chaine);
@@ -317,5 +317,43 @@ class ESBTPEtudiant extends Model
         // Découper en mots et prendre le premier
         $mots = explode(' ', trim($chaine));
         return $mots[0];
+    }
+    
+    /**
+     * Fonction alternative pour supprimer les accents sans l'extension intl
+     *
+     * @param string $string
+     * @return string
+     */
+    private static function removeAccents($string)
+    {
+        if (!preg_match('/[\x80-\xff]/', $string)) {
+            return $string;
+        }
+
+        $chars = [
+            // Decompositions for Latin-1 Supplement
+            'ª' => 'a', 'º' => 'o', 'À' => 'A', 'Á' => 'A',
+            'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A',
+            'Æ' => 'AE', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
+            'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I',
+            'Î' => 'I', 'Ï' => 'I', 'Ð' => 'D', 'Ñ' => 'N',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O',
+            'Ö' => 'O', 'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U',
+            'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'TH', 'ß' => 's',
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a',
+            'ä' => 'a', 'å' => 'a', 'æ' => 'ae', 'ç' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ð' => 'd', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o',
+            'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ý' => 'y', 'þ' => 'th', 'ÿ' => 'y',
+            // Decompositions for Latin Extended-A
+            'Œ' => 'OE', 'œ' => 'oe', 'Š' => 'S', 'š' => 's',
+            'Ÿ' => 'Y', 'Ž' => 'Z', 'ž' => 'z'
+        ];
+        
+        return strtr($string, $chars);
     }
 } 

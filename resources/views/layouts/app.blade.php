@@ -66,6 +66,22 @@
             display: flex;
         }
         
+        /* Correction pour les éléments select et option */
+        select, select option {
+            color: var(--esbtp-text) !important;
+            background-color: var(--esbtp-white) !important;
+        }
+        
+        select option {
+            padding: 8px 12px;
+        }
+        
+        /* Pour Select2 si utilisé */
+        .select2-container--default .select2-selection--single .select2-selection__rendered,
+        .select2-results__option {
+            color: var(--esbtp-text) !important;
+        }
+        
         /* Sidebar Styles */
         .sidebar {
             width: var(--sidebar-width);
@@ -639,6 +655,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -672,5 +689,8 @@
             });
         });
     </script>
+    
+    <!-- Scripts empilés depuis les vues -->
+    @stack('scripts')
 </body>
 </html> 
