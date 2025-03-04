@@ -1,9 +1,9 @@
 ---
-description: 
+description: Architecture Frontend ESBTP
 globs: 
 alwaysApply: false
 ---
- # Architecture Frontend ESBTP
+
 
 ## Structure des Vues
 

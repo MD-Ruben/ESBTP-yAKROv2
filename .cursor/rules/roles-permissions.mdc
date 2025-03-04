@@ -1,5 +1,5 @@
 ---
-description: 
+description: Gestion des Rôles et Permissions ESBTP
 globs: 
 alwaysApply: false
 ---
@@ -8,7 +8,7 @@ description: Roles : superAdmin, secretaire, etudiant  Permissions:      - Super
 globs: 
 ---
 
-# Gestion des Rôles et Permissions ESBTP
+
 
 ## Définition des Rôles
 

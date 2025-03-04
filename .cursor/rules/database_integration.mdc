@@ -610,7 +610,7 @@ Script pour générer des modèles Eloquent à partir du schéma Prisma:
 
 ## Ressources et Documentation
 
-- [Documentation Officielle de Prisma](https://www.prisma.io/docs/)
-- [Prisma avec Laravel (Guides Communautaires)](https://github.com/prisma/prisma-examples)
-- [Optimisation des Performances avec Prisma](https://www.prisma.io/docs/concepts/components/prisma-client/query-optimization-performance)
-- [Meilleures Pratiques pour le Schéma Prisma](https://www.prisma.io/docs/concepts/components/prisma-schema/best-practices)
+- [Documentation Officielle de Prisma](mdc:https:/www.prisma.io/docs)
+- [Prisma avec Laravel (Guides Communautaires)](mdc:https:/github.com/prisma/prisma-examples)
+- [Optimisation des Performances avec Prisma](mdc:https:/www.prisma.io/docs/concepts/components/prisma-client/query-optimization-performance)
+- [Meilleures Pratiques pour le Schéma Prisma](mdc:https:/www.prisma.io/docs/concepts/components/prisma-schema/best-practices)
