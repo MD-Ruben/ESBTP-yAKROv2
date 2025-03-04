@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Ajouter une séance à l'emploi du temps</h5>
-                    <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-secondary">
+                    <a href="{{ route('esbtp.emplois-temps.show', $emploiTemps->id) }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Retour à l'emploi du temps
                     </a>
                 </div>

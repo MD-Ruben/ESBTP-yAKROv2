@@ -106,7 +106,7 @@ class ESBTPEmploiTempsController extends Controller
     public function show(ESBTPEmploiTemps $emploiTemp)
     {
         // Charger les séances pour cet emploi du temps
-        $emploiTemp->load('seances');
+        $emploiTemp->load(['seances', 'classe', 'classe.filiere', 'classe.niveau', 'annee']);
         
         // Variable $seances pour la vue
         $seances = $emploiTemp->seances;
@@ -138,7 +138,10 @@ class ESBTPEmploiTempsController extends Controller
             $matiereStats[$matiereName]++;
         }
 
-        return view('esbtp.emplois-temps.show', compact('emploiTemp', 'seances', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms', 'matiereStats'));
+        // Renommer la variable pour la vue
+        $emploiTemps = $emploiTemp;
+
+        return view('esbtp.emplois-temps.show', compact('emploiTemps', 'seances', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms', 'matiereStats'));
     }
 
     /**
@@ -149,8 +152,16 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function edit(ESBTPEmploiTemps $emploiTemp)
     {
+        // Précharger les relations
+        $emploiTemp->load(['classe', 'annee']);
+        
+        // Récupérer les classes actives pour le formulaire
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        return view('esbtp.emplois-temps.edit', compact('emploiTemp', 'classes'));
+        
+        // Renommer la variable pour la vue
+        $emploiTemps = $emploiTemp;
+        
+        return view('esbtp.emplois-temps.edit', compact('emploiTemps', 'classes'));
     }
 
     /**

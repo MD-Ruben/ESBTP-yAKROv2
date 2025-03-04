@@ -26,6 +26,24 @@
                         </div>
                     @endif
 
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if (session('info'))
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
+                        </div>
+                    @endif
+
                     <form action="{{ route('esbtp.notes.store') }}" method="POST">
                         @csrf
                         

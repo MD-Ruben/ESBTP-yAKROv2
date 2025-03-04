@@ -1,4 +1,215 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Roles : superAdmin, secretaire, etudiant  Permissions:      - SuperAdmin: * filières (create filières, view filières, edit filières, delete filières)                   * Formations ( create formations, view formations, edit formations, delete formations)                   * Niveau d'études (create niveau d'études, view niveaux d'études, edit niveau d'études, delete niveaux d'études)                     * classes (create classe, view classes, edit classes, delete classes)                   * Students ( create student, views students, edit students, delete students)                   * Exams ( create exam, view exams, edit exams, delete exams)                   * Matières (create exam, view matières, edit matières, delete matières)                   * Grades ( create grade, view grades, edit grades, delete grades)                   * Bulletin ( generate bulletin, view bulletins, edit bulletins, delete bulletins)                   * timetable ( create timetable, view timetables, edit timetables, delete timetables)                   * Messages ( send messages )                   * Attendance (create attendance, view attendances, edit attendances, delete attendances)            - Secretaire: * filières (view filières)                    * Formations (view formations)                    * Niveau d'études (view niveaux d'études)                    * classes (view classes)                    * students (create students, view students)                    * exams (view exams)                    * matières (view matières)                    * Grades (create grades, view grades)                    * Bulletin ( generate bulletin, view bulletins)                    * Timetable (create timetable, view timetables)                    * Messages (send messages)                    * Attendance (create attendance, view attendances)         - Student: * students (view own profile)                  * Exams ( view own exams)                  * Grades (view own grades)                  * Bulletin (view own bulletin)                  * timetables (view own timetable)                  * Message (receive own messages where he is into the receivers some messages)                  * Attendance (view own attendances, view own %attendance)  voilà les différents roles et permisions, reprends tout à zero pour remplir mes points que j'ai mis dans ce prompt, assure toi que à la fin les roles et permissions soient comme ça, n'oublie pas d'adapter à comment fonctionne l'appli reflechis et sois créatif tout en respectant mes demandes  Tu modifies aussi le tableau de bord(dashboard), la page(la vue) qu'on voit qu'on se connecte pour fit(s'adapter) avec chaque role Ce que ty verras sur ton dashboard dependra de ton rôle,
 globs: 
 ---
+
+# Gestion des Rôles et Permissions ESBTP
+
+## Définition des Rôles
+
+L'application ESBTP définit trois rôles principaux:
+
+### SuperAdmin
+Administrateur avec accès complet à toutes les fonctionnalités du système.
+
+### Secrétaire
+Personnel administratif avec accès aux fonctionnalités de gestion quotidienne.
+
+### Étudiant
+Utilisateur avec accès limité à ses propres informations et fonctionnalités.
+
+## Permissions par Rôle
+
+### SuperAdmin
+
+```
+- Filières (create, view, edit, delete)
+- Formations (create, view, edit, delete)
+- Niveaux d'études (create, view, edit, delete)
+- Classes (create, view, edit, delete)
+- Students (create, view, edit, delete)
+- Exams (create, view, edit, delete)
+- Matières (create, view, edit, delete)
+- Grades (create, view, edit, delete)
+- Bulletin (generate, view, edit, delete)
+- Timetable (create, view, edit, delete)
+- Messages (send)
+- Attendance (create, view, edit, delete)
+```
+
+### Secrétaire
+
+```
+- Filières (view)
+- Formations (view)
+- Niveaux d'études (view)
+- Classes (view)
+- Students (create, view)
+- Exams (view)
+- Matières (view)
+- Grades (create, view)
+- Bulletin (generate, view)
+- Timetable (create, view)
+- Messages (send)
+- Attendance (create, view)
+```
+
+### Étudiant
+
+```
+- Students (view own profile)
+- Exams (view own exams)
+- Grades (view own grades)
+- Bulletin (view own bulletin)
+- Timetables (view own timetable)
+- Message (receive own messages)
+- Attendance (view own attendances, view own %attendance)
+```
+
+## Implémentation avec Spatie Laravel-Permission
+
+### Configuration des Rôles
+
+La création des rôles est gérée par le package Spatie Laravel-Permission et configurée pendant l'installation:
+
+```php
+// Création des rôles
+Role::create(['name' => 'superAdmin', 'guard_name' => 'web']);
+Role::create(['name' => 'secretaire', 'guard_name' => 'web']);
+Role::create(['name' => 'etudiant', 'guard_name' => 'web']);
+```
+
+### Définition des Permissions
+
+Les permissions sont définies de manière granulaire et attribuées aux rôles:
+
+```php
+// Création des permissions pour les filières
+Permission::create(['name' => 'create filieres', 'guard_name' => 'web']);
+Permission::create(['name' => 'view filieres', 'guard_name' => 'web']);
+Permission::create(['name' => 'edit filieres', 'guard_name' => 'web']);
+Permission::create(['name' => 'delete filieres', 'guard_name' => 'web']);
+
+// Attribution des permissions au SuperAdmin
+$superAdmin = Role::findByName('superAdmin');
+$superAdmin->givePermissionTo('create filieres');
+$superAdmin->givePermissionTo('view filieres');
+$superAdmin->givePermissionTo('edit filieres');
+$superAdmin->givePermissionTo('delete filieres');
+
+// Attribution des permissions au Secrétaire
+$secretaire = Role::findByName('secretaire');
+$secretaire->givePermissionTo('view filieres');
+
+// Et ainsi de suite pour toutes les permissions et rôles...
+```
+
+## Vérification des Permissions dans le Code
+
+### Dans les Contrôleurs
+
+```php
+public function index()
+{
+    $this->authorize('view filieres');
+    
+    $filieres = ESBTPFiliere::all();
+    return view('esbtp.filieres.index', compact('filieres'));
+}
+
+public function create()
+{
+    $this->authorize('create filieres');
+    
+    return view('esbtp.filieres.create');
+}
+```
+
+### Dans les Vues Blade
+
+```blade
+@can('create filieres')
+    <a href="{{ route('filieres.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouvelle Filière
+    </a>
+@endcan
+
+@cannot('delete filieres')
+    <!-- Désactiver ou masquer les options de suppression -->
+@endcannot
+```
+
+### Dans les Routes
+
+```php
+Route::middleware(['permission:view filieres'])->group(function () {
+    Route::get('/filieres', [ESBTPFiliereController::class, 'index'])->name('filieres.index');
+});
+
+Route::middleware(['permission:create filieres'])->group(function () {
+    Route::get('/filieres/create', [ESBTPFiliereController::class, 'create'])->name('filieres.create');
+    Route::post('/filieres', [ESBTPFiliereController::class, 'store'])->name('filieres.store');
+});
+```
+
+## Assignation des Rôles aux Utilisateurs
+
+### Lors de la Création d'un SuperAdmin (installation)
+
+```php
+$user = User::create([
+    'name' => $request->name,
+    'email' => $request->email,
+    'password' => Hash::make($request->password),
+]);
+
+$user->assignRole('superAdmin');
+```
+
+### Lors de la Création d'un Étudiant
+
+```php
+$user = User::create([
+    'name' => $etudiant->nom . ' ' . $etudiant->prenom,
+    'email' => $etudiant->email,
+    'password' => Hash::make($password),
+]);
+
+$user->assignRole('etudiant');
+```
+
+## Filtrage du Contenu par Rôle
+
+### Pour les Étudiants (dashboard personnalisé)
+
+```php
+public function index()
+{
+    if (auth()->user()->hasRole('etudiant')) {
+        $etudiant = auth()->user()->etudiant;
+        $emploiTemps = $etudiant->classe->emploiTemps()->latest()->first();
+        $evaluations = ESBTPEvaluation::whereHas('matiere', function ($query) use ($etudiant) {
+            $query->whereIn('id', $etudiant->classe->matieres->pluck('id'));
+        })->latest()->take(5)->get();
+        
+        return view('etudiant.dashboard', compact('etudiant', 'emploiTemps', 'evaluations'));
+    }
+    
+    // Pour les autres rôles...
+}
+```
+
+## Points Importants
+
+1. Aucun seeder pour le SuperAdmin, il est créé lors de l'installation
+2. Les étudiants reçoivent automatiquement le rôle 'etudiant' lors de leur inscription
+3. Les secrétaires sont créés par le SuperAdmin
+4. Chaque contrôleur doit vérifier les permissions avant d'exécuter des actions
+5. Les interfaces utilisateur doivent s'adapter aux rôles (menus, boutons, etc.)
+6. La middleware 'role' ou 'permission' doit être utilisée pour protéger les routes
+

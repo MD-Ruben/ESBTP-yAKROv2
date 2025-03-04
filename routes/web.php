@@ -45,6 +45,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// Route pour la sélection des bulletins (accessible sans authentification pour débogage)
+Route::get('esbtp/bulletins/select', [App\Http\Controllers\ESBTPBulletinController::class, 'select'])->name('esbtp.bulletins.select');
+
 // Routes pour l'installation
 Route::prefix('install')->group(function () {
     Route::get('/', [InstallController::class, 'index'])->name('install.index');
@@ -162,9 +165,13 @@ Route::middleware(['auth', 'installed'])->group(function () {
             // Routes pour les bulletins
             Route::resource('bulletins', ESBTPBulletinController::class)
                 ->middleware(['permission:view bulletins|generate bulletin|edit bulletins|delete bulletins']);
-            Route::get('bulletins/select', [ESBTPBulletinController::class, 'select'])->name('bulletins.select');
             Route::get('bulletins/{bulletin}/pdf', [ESBTPBulletinController::class, 'genererPDF'])->name('bulletins.pdf');
             Route::post('bulletins/generer-classe', [ESBTPBulletinController::class, 'genererClasseBulletins'])->name('bulletins.generer-classe');
+            Route::post('bulletins/generate', [ESBTPBulletinController::class, 'genererClasseBulletins'])
+                ->name('bulletins.generate');
+            
+            // Route pour les résultats
+            Route::get('resultats', [ESBTPBulletinController::class, 'resultats'])->name('resultats.index');
             
             // Routes pour les annonces
             Route::resource('annonces', ESBTPAnnonceController::class)

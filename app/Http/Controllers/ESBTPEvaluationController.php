@@ -234,14 +234,14 @@ class ESBTPEvaluationController extends Controller
     }
 
     /**
-     * Affiche une évaluation spécifique.
+     * Affiche les détails d'une évaluation spécifique.
      *
      * @param  \App\Models\ESBTPEvaluation  $evaluation
      * @return \Illuminate\Http\Response
      */
     public function show(ESBTPEvaluation $evaluation)
     {
-        $evaluation->load(['classe', 'matiere', 'user', 'notes.etudiant']);
+        $evaluation->load(['classe', 'matiere', 'createdBy', 'notes.etudiant']);
         
         // Récupérer les étudiants qui n'ont pas encore de note pour cette évaluation
         $etudiantsAvecNote = $evaluation->notes->pluck('etudiant_id')->toArray();

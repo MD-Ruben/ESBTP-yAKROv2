@@ -212,7 +212,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Envoyer un message</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('messages.store') }}" method="POST">
+                    <form action="{{ route('esbtp.annonces.store') }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label for="recipient_type" class="form-label">Destinataire</label>

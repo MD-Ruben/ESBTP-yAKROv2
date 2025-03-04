@@ -202,7 +202,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($evaluation->classe->etudiants as $etudiant)
+                                                @php
+                                                    $etudiants = App\Models\ESBTPEtudiant::whereHas('inscriptions', function($query) use ($evaluation) {
+                                                        $query->where('classe_id', $evaluation->classe_id);
+                                                    })->get();
+                                                @endphp
+                                                @foreach($etudiants as $etudiant)
                                                     @php
                                                         $note = $evaluation->notes->firstWhere('etudiant_id', $etudiant->id);
                                                     @endphp

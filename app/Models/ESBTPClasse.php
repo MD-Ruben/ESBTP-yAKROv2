@@ -142,12 +142,12 @@ class ESBTPClasse extends Model
     public function etudiants()
     {
         return $this->hasManyThrough(
-            User::class,
+            ESBTPEtudiant::class,
             ESBTPInscription::class,
-            'classe_id', // Clé étrangère sur la table inscriptions
-            'id', // Clé primaire sur la table users
+            'classe_id', // Clé étrangère sur la table inscriptions     
+            'id', // Clé primaire sur la table etudiants
             'id', // Clé primaire sur la table classes
-            'student_id' // Clé étrangère sur la table inscriptions
+            'etudiant_id' // Clé étrangère sur la table inscriptions     
         );
     }
 

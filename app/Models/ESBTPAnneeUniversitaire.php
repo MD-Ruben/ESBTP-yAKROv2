@@ -24,8 +24,8 @@ class ESBTPAnneeUniversitaire extends Model
      */
     protected $fillable = [
         'name',
-        'start_date',
-        'end_date',
+        'annee_debut',
+        'annee_fin',
         'is_current',
         'is_active',
         'description',
@@ -37,8 +37,6 @@ class ESBTPAnneeUniversitaire extends Model
      * @var array
      */
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
         'is_current' => 'boolean',
         'is_active' => 'boolean',
         'created_at' => 'datetime',

@@ -556,7 +556,7 @@ class ESBTPBulletinController extends Controller
         $classe = ESBTPClasse::with([
             'inscriptions' => function($query) use ($annee_id) {
                 $query->where('annee_universitaire_id', $annee_id)
-                      ->where('is_active', true);
+                      ->where('status', 'active');
             },
             'inscriptions.etudiant',
             'matieres'

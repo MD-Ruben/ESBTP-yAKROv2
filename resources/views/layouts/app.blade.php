@@ -352,7 +352,7 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="{{ asset('images/logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
+            <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
             <div class="sidebar-brand">ESBTP-yAKRO</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>
         </div>
@@ -472,6 +472,12 @@
                     <a href="{{ route('esbtp.bulletins.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
                         <i class="fas fa-file-invoice nav-icon"></i>
                         <span>Bulletins</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar nav-icon"></i>
+                        <span>Résultats</span>
                     </a>
                 </li>
                 @endhasanyrole

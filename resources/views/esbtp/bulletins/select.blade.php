@@ -36,8 +36,10 @@
                                             <label for="annee_universitaire_id" class="form-label">Année Universitaire</label>
                                             <select class="form-select" id="annee_universitaire_id" name="annee_universitaire_id" required>
                                                 <option value="">Sélectionnez une année universitaire</option>
-                                                @foreach($annees as $annee)
-                                                    <option value="{{ $annee->id }}">{{ $annee->name }}</option>
+                                                @foreach($anneesUniversitaires as $annee)
+                                                    <option value="{{ $annee->id }}" {{ $anneeActuelle && $annee->id == $anneeActuelle->id ? 'selected' : '' }}>
+                                                        {{ $annee->annee_debut }} - {{ $annee->annee_fin }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -47,7 +49,7 @@
                                                 <option value="">Sélectionnez une classe</option>
                                                 @foreach($classes as $classe)
                                                     <option value="{{ $classe->id }}">
-                                                        {{ $classe->name }} ({{ $classe->filiere->name }} - {{ $classe->niveau->name }})
+                                                        {{ $classe->name }} ({{ $classe->filiere->name ?? 'N/A' }} - {{ $classe->niveau->name ?? 'N/A' }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -76,14 +78,16 @@
                                     <h5 class="card-title mb-0">Générer des bulletins</h5>
                                 </div>
                                 <div class="card-body">
-                                    <form action="{{ route('esbtp.bulletins.generer-classe') }}" method="POST">
+                                    <form action="{{ route('esbtp.bulletins.generate') }}" method="POST">
                                         @csrf
                                         <div class="mb-3">
                                             <label for="gen_annee_universitaire_id" class="form-label">Année Universitaire</label>
                                             <select class="form-select" id="gen_annee_universitaire_id" name="annee_universitaire_id" required>
                                                 <option value="">Sélectionnez une année universitaire</option>
-                                                @foreach($annees as $annee)
-                                                    <option value="{{ $annee->id }}">{{ $annee->name }}</option>
+                                                @foreach($anneesUniversitaires as $annee)
+                                                    <option value="{{ $annee->id }}" {{ $anneeActuelle && $annee->id == $anneeActuelle->id ? 'selected' : '' }}>
+                                                        {{ $annee->annee_debut }} - {{ $annee->annee_fin }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -93,7 +97,7 @@
                                                 <option value="">Sélectionnez une classe</option>
                                                 @foreach($classes as $classe)
                                                     <option value="{{ $classe->id }}">
-                                                        {{ $classe->name }} ({{ $classe->filiere->name }} - {{ $classe->niveau->name }})
+                                                        {{ $classe->name }} ({{ $classe->filiere->name ?? 'N/A' }} - {{ $classe->niveau->name ?? 'N/A' }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -108,8 +112,8 @@
                                             </select>
                                         </div>
                                         <div class="mb-3 form-check">
-                                            <input type="checkbox" class="form-check-input" id="force_regenerate" name="force_regenerate" value="1">
-                                            <label class="form-check-label" for="force_regenerate">Forcer la régénération des bulletins existants</label>
+                                            <input type="checkbox" class="form-check-input" id="recalculer" name="recalculer" value="1">
+                                            <label class="form-check-label" for="recalculer">Recalculer les moyennes</label>
                                             <small class="form-text text-muted d-block">Cochez cette case pour recalculer les bulletins déjà générés.</small>
                                         </div>
                                         <div class="d-grid">
@@ -129,13 +133,11 @@
 </div>
 @endsection
 
-@section('scripts')
+@section('js')
 <script>
     $(document).ready(function() {
-        // Améliorer les listes déroulantes avec Select2
-        $('#annee_universitaire_id, #classe_id, #periode, #gen_annee_universitaire_id, #gen_classe_id, #gen_periode').select2({
-            theme: 'bootstrap-5',
-            width: '100%'
+        $('.form-select').select2({
+            theme: 'bootstrap-5'
         });
     });
 </script>

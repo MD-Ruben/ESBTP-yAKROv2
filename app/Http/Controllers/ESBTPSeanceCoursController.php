@@ -20,7 +20,7 @@ class ESBTPSeanceCoursController extends Controller
     {
         // Vérifier que nous avons un emploi du temps
         if (!$request->has('emploi_temps_id')) {
-            return redirect()->route('esbtp.emploi-temps.index')
+            return redirect()->route('esbtp.emplois-temps.index')
                 ->with('error', 'Veuillez sélectionner un emploi du temps pour ajouter une séance.');
         }
 
@@ -43,7 +43,7 @@ class ESBTPSeanceCoursController extends Controller
             7 => 'Dimanche'
         ];
         
-        return view('esbtp.emploi-temps.seances.create', compact(
+        return view('esbtp.emplois-temps.seances.create', compact(
             'emploiTemps', 
             'classe', 
             'matieres', 
@@ -101,7 +101,7 @@ class ESBTPSeanceCoursController extends Controller
             
             DB::commit();
             
-            return redirect()->route('esbtp.emploi-temps.show', $validated['emploi_temps_id'])
+            return redirect()->route('esbtp.emplois-temps.show', $validated['emploi_temps_id'])
                 ->with('success', 'La séance a été ajoutée avec succès à l\'emploi du temps.');
                 
         } catch (\Exception $e) {
@@ -135,7 +135,7 @@ class ESBTPSeanceCoursController extends Controller
             7 => 'Dimanche'
         ];
         
-        return view('esbtp.emploi-temps.seances.edit', compact(
+        return view('esbtp.emplois-temps.seances.edit', compact(
             'seancesCour',
             'emploiTemps', 
             'classe', 
@@ -191,7 +191,7 @@ class ESBTPSeanceCoursController extends Controller
             
             DB::commit();
             
-            return redirect()->route('esbtp.emploi-temps.show', $seancesCour->emploi_temps_id)
+            return redirect()->route('esbtp.emplois-temps.show', $seancesCour->emploi_temps_id)
                 ->with('success', 'La séance a été mise à jour avec succès.');
                 
         } catch (\Exception $e) {
@@ -210,7 +210,7 @@ class ESBTPSeanceCoursController extends Controller
             $emploi_temps_id = $seancesCour->emploi_temps_id;
             $seancesCour->delete();
             
-            return redirect()->route('esbtp.emploi-temps.show', $emploi_temps_id)
+            return redirect()->route('esbtp.emplois-temps.show', $emploi_temps_id)
                 ->with('success', 'La séance a été supprimée avec succès.');
         } catch (\Exception $e) {
             return redirect()->back()

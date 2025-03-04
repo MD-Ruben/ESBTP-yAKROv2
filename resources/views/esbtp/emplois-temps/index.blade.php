@@ -68,7 +68,7 @@
                                         <td>{{ $emploiTemps->created_at->format('d/m/Y') }}</td>
                                         <td>
                                             <div class="btn-group" role="group" aria-label="Actions">
-                                                <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-sm btn-info" title="Voir">
+                                                <a href="{{ route('esbtp.emplois-temps.show', $emploiTemps->id) }}" class="btn btn-sm btn-info" title="Voir">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="{{ route('esbtp.emplois-temps.edit', $emploiTemps->id) }}" class="btn btn-sm btn-warning" title="Modifier">

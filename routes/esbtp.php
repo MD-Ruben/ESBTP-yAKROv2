@@ -40,6 +40,7 @@ use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ParentStudentController;
 use App\Http\Controllers\ESBTP\ParentAbsenceController;
 use App\Http\Controllers\ESBTP\SecretaireAdminController;
+use App\Http\Controllers\ESBTP\ResultatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,49 +80,60 @@ Route::prefix('esbtp')->name('esbtp.')->group(function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
     });
     
-    // Routes accessibles aux secrétaires et superAdmin
+    // Routes pour le SuperAdmin uniquement
+    Route::middleware(['auth', 'role:superAdmin|secretaire'])->group(function () {
+        // Gestion des ressources de base
+        Route::resource('filieres', FiliereController::class);
+        Route::resource('niveaux-etudes', NiveauEtudeController::class);
+        Route::resource('annees-universitaires', AnneeUniversitaireController::class);
+        Route::resource('formations', FormationController::class);
+        Route::resource('classes', ClasseController::class);
+        
+        // Gestion des utilisateurs et des rôles (admin uniquement)
+        // Route::resource('utilisateurs', UserController::class);
+        // Route::resource('roles', RoleController::class);
+        // Route::resource('permissions', PermissionController::class);
+    });
+    
+    // Routes pour le SuperAdmin et le secrétaire
     Route::middleware(['auth', 'role:superAdmin,secretaire'])->group(function () {
-        // Etudiants (sauf suppression)
+        // Gestion des étudiants
         Route::resource('etudiants', AdminEtudiantController::class)->except(['destroy']);
         
-        // Inscriptions (sauf suppression)
+        // Gestion des inscriptions
         Route::resource('inscriptions', InscriptionController::class)->except(['destroy']);
         
-        // Matières (le secrétaire peut seulement consulter)
-        Route::get('matieres', [MatiereController::class, 'index'])->name('matieres.index');
-        Route::get('matieres/{matiere}', [MatiereController::class, 'show'])->name('matieres.show');
+        // Routes pour les notes, bulletins, messages et emplois du temps
+        Route::get('resultats', [ResultatController::class, 'index'])->name('resultats.index');
+        Route::get('resultats/{classe_id}', [ResultatController::class, 'showByClasse'])->name('resultats.classe');
+        Route::get('resultats/{classe_id}/{etudiant_id}', [ResultatController::class, 'showByEtudiant'])->name('resultats.etudiant');
         
-        // Evaluations (le secrétaire peut seulement consulter)
-        Route::get('evaluations', [EvaluationController::class, 'index'])->name('evaluations.index');
-        Route::get('evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
-        
-        // Notes
+        // Gestion des notes
         Route::resource('notes', NoteController::class);
         
-        // Bulletins (sauf suppression)
+        // Bulletins scolaires
         Route::resource('bulletins', BulletinController::class)->except(['destroy']);
         
-        // Annonces
+        // Annonces et messages
         Route::resource('annonces', AnnonceController::class);
         
         // Emplois du temps
         Route::resource('emplois-temps', EmploiTempsController::class);
         
-        // Absences
+        // Gestion des absences
         Route::resource('absences', AbsenceController::class);
         
         // Dashboard secrétaire
         Route::get('/secretaire/dashboard', [SecretaireController::class, 'dashboard'])->name('secretaire.dashboard');
     });
     
-    // Routes exclusives au superAdmin pour créer, modifier et supprimer des matières et évaluations
+    // Routes exclusivement réservées au SuperAdmin
     Route::middleware(['auth', 'role:superAdmin'])->group(function () {
-        Route::resource('matieres', MatiereController::class)->except(['index', 'show']);
-        Route::resource('evaluations', EvaluationController::class)->except(['index', 'show']);
-        Route::delete('etudiants/{etudiant}', [AdminEtudiantController::class, 'destroy'])->name('etudiants.destroy');
-        Route::delete('bulletins/{bulletin}', [BulletinController::class, 'destroy'])->name('bulletins.destroy');
+        // Configuration des matières et évaluations
+        Route::resource('matieres', MatiereController::class);
+        Route::resource('evaluations', EvaluationController::class);
         
-        // Routes pour la gestion des secrétaires
+        // Gestion des comptes secrétaires
         Route::resource('secretaires', SecretaireAdminController::class);
     });
     

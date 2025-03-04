@@ -21,6 +21,8 @@ class ESBTPAnneeUniversitaireSeeder extends Seeder
         for ($annee = 2020; $annee <= 2040; $annee++) {
             $anneesUniversitaires[] = [
                 'name' => $annee . '-' . ($annee + 1),
+                'annee_debut' => $annee,
+                'annee_fin' => $annee + 1,
                 'start_date' => $annee . '-09-15',
                 'end_date' => ($annee + 1) . '-07-15',
                 'is_current' => ($annee == $anneeActuelle), // L'année actuelle est marquée comme courante

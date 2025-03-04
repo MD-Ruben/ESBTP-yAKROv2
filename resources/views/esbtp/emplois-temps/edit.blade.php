@@ -13,7 +13,7 @@
                         <a href="{{ route('esbtp.emplois-temps.index') }}" class="btn btn-secondary me-2">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
-                        <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-info">
+                        <a href="{{ route('esbtp.emplois-temps.show', $emploiTemps->id) }}" class="btn btn-info">
                             <i class="fas fa-eye me-1"></i>Voir l'emploi du temps
                         </a>
                     </div>
