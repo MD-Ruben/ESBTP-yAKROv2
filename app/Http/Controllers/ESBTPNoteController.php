@@ -22,43 +22,43 @@ class ESBTPNoteController extends Controller
     public function index(Request $request)
     {
         $query = ESBTPNote::with(['evaluation', 'evaluation.matiere', 'evaluation.classe', 'etudiant', 'createdBy']);
-        
+
         // Filtres
         if ($request->has('evaluation_id') && $request->evaluation_id) {
             $query->where('evaluation_id', $request->evaluation_id);
         }
-        
+
         if ($request->has('etudiant_id') && $request->etudiant_id) {
             $query->where('etudiant_id', $request->etudiant_id);
         }
-        
+
         $classe_id = $request->input('classe_id');
         if ($classe_id) {
             $query->whereHas('evaluation', function($q) use ($classe_id) {
                 $q->where('classe_id', $classe_id);
             });
         }
-        
+
         $matiere_id = $request->input('matiere_id');
         if ($matiere_id) {
             $query->whereHas('evaluation', function($q) use ($matiere_id) {
                 $q->where('matiere_id', $matiere_id);
             });
         }
-        
+
         $notes = $query->orderBy('created_at', 'desc')->paginate(15);
-        
+
         // Compter toutes les notes pour le débogage
         $totalNotes = ESBTPNote::count();
         $message = "Il y a actuellement $totalNotes notes dans la base de données.";
         session()->flash('info', $message);
         \Log::info($message);
-        
+
         $evaluations = ESBTPEvaluation::orderBy('date_evaluation', 'desc')->get();
         $etudiants = ESBTPEtudiant::orderBy('nom')->get();
         $classes = ESBTPClasse::orderBy('name')->get();
         $matieres = ESBTPMatiere::orderBy('name')->get();
-        
+
         return view('esbtp.notes.index', compact('notes', 'evaluations', 'etudiants', 'classes', 'matieres', 'classe_id', 'matiere_id'));
     }
 
@@ -73,10 +73,10 @@ class ESBTPNoteController extends Controller
             ->orderBy('date_evaluation', 'desc')
             ->get();
         $etudiants = ESBTPEtudiant::orderBy('nom')->get();
-        
+
         // Ajouter un message flash pour tester
         session()->flash('info', 'Formulaire de création de note chargé. Veuillez remplir tous les champs requis.');
-        
+
         return view('esbtp.notes.create', compact('evaluations', 'etudiants'));
     }
 
@@ -90,7 +90,7 @@ class ESBTPNoteController extends Controller
     {
         // Débogage : Enregistrer les données reçues
         \Log::info('Données reçues pour la création de note:', $request->all());
-        
+
         $request->validate([
             'evaluation_id' => 'required|exists:esbtp_evaluations,id',
             'etudiant_id' => 'required|exists:esbtp_etudiants,id',
@@ -108,44 +108,44 @@ class ESBTPNoteController extends Controller
         try {
             // Débogage : Log du début du try
             \Log::info('Début du traitement de la note après validation');
-            
+
             // Vérifier que l'étudiant est bien dans la classe associée à l'évaluation
             $evaluation = ESBTPEvaluation::findOrFail($request->evaluation_id);
             \Log::info('Évaluation trouvée:', ['id' => $evaluation->id, 'titre' => $evaluation->titre, 'classe_id' => $evaluation->classe_id]);
-            
+
             $etudiant = ESBTPEtudiant::findOrFail($request->etudiant_id);
             \Log::info('Étudiant trouvé:', ['id' => $etudiant->id, 'nom' => $etudiant->nom]);
-            
+
             // Vérifier les inscriptions de l'étudiant - Correction : retirer la condition is_active qui n'existe pas
             $inscriptions = $etudiant->inscriptions()->where('classe_id', $evaluation->classe_id)->get();
             \Log::info('Inscriptions de l\'étudiant:', ['count' => $inscriptions->count(), 'inscriptions' => $inscriptions->toArray()]);
-            
+
             // Désactiver temporairement la vérification d'inscription si nécessaire
             // $estInscrit = $inscriptions->count() > 0;
             $estInscrit = true; // Forcer à true pour contourner la vérification
             \Log::info('Vérification de l\'inscription désactivée:', ['estInscrit' => $estInscrit, 'classe_id' => $evaluation->classe_id]);
-                
+
             if (!$estInscrit) {
                 \Log::warning('Étudiant non inscrit dans la classe de l\'évaluation');
                 return redirect()->back()
                     ->with('error', 'L\'étudiant n\'est pas inscrit dans la classe associée à cette évaluation')
                     ->withInput();
             }
-            
+
             // Vérifier que l'étudiant n'a pas déjà une note pour cette évaluation
             $noteExistante = ESBTPNote::where('evaluation_id', $request->evaluation_id)
                 ->where('etudiant_id', $request->etudiant_id)
                 ->exists();
-            
+
             \Log::info('Vérification de note existante:', ['noteExistante' => $noteExistante]);
-                
+
             if ($noteExistante) {
                 \Log::warning('Une note existe déjà pour cet étudiant et cette évaluation');
                 return redirect()->back()
                     ->with('error', 'L\'étudiant a déjà une note pour cette évaluation')
                     ->withInput();
             }
-            
+
             // Vérifier que la note ne dépasse pas le barème
             if (!$request->has('absent') && $request->valeur > $evaluation->bareme) {
                 \Log::warning('La note dépasse le barème:', ['valeur' => $request->valeur, 'bareme' => $evaluation->bareme]);
@@ -153,7 +153,7 @@ class ESBTPNoteController extends Controller
                     ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $evaluation->bareme . ')')
                     ->withInput();
             }
-            
+
             \Log::info('Création d\'une nouvelle instance de ESBTPNote');
             $note = new ESBTPNote();
             $note->evaluation_id = $request->evaluation_id;
@@ -162,14 +162,14 @@ class ESBTPNoteController extends Controller
             $note->is_absent = $request->has('absent');
             $note->commentaire = $request->commentaire;
             $note->created_by = Auth::id();
-            
+
             \Log::info('Avant sauvegarde de la note:', $note->toArray());
-            
+
             try {
                 \Log::info('Tentative de sauvegarde de la note');
                 $result = $note->save();
                 \Log::info('Résultat de la sauvegarde:', ['success' => $result, 'note_id' => $note->id]);
-                
+
                 if ($result) {
                     \Log::info('Sauvegarde réussie, note créée avec ID: ' . $note->id);
                 } else {
@@ -180,7 +180,7 @@ class ESBTPNoteController extends Controller
                 \Log::error('Trace du save: ' . $e->getTraceAsString());
                 throw $e; // Relancer l'exception pour qu'elle soit traitée par le bloc catch externe
             }
-            
+
             \Log::info('Préparation de la redirection vers la page de l\'évaluation avec ID: ' . $note->evaluation_id);
             try {
                 // Utiliser une URL directe au lieu d'une route nommée
@@ -196,7 +196,7 @@ class ESBTPNoteController extends Controller
         } catch (\Exception $e) {
             \Log::error('Exception lors de la création de la note: ' . $e->getMessage());
             \Log::error('Trace: ' . $e->getTraceAsString());
-            
+
             return redirect()->back()
                 ->with('error', 'Une erreur est survenue lors de l\'ajout de la note: ' . $e->getMessage())
                 ->withInput();
@@ -253,13 +253,13 @@ class ESBTPNoteController extends Controller
                     ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $note->evaluation->bareme . ')')
                     ->withInput();
             }
-            
+
             $note->note = $request->has('absent') ? 0 : $request->valeur;
             $note->is_absent = $request->has('absent');
             $note->commentaire = $request->commentaire;
             $note->updated_by = Auth::id();
             $note->save();
-            
+
             return redirect()->route('esbtp.evaluations.show', $note->evaluation_id)
                 ->with('success', 'La note a été mise à jour avec succès');
         } catch (\Exception $e) {
@@ -284,17 +284,17 @@ class ESBTPNoteController extends Controller
             return back()->with('error', 'Erreur lors de la suppression de la note: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Affiche la page de saisie rapide des notes pour une évaluation.
-     * 
+     *
      * @param ESBTPEvaluation $evaluation
      * @return \Illuminate\Http\Response
      */
     public function saisieRapide(ESBTPEvaluation $evaluation)
     {
         $evaluation->load(['classe', 'matiere', 'notes.etudiant']);
-        
+
         // Récupérer tous les étudiants de la classe
         $etudiants = ESBTPEtudiant::whereHas('inscriptions', function($query) use ($evaluation) {
                 $query->where('classe_id', $evaluation->classe_id);
@@ -304,50 +304,48 @@ class ESBTPNoteController extends Controller
             }])
             ->orderBy('nom')
             ->get();
-        
+
         return view('esbtp.notes.saisie-rapide', compact('evaluation', 'etudiants'));
     }
-    
+
     /**
      * Enregistre les notes saisies en masse pour une évaluation.
-     * 
+     *
      * @param Request $request
-     * @param ESBTPEvaluation $evaluation
      * @return \Illuminate\Http\Response
      */
-    public function enregistrerSaisieRapide(Request $request, ESBTPEvaluation $evaluation)
+    public function enregistrerSaisieRapide(Request $request)
     {
         $request->validate([
+            'evaluation_id' => 'required|exists:esbtp_evaluations,id',
             'notes' => 'required|array',
             'notes.*.etudiant_id' => 'required|exists:esbtp_etudiants,id',
-            'notes.*.valeur' => 'nullable|numeric|min:0|max:' . $evaluation->bareme,
+            'notes.*.valeur' => 'nullable|numeric|min:0',
             'notes.*.commentaire' => 'nullable|string',
             'notes.*.absent' => 'nullable|boolean',
-        ], [
-            'notes.*.valeur.numeric' => 'La valeur doit être un nombre',
-            'notes.*.valeur.min' => 'La valeur doit être positive',
-            'notes.*.valeur.max' => 'La valeur ne peut pas dépasser le barème de ' . $evaluation->bareme,
         ]);
-        
+
+        $evaluation = ESBTPEvaluation::findOrFail($request->evaluation_id);
+
         DB::beginTransaction();
         try {
             foreach ($request->notes as $noteData) {
                 // Vérifier si nous avons une valeur de note ou si l'étudiant est marqué comme absent
                 $hasValue = isset($noteData['valeur']) && $noteData['valeur'] !== null && $noteData['valeur'] !== '';
                 $isAbsent = isset($noteData['absent']) && $noteData['absent'] == '1';
-                
+
                 // Ignorer les entrées sans valeur et non marquées comme absentes
                 if (!$hasValue && !$isAbsent) {
                     continue;
                 }
-                
+
                 $etudiantId = $noteData['etudiant_id'];
-                
+
                 // Vérifier si l'étudiant a déjà une note pour cette évaluation
                 $note = ESBTPNote::where('evaluation_id', $evaluation->id)
                     ->where('etudiant_id', $etudiantId)
                     ->first();
-                
+
                 if ($note) {
                     // Mise à jour de la note existante
                     $note->note = $isAbsent ? 0 : $noteData['valeur'];
@@ -367,7 +365,7 @@ class ESBTPNoteController extends Controller
                     $note->save();
                 }
             }
-            
+
             DB::commit();
             return redirect()->route('esbtp.evaluations.show', $evaluation)
                 ->with('success', 'Les notes ont été enregistrées avec succès');
@@ -389,16 +387,16 @@ class ESBTPNoteController extends Controller
     {
         $user = Auth::user();
         $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
-        
+
         if (!$etudiant) {
             return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
         }
-        
+
         $notes = ESBTPNote::where('etudiant_id', $etudiant->id)
             ->with(['evaluation', 'matiere'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('etudiants.notes', compact('notes', 'etudiant'));
     }
 
@@ -411,4 +409,4 @@ class ESBTPNoteController extends Controller
     {
         return view('esbtp.notes.saisie-rapide-form');
     }
-} 
+}

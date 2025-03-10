@@ -2,6 +2,24 @@
 
 @section('title', 'Nouvelle Inscription')
 
+@push('styles')
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-selection {
+        height: 38px !important;
+        border: 1px solid #ced4da !important;
+    }
+    .select2-selection__rendered {
+        line-height: 36px !important;
+    }
+    .select2-selection__arrow {
+        height: 36px !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
@@ -20,28 +38,28 @@
         <div class="card-body">
             <form method="POST" action="{{ route('esbtp.inscriptions.store') }}" enctype="multipart/form-data">
                 @csrf
-                
+
                 @if(session('info'))
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         {{ session('info') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul class="mb-0">
@@ -51,7 +69,7 @@
                         </ul>
                     </div>
                 @endif
-                
+
                 <!-- Informations générales -->
                 <div class="row">
                     <div class="col-md-12 mb-4">
@@ -59,11 +77,11 @@
                         <hr>
                     </div>
                 </div>
-                
+
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i> Un compte étudiant sera automatiquement créé lors de l'inscription. Le nom d'utilisateur et le mot de passe seront affichés après la création.
                     </div>
-                    
+
                 <div class="row mb-4">
                     <div class="col-md-12">
                         <h5 class="card-title">Informations de classe</h5>
@@ -72,7 +90,7 @@
                     </div>
                     </div>
                 </div>
-                
+
                 <div class="row mb-4">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -91,7 +109,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Informations de l'étudiant -->
                 <div class="row mt-4">
                     <div class="col-md-12 mb-4">
@@ -99,37 +117,37 @@
                         <hr>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nom">Nom</label>
-                        <input type="text" class="form-control @error('nom') is-invalid @enderror" 
+                        <input type="text" class="form-control @error('nom') is-invalid @enderror"
                                id="nom" name="nom" value="{{ old('nom') }}" required>
                         @error('nom')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
                         <label for="prenoms">Prénom(s) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('prenoms') is-invalid @enderror" 
+                        <input type="text" class="form-control @error('prenoms') is-invalid @enderror"
                                id="prenoms" name="prenoms" value="{{ old('prenoms') }}" required>
                         @error('prenoms')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="date_naissance">Date de naissance</label>
-                        <input type="date" class="form-control @error('date_naissance') is-invalid @enderror" 
+                        <input type="date" class="form-control @error('date_naissance') is-invalid @enderror"
                                id="date_naissance" name="date_naissance" value="{{ old('date_naissance') }}" required>
                         @error('date_naissance')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
+
                     <div class="col-md-4 mb-3">
                         <label for="genre">Genre</label>
                         <select class="form-control @error('genre') is-invalid @enderror" id="genre" name="genre" required>
@@ -141,51 +159,51 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
+
                     <div class="col-md-4 mb-3">
                         <label for="email">Email</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                        <input type="email" class="form-control @error('email') is-invalid @enderror"
                                id="email" name="email" value="{{ old('email') }}">
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="telephone">Téléphone</label>
-                        <input type="text" class="form-control @error('telephone') is-invalid @enderror" 
-                               id="telephone" name="telephone" value="{{ old('telephone') }}" 
+                        <input type="text" class="form-control @error('telephone') is-invalid @enderror"
+                               id="telephone" name="telephone" value="{{ old('telephone') }}"
                                placeholder="+225 XX XX XXX XXX">
                         @error('telephone')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
+
                     <div class="col-md-4 mb-3">
                         <label for="ville">Ville</label>
-                        <input type="text" class="form-control @error('ville') is-invalid @enderror" 
+                        <input type="text" class="form-control @error('ville') is-invalid @enderror"
                                id="ville" name="ville" value="{{ old('ville') }}">
                         @error('ville')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
+
                     <div class="col-md-4 mb-3">
                         <label for="commune">Commune</label>
-                        <input type="text" class="form-control @error('commune') is-invalid @enderror" 
+                        <input type="text" class="form-control @error('commune') is-invalid @enderror"
                                id="commune" name="commune" value="{{ old('commune') }}">
                         @error('commune')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-12 mb-3">
                         <label for="photo">Photo de profil</label>
-                        <input type="file" class="form-control-file @error('photo') is-invalid @enderror" 
+                        <input type="file" class="form-control-file @error('photo') is-invalid @enderror"
                                id="photo" name="photo">
                         <small class="form-text text-muted">Formats acceptés: jpeg, png, jpg. Taille max: 2Mo</small>
                         @error('photo')
@@ -193,7 +211,7 @@
                         @enderror
                     </div>
                 </div>
-                
+
                 <!-- Informations du parent -->
                 <div class="row mt-4">
                     <div class="col-md-12 mb-4 d-flex justify-content-between align-items-center">
@@ -204,7 +222,7 @@
                     </div>
                     <hr>
                 </div>
-                
+
                 <!-- Container pour les parents -->
                 <div id="parents-container">
                     <!-- Premier parent (toujours présent) -->
@@ -221,7 +239,7 @@
                             </div>
                             <!-- Champ caché pour le type de parent -->
                             <input type="hidden" name="parents[0][type]" id="parent_type_0" value="nouveau">
-                            
+
                             <!-- Sélection d'un parent existant -->
                             <div class="form-group mb-3 parent-existant-section" style="display: none;">
                                 <label for="parent_id_0">Sélectionner un parent</label>
@@ -229,7 +247,7 @@
                                     <option value=""></option>
                                 </select>
                             </div>
-                            
+
                             <!-- Nouveau parent -->
                             <div class="parent-nouveau-section">
                                 <div class="row">
@@ -237,12 +255,12 @@
                                         <label for="parent_nom_0">Nom <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="parent_nom_0" name="parents[0][nom]" value="{{ old('parents.0.nom') }}">
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="parent_prenoms_0">Prénom(s) <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="parent_prenoms_0" name="parents[0][prenoms]" value="{{ old('parents.0.prenoms') }}">
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="parent_relation_0">Relation <span class="text-danger">*</span></label>
                                         <select class="form-control" id="parent_relation_0" name="parents[0][relation]">
@@ -253,20 +271,20 @@
                                         </select>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="parent_telephone_0">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="parent_telephone_0" name="parents[0][telephone]" 
+                                        <input type="text" class="form-control" id="parent_telephone_0" name="parents[0][telephone]"
                                                value="{{ old('parents.0.telephone') }}" placeholder="+225 XX XX XXX XXX">
                                     </div>
-                                    
+
                                     <div class="col-md-6 mb-3">
                                         <label for="parent_email_0">Email</label>
                                         <input type="email" class="form-control" id="parent_email_0" name="parents[0][email]" value="{{ old('parents.0.email') }}">
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-12 mb-3">
                                         <label for="parent_adresse_0">Adresse</label>
@@ -277,7 +295,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Template pour ajouter de nouveaux parents (caché) -->
                 <template id="parent-template">
                     <div class="parent-item card mb-3">
@@ -294,10 +312,10 @@
                                     Sélectionner un parent existant
                                 </label>
                             </div>
-                            
+
                             <!-- Champ caché pour le type de parent -->
                             <input type="hidden" name="parents[{index}][type]" id="parent_type_{index}" value="nouveau">
-                            
+
                             <!-- Sélection d'un parent existant -->
                             <div class="form-group mb-3 parent-existant-section" style="display: none;">
                                 <label for="parent_id_{index}">Sélectionner un parent</label>
@@ -305,7 +323,7 @@
                                     <option value=""></option>
                                 </select>
                             </div>
-                            
+
                             <!-- Nouveau parent -->
                             <div class="parent-nouveau-section">
                                 <div class="row">
@@ -313,12 +331,12 @@
                                         <label for="parent_nom_{index}">Nom <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="parent_nom_{index}" name="parents[{index}][nom]">
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="parent_prenoms_{index}">Prénom(s) <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="parent_prenoms_{index}" name="parents[{index}][prenoms]">
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="parent_relation_{index}">Relation <span class="text-danger">*</span></label>
                                         <select class="form-control" id="parent_relation_{index}" name="parents[{index}][relation]">
@@ -329,20 +347,20 @@
                                         </select>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="parent_telephone_{index}">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="parent_telephone_{index}" name="parents[{index}][telephone]" 
+                                        <input type="text" class="form-control" id="parent_telephone_{index}" name="parents[{index}][telephone]"
                                                placeholder="+225 XX XX XXX XXX">
                                     </div>
-                                    
+
                                     <div class="col-md-6 mb-3">
                                         <label for="parent_email_{index}">Email</label>
                                         <input type="email" class="form-control" id="parent_email_{index}" name="parents[{index}][email]">
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-12 mb-3">
                                         <label for="parent_adresse_{index}">Adresse</label>
@@ -353,7 +371,7 @@
                         </div>
                     </div>
                 </template>
-                
+
                 <!-- Boutons de soumission -->
                 <div class="row mt-4">
                     <div class="col-md-12 text-center">
@@ -404,14 +422,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select id="filter_formation" class="form-select">
-                            <option value="">Formation...</option>
-                            @foreach($formations as $formation)
-                                <option value="{{ $formation->id }}">{{ $formation->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-12">
@@ -457,10 +467,10 @@
     function ouvrirSelecteurClasse() {
         console.log('Ouverture du modal de sélection de classe');
         $('#modal-selecteur-classe').modal('show');
-        
+
         // Afficher une animation de chargement
         $('#liste-classes').html('<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></td></tr>');
-        
+
         // Charger toutes les classes immédiatement
         $.ajax({
             url: "{{ route('esbtp.api.get-classes') }}",
@@ -472,14 +482,14 @@
                     $('#liste-classes').html('<tr><td colspan="6" class="text-center">Aucune classe disponible</td></tr>');
                     return;
                 }
-                
+
                 var html = '';
                 $.each(response, function(index, classe) {
                     var displayName = classe.name;
                     var displayFiliere = classe.filiere_name || '';
                     var displayNiveau = classe.niveau_name || '';
                     var displayAnnee = classe.annee_name || '';
-                    
+
                     html += '<tr>';
                     html += '<td>' + displayName + '</td>';
                     html += '<td>' + classe.code + '</td>';
@@ -489,7 +499,7 @@
                     html += '<td><button type="button" class="btn btn-sm btn-primary" onclick="selectionnerClasse(' + classe.id + ', \'' + displayName + '\')">Sélectionner</button></td>';
                     html += '</tr>';
                 });
-                
+
                 $('#liste-classes').html(html);
             },
             error: function(error) {
@@ -498,7 +508,7 @@
             }
         });
     }
-    
+
     function fermerSelecteurClasse() {
         $('#modal-selecteur-classe').modal('hide');
     }
@@ -512,46 +522,53 @@
 <script>
     $(document).ready(function() {
         console.log('DOM chargé - Initialisation du formulaire d\'inscription');
-        
+
         // Variables pour gérer les parents
         let parentIndex = 0;
-        
+
+        // Initialiser Select2 pour le premier parent
+        initializeSelect2();
+
         // Gestionnaire pour ajouter un parent
         $('#add-parent-btn').on('click', function() {
+            console.log('Ajout d\'un nouveau parent');
             // Incrémenter l'index
             parentIndex++;
-            
+
             // Récupérer le template et remplacer les index
             let template = $('#parent-template').html();
             template = template.replace(/{index}/g, parentIndex);
             template = template.replace(/{number}/g, parentIndex + 1);
-            
+
             // Ajouter le template au container
             $('#parents-container').append(template);
-            
+
             // Initialiser les nouveaux select2
             initializeSelect2();
-            
+
             // Ajouter les gestionnaires d'événements
             addParentEventListeners();
         });
-        
+
         // Initialisation des gestionnaires d'événements pour parents
         addParentEventListeners();
-        
+
         // Fonction pour initialiser les gestionnaires d'événements des parents
         function addParentEventListeners() {
+            console.log('Initialisation des événements parents');
             // Gestion de la suppression d'un parent
             $('.remove-parent-btn').off('click').on('click', function() {
+                console.log('Suppression d\'un parent');
                 $(this).closest('.parent-item').remove();
             });
-            
+
             // Gestion de la checkbox "parent existant"
             $('.parent-existant-checkbox').off('change').on('change', function() {
+                console.log('Toggle parent existant/nouveau');
                 var isChecked = $(this).is(':checked');
                 var parentItem = $(this).closest('.parent-item');
                 var typeField = parentItem.find('[id^="parent_type_"]');
-                
+
                 if (isChecked) {
                     parentItem.find('.parent-existant-section').show();
                     parentItem.find('.parent-nouveau-section').hide();
@@ -562,13 +579,14 @@
                     typeField.val('nouveau');
                 }
             });
-            
+
             // Initialiser l'état pour les parents existants
             $('.parent-existant-checkbox').trigger('change');
         }
-        
+
         // Initialiser Select2 pour les sélecteurs de parents
         function initializeSelect2() {
+            console.log('Initialisation de Select2');
             $('.parent-select').select2({
                 placeholder: 'Rechercher un parent...',
                 minimumInputLength: 2,
@@ -577,13 +595,15 @@
                     dataType: 'json',
                     delay: 250,
                     data: function(params) {
+                        console.log('Recherche de parents:', params.term);
                         return {
                             q: params.term
                         };
                     },
                     processResults: function(data) {
+                        console.log('Résultats de la recherche:', data);
                         return {
-                            results: data.map(function(parent) {
+                            results: data.items.map(function(parent) {
                                 return {
                                     id: parent.id,
                                     text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
@@ -595,23 +615,23 @@
                 }
             });
         }
-        
+
         // Filtrer les classes
         $('#btn-filtrer-classes').on('click', function() {
             var filiereId = $('#filter_filiere').val();
             var niveauId = $('#filter_niveau').val();
             var anneeId = $('#filter_annee').val();
             var formationId = $('#filter_formation').val();
-            
+
             // Vérifier qu'au moins un filtre est sélectionné
             if (!filiereId && !niveauId && !anneeId && !formationId) {
                 alert('Veuillez sélectionner au moins un filtre');
                 return;
             }
-            
+
             // Afficher une animation de chargement
             $('#liste-classes').html('<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></td></tr>');
-            
+
             // Faire une requête AJAX pour récupérer les classes
             $.ajax({
                 url: "{{ route('esbtp.api.get-classes') }}",
@@ -628,14 +648,14 @@
                         $('#liste-classes').html('<tr><td colspan="6" class="text-center">Aucune classe trouvée avec ces critères</td></tr>');
                         return;
                     }
-                    
+
                     var html = '';
                     $.each(response, function(index, classe) {
                         var displayName = classe.name;
                         var displayFiliere = classe.filiere_name || '';
                         var displayNiveau = classe.niveau_name || '';
                         var displayAnnee = classe.annee_name || '';
-                        
+
                         html += '<tr>';
                         html += '<td>' + displayName + '</td>';
                         html += '<td>' + classe.code + '</td>';
@@ -645,7 +665,7 @@
                         html += '<td><button type="button" class="btn btn-sm btn-primary" onclick="selectionnerClasse(' + classe.id + ', \'' + displayName + '\')">Sélectionner</button></td>';
                         html += '</tr>';
                     });
-                    
+
                     $('#liste-classes').html(html);
                 },
                 error: function(error) {
@@ -654,7 +674,7 @@
                 }
             });
         });
-        
+
         // Réinitialiser les filtres
         $('#btn-reset-filters').on('click', function() {
             $('#filter_filiere').val('');
@@ -663,7 +683,7 @@
             $('#filter_formation').val('');
             $('#liste-classes').html('<tr><td colspan="6" style="padding: 15px; text-align: center; color: #6c757d;">Veuillez sélectionner au moins un filtre</td></tr>');
         });
-        
+
         window.selectionnerClasse = function(classeId, classeName) {
             console.log('Sélection de la classe:', classeId, classeName);
             document.getElementById('classe_id').value = classeId;
@@ -671,7 +691,7 @@
             document.getElementById('classe_display').classList.add('is-valid');
             fermerSelecteurClasse();
         };
-        
+
         // Si une classe était déjà sélectionnée (en cas d'erreur de validation)
         var classeId = $('#classe_id').val();
         if (classeId) {
@@ -679,4 +699,4 @@
         }
     });
 </script>
-@endpush 
+@endpush

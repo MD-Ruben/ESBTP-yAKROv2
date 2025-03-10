@@ -1,7 +1,7 @@
 ---
 description: Processus d'Installation ESBTP
-globs: 
-alwaysApply: false
+globs: **/*
+alwaysApply: true
 ---
 Ce document détaille le processus d'installation de l'application ESBTP, depuis le déploiement initial jusqu'à la création du compte administrateur et la configuration du système.
 
@@ -12,7 +12,7 @@ L'installation de l'application ESBTP suit une séquence d'étapes guidées:
 1. **Vérification des prérequis**
 2. **Configuration de la base de données**
 3. **Exécution des migrations**
-4. **Création du compte administrateur**
+4. **Création du compte administrateur**(superadmin)
 5. **Finalisation de l'installation**
 
 ## Structure des Fichiers d'Installation

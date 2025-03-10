@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ESBTPFiliere;
+use App\Models\ESBTPNiveauEtude;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -10,7 +11,7 @@ class ESBTPFiliereController extends Controller
 {
     /**
      * Affiche la liste des filières.
-     * 
+     *
      * Cette méthode récupère toutes les filières principales (sans parent)
      * et leurs options (filières enfants) pour les afficher dans une liste.
      *
@@ -18,9 +19,7 @@ class ESBTPFiliereController extends Controller
      */
     public function index()
     {
-        // Récupérer toutes les filières principales (sans parent)
-        $filieres = ESBTPFiliere::whereNull('parent_id')->with('options')->get();
-        
+        $filieres = ESBTPFiliere::with(['parent', 'options', 'niveauxEtudes'])->get();
         return view('esbtp.filieres.index', compact('filieres'));
     }
 
@@ -31,10 +30,13 @@ class ESBTPFiliereController extends Controller
      */
     public function create()
     {
-        // Récupérer toutes les filières principales pour le dropdown (pour créer une option)
-        $parentFilieres = ESBTPFiliere::whereNull('parent_id')->get();
-        
-        return view('esbtp.filieres.create', compact('parentFilieres'));
+        // Récupérer toutes les filières pour le select de filière parente
+        $filieres = ESBTPFiliere::all();
+
+        // Récupérer tous les niveaux d'études
+        $niveauxEtudes = ESBTPNiveauEtude::all();
+
+        return view('esbtp.filieres.create', compact('filieres', 'niveauxEtudes'));
     }
 
     /**
@@ -45,21 +47,32 @@ class ESBTPFiliereController extends Controller
      */
     public function store(Request $request)
     {
-        // Valider les données du formulaire
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:esbtp_filieres,name',
-            'code' => 'required|string|max:50|unique:esbtp_filieres,code',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:10|unique:esbtp_filieres,code',
             'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:esbtp_filieres,id',
-            'is_active' => 'boolean',
+            'option_filiere' => 'nullable|string|max:255',
+            'is_active' => 'sometimes|boolean',
+            'niveau_etude_ids' => 'nullable|array',
+            'niveau_etude_ids.*' => 'exists:esbtp_niveau_etudes,id'
         ]);
-        
-        // Créer la nouvelle filière
-        $filiere = ESBTPFiliere::create($validatedData);
-        
-        // Rediriger avec un message de succès
+
+        // Créer la filière
+        $filiere = ESBTPFiliere::create([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'description' => $validated['description'] ?? null,
+            'option_filiere' => $validated['option_filiere'] ?? null,
+            'is_active' => isset($validated['is_active']) ? true : false,
+        ]);
+
+        // Associer les niveaux d'études si spécifiés
+        if (isset($validated['niveau_etude_ids']) && is_array($validated['niveau_etude_ids'])) {
+            $filiere->niveauxEtudes()->attach($validated['niveau_etude_ids']);
+        }
+
         return redirect()->route('esbtp.filieres.index')
-            ->with('success', 'La filière a été créée avec succès.');
+            ->with('success', 'Filière créée avec succès.');
     }
 
     /**
@@ -71,8 +84,8 @@ class ESBTPFiliereController extends Controller
     public function show(ESBTPFiliere $filiere)
     {
         // Charger les relations
-        $filiere->load('parent', 'options');
-        
+        $filiere->load(['parent', 'options', 'niveauxEtudes']);
+
         return view('esbtp.filieres.show', compact('filiere'));
     }
 
@@ -84,13 +97,16 @@ class ESBTPFiliereController extends Controller
      */
     public function edit(ESBTPFiliere $filiere)
     {
-        // Récupérer toutes les filières principales pour le dropdown (pour modifier une option)
-        // Exclure la filière actuelle pour éviter une auto-référence
-        $parentFilieres = ESBTPFiliere::whereNull('parent_id')
-            ->where('id', '!=', $filiere->id)
-            ->get();
-        
-        return view('esbtp.filieres.edit', compact('filiere', 'parentFilieres'));
+        // Récupérer toutes les filières sauf celle en cours d'édition
+        $filieres = ESBTPFiliere::where('id', '!=', $filiere->id)->get();
+
+        // Récupérer tous les niveaux d'études
+        $niveauxEtudes = ESBTPNiveauEtude::all();
+
+        // Charger les relations nécessaires
+        $filiere->load(['niveauxEtudes', 'options', 'classes']);
+
+        return view('esbtp.filieres.edit', compact('filiere', 'filieres', 'niveauxEtudes'));
     }
 
     /**
@@ -102,28 +118,34 @@ class ESBTPFiliereController extends Controller
      */
     public function update(Request $request, ESBTPFiliere $filiere)
     {
-        // Valider les données du formulaire
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:esbtp_filieres,name,' . $filiere->id,
-            'code' => 'required|string|max:50|unique:esbtp_filieres,code,' . $filiere->id,
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:10|unique:esbtp_filieres,code,' . $filiere->id,
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:esbtp_filieres,id',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
+            'niveau_etude_ids' => 'nullable|array',
+            'niveau_etude_ids.*' => 'exists:esbtp_niveau_etudes,id'
         ]);
-        
-        // Vérifier que la filière n'est pas son propre parent
-        if ($request->parent_id == $filiere->id) {
-            return redirect()->back()
-                ->withErrors(['parent_id' => 'Une filière ne peut pas être son propre parent.'])
-                ->withInput();
-        }
-        
+
         // Mettre à jour la filière
-        $filiere->update($validatedData);
-        
-        // Rediriger avec un message de succès
+        $filiere->update([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'description' => $validated['description'] ?? null,
+            'parent_id' => $validated['parent_id'] ?? null,
+            'is_active' => isset($validated['is_active']) ? true : false,
+        ]);
+
+        // Mettre à jour les niveaux d'études associés
+        if (isset($validated['niveau_etude_ids'])) {
+            $filiere->niveauxEtudes()->sync($validated['niveau_etude_ids']);
+        } else {
+            $filiere->niveauxEtudes()->detach();
+        }
+
         return redirect()->route('esbtp.filieres.index')
-            ->with('success', 'La filière a été mise à jour avec succès.');
+            ->with('success', 'Filière mise à jour avec succès.');
     }
 
     /**
@@ -134,23 +156,8 @@ class ESBTPFiliereController extends Controller
      */
     public function destroy(ESBTPFiliere $filiere)
     {
-        // Vérifier si la filière a des options (filières enfants)
-        if ($filiere->options()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Impossible de supprimer cette filière car elle a des options associées.');
-        }
-        
-        // Vérifier si la filière a des étudiants inscrits
-        if ($filiere->inscriptions()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Impossible de supprimer cette filière car des étudiants y sont inscrits.');
-        }
-        
-        // Supprimer la filière
         $filiere->delete();
-        
-        // Rediriger avec un message de succès
         return redirect()->route('esbtp.filieres.index')
-            ->with('success', 'La filière a été supprimée avec succès.');
+            ->with('success', 'Filière supprimée avec succès.');
     }
-} 
+}

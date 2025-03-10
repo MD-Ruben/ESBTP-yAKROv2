@@ -13,7 +13,7 @@
                         <i class="fas fa-list me-1"></i>Liste des matières
                     </a>
                 </div>
-                
+
                 <div class="card-body">
                     @if(session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -21,10 +21,10 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <form action="{{ route('esbtp.matieres.store') }}" method="POST">
                         @csrf
-                        
+
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="card">
@@ -41,7 +41,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Nom complet de la matière (nom) -->
                                         <div class="mb-3">
                                             <label for="nom" class="form-label">Nom complet de la matière <span class="text-danger">*</span></label>
@@ -53,7 +53,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header bg-light">
@@ -68,7 +68,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Volume horaire -->
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
@@ -86,7 +86,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        
+
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label for="heures_tp" class="form-label">Heures de travaux pratiques</label>
@@ -103,7 +103,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="heures_perso" class="form-label">Heures de travail personnel</label>
                                             <input type="number" class="form-control @error('heures_perso') is-invalid @enderror" id="heures_perso" name="heures_perso" value="{{ old('heures_perso', 0) }}" min="0" step="0.5">
@@ -115,7 +115,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="card">
@@ -138,13 +138,13 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Niveau d'étude associé -->
                                         <div class="mb-3">
                                             <label for="niveau_etude_id" class="form-label">Niveau d'étude</label>
                                             <select class="form-select select2 @error('niveau_etude_id') is-invalid @enderror" id="niveau_etude_id" name="niveau_etude_id">
                                                 <option value="">Sélectionner un niveau d'étude</option>
-                                                @foreach($niveauxEtudes as $niveau)
+                                                @foreach($niveaux as $niveau)
                                                     <option value="{{ $niveau->id }}" {{ old('niveau_etude_id') == $niveau->id ? 'selected' : '' }}>
                                                         {{ $niveau->name }} ({{ $niveau->code }})
                                                     </option>
@@ -154,7 +154,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Type de formation -->
                                         <div class="mb-3">
                                             <label for="type_formation" class="form-label">Type de formation <span class="text-danger">*</span></label>
@@ -166,7 +166,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Couleur -->
                                         <div class="mb-3">
                                             <label for="couleur" class="form-label">Couleur</label>
@@ -179,7 +179,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header bg-light">
@@ -194,7 +194,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <!-- Statut -->
                                         <div class="form-check form-switch mb-3">
                                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
@@ -207,7 +207,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-12 text-end">
                                 <button type="reset" class="btn btn-secondary me-2">
@@ -235,7 +235,7 @@
             theme: 'bootstrap-5',
             width: '100%'
         });
-        
+
         // Génération automatique du code
         $('#nom').on('blur', function() {
             if ($('#code').val() === '') {
@@ -247,7 +247,7 @@
                 }
             }
         });
-        
+
         // Calcul automatique du total des heures
         function calculateTotalHours() {
             const cm = parseFloat($('#heures_cm').val()) || 0;
@@ -258,9 +258,9 @@
             const total = cm + td + tp + stage + perso;
             $('#total_heures_default').val(total);
         }
-        
+
         $('#heures_cm, #heures_td, #heures_tp, #heures_stage, #heures_perso').on('input', calculateTotalHours);
         calculateTotalHours(); // Calcul initial
     });
 </script>
-@endsection 
+@endsection

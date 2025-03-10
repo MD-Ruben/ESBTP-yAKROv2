@@ -1,13 +1,13 @@
-<!-- 
+<!--
     Layout principal de l'application ESBTP-yAKRO
-    
+
     Ce fichier a été modifié pour :
     1. Corriger les routes non définies (erreurs 'Route [xxx] not defined')
     2. Organiser la barre latérale en fonction des rôles (superadmin, secretaire, enseignant, etudiant, parent)
     3. Regrouper les fonctionnalités par catégories logiques
-    
+
     Toutes les routes ont été alignées avec les contrôleurs existants.
-    
+
     Dernière mise à jour : 02/03/2025
 -->
 
@@ -22,12 +22,15 @@
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -51,13 +54,13 @@
             --card-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
             --transition-speed: 0.3s;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--esbtp-gray);
@@ -65,23 +68,23 @@
             min-height: 100vh;
             display: flex;
         }
-        
+
         /* Correction pour les éléments select et option */
         select, select option {
             color: var(--esbtp-text) !important;
             background-color: var(--esbtp-white) !important;
         }
-        
+
         select option {
             padding: 8px 12px;
         }
-        
+
         /* Pour Select2 si utilisé */
         .select2-container--default .select2-selection--single .select2-selection__rendered,
         .select2-results__option {
             color: var(--esbtp-text) !important;
         }
-        
+
         /* Sidebar Styles */
         .sidebar {
             width: var(--sidebar-width);
@@ -95,7 +98,7 @@
             transition: transform var(--transition-speed);
             overflow-y: auto;
         }
-        
+
         .sidebar-header {
             padding: 20px;
             display: flex;
@@ -103,31 +106,31 @@
             align-items: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .sidebar-logo {
             width: 80px;
             height: 80px;
             object-fit: contain;
             margin-bottom: 10px;
         }
-        
+
         .sidebar-brand {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--esbtp-green);
             margin-bottom: 5px;
         }
-        
+
         .sidebar-subtitle {
             font-size: 0.9rem;
             color: var(--esbtp-orange);
             font-weight: 500;
         }
-        
+
         .sidebar-menu {
             padding: 20px;
         }
-        
+
         .menu-category {
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -136,11 +139,11 @@
             margin: 20px 0 10px;
             font-weight: 600;
         }
-        
+
         .nav-item {
             margin-bottom: 5px;
         }
-        
+
         .nav-link {
             display: flex;
             align-items: center;
@@ -149,23 +152,23 @@
             border-radius: var(--border-radius);
             transition: all var(--transition-speed);
         }
-        
+
         .nav-link:hover {
             background-color: var(--esbtp-light-green);
             color: var(--esbtp-green);
         }
-        
+
         .nav-link.active {
             background-color: var(--esbtp-green);
             color: var(--esbtp-white);
         }
-        
+
         .nav-icon {
             margin-right: 10px;
             width: 20px;
             text-align: center;
         }
-        
+
         /* Main Content Styles */
         .main-wrapper {
             flex: 1;
@@ -174,7 +177,7 @@
             flex-direction: column;
             transition: margin var(--transition-speed);
         }
-        
+
         .topbar {
             height: var(--topbar-height);
             background-color: var(--esbtp-white);
@@ -186,7 +189,7 @@
             top: 0;
             z-index: 99;
         }
-        
+
         .toggle-sidebar {
             display: none;
             background: none;
@@ -196,24 +199,24 @@
             cursor: pointer;
             margin-right: 15px;
         }
-        
+
         .page-title {
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--esbtp-dark);
             flex: 1;
         }
-        
+
         .topbar-actions {
             display: flex;
             align-items: center;
         }
-        
+
         .action-item {
             margin-left: 20px;
             position: relative;
         }
-        
+
         .action-btn {
             background: none;
             border: none;
@@ -222,11 +225,11 @@
             cursor: pointer;
             transition: color var(--transition-speed);
         }
-        
+
         .action-btn:hover {
             color: var(--esbtp-green);
         }
-        
+
         .notification-badge {
             position: absolute;
             top: -5px;
@@ -241,13 +244,13 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .user-dropdown {
             display: flex;
             align-items: center;
             cursor: pointer;
         }
-        
+
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -255,48 +258,48 @@
             object-fit: cover;
             margin-right: 10px;
         }
-        
+
         .user-info {
             display: flex;
             flex-direction: column;
         }
-        
+
         .user-name {
             font-size: 0.9rem;
             font-weight: 600;
             color: var(--esbtp-dark);
         }
-        
+
         .user-role {
             font-size: 0.8rem;
             color: var(--esbtp-text);
             opacity: 0.8;
         }
-        
+
         .content {
             padding: 30px;
             flex: 1;
         }
-        
+
         /* Responsive Styles */
         @media (max-width: 991.98px) {
             .sidebar {
                 transform: translateX(-100%);
             }
-            
+
             .sidebar.collapsed {
                 transform: translateX(0);
             }
-            
+
             .main-wrapper {
                 margin-left: 0;
             }
-            
+
             .toggle-sidebar {
                 display: block;
             }
         }
-        
+
         /* Card Styles */
         .card {
             background-color: var(--esbtp-white);
@@ -306,7 +309,7 @@
             margin-bottom: 30px;
             overflow: hidden;
         }
-        
+
         .card-header {
             background-color: var(--esbtp-white);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -315,39 +318,40 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--esbtp-dark);
             margin: 0;
         }
-        
+
         .card-body {
             padding: 20px;
         }
-        
+
         /* Button Styles */
         .btn-primary {
             background-color: var(--esbtp-green);
             border-color: var(--esbtp-green);
         }
-        
+
         .btn-primary:hover, .btn-primary:focus {
             background-color: var(--esbtp-green-dark);
             border-color: var(--esbtp-green-dark);
         }
-        
+
         .btn-secondary {
             background-color: var(--esbtp-orange);
             border-color: var(--esbtp-orange);
         }
-        
+
         .btn-secondary:hover, .btn-secondary:focus {
             background-color: var(--esbtp-orange-dark);
             border-color: var(--esbtp-orange-dark);
         }
     </style>
+    @stack('styles')
 </head>
 <body>
     <div class="sidebar" id="sidebar">
@@ -356,7 +360,7 @@
             <div class="sidebar-brand">ESBTP-yAKRO</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>
         </div>
-        
+
         <div class="sidebar-menu">
             <div class="menu-category">Navigation principale</div>
             <ul class="nav flex-column">
@@ -366,7 +370,7 @@
                         <span>Tableau de bord</span>
                     </a>
                 </li>
-                
+
                 @role('superAdmin')
                 <div class="menu-category">Administration</div>
                 <li class="nav-item">
@@ -388,7 +392,7 @@
                     </a>
                 </li>
                 @endrole
-                
+
                 @hasanyrole('superAdmin|secretaire')
                 <div class="menu-category">Structure académique</div>
                 <li class="nav-item">
@@ -416,7 +420,7 @@
                     </a>
                 </li>
                 @endhasanyrole
-                
+
                 @hasanyrole('superAdmin|secretaire')
                 <div class="menu-category">Gestion des étudiants</div>
                 <li class="nav-item">
@@ -443,7 +447,7 @@
                     </a>
                 </li>
                 @endhasanyrole
-                
+
                 @role('etudiant')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.mon-emploi-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-emploi-temps.index') ? 'active' : '' }}">
@@ -481,7 +485,7 @@
                     </a>
                 </li>
                 @endhasanyrole
-                
+
                 @role('etudiant')
                 <li class="nav-item">
                     <a href="{{ route('mes-examens.index') }}" class="nav-link {{ request()->routeIs('mes-examens.index') ? 'active' : '' }}">
@@ -502,7 +506,7 @@
                     </a>
                 </li>
                 @endrole
-                
+
                 <!-- Section présences -->
                 <div class="menu-category">Présences</div>
                 @hasanyrole('superAdmin|secretaire')
@@ -519,7 +523,7 @@
                     </a>
                 </li>
                 @endhasanyrole
-                
+
                 @role('etudiant')
                 <li class="nav-item">
                     <a href="{{ route('mes-absences.index') }}" class="nav-link {{ request()->routeIs('mes-absences.index') ? 'active' : '' }}">
@@ -528,7 +532,7 @@
                     </a>
                 </li>
                 @endrole
-                
+
                 @role('parent')
                 <div class="menu-category">Espace Parent</div>
                 <li class="nav-item">
@@ -574,7 +578,7 @@
                     </a>
                 </li>
                 @endrole
-                
+
                 <!-- Communication -->
                 <div class="menu-category">Communication</div>
                 @hasanyrole('superAdmin|secretaire')
@@ -585,7 +589,7 @@
                     </a>
                 </li>
                 @endhasanyrole
-                
+
                 @role('etudiant')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.index') ? 'active' : '' }}">
@@ -594,7 +598,7 @@
                     </a>
                 </li>
                 @endrole
-                
+
                 <!-- Section profil utilisateur -->
                 <div class="menu-category">Mon compte</div>
                 <li class="nav-item">
@@ -621,9 +625,9 @@
             <button id="toggle-sidebar" class="toggle-sidebar">
                 <i class="fas fa-bars"></i>
             </button>
-            
+
             <h1 class="page-title">@yield('page_title', 'Tableau de bord')</h1>
-            
+
             <div class="topbar-actions">
                 <div class="action-item">
                     <button class="action-btn">
@@ -631,7 +635,7 @@
                         <span class="notification-badge">3</span>
                     </button>
                 </div>
-                
+
                 <div class="action-item dropdown">
                     <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                         <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
@@ -660,50 +664,37 @@
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin-2/4.1.4/js/sb-admin-2.min.js"></script>
-
-    <!-- Select2 JavaScript - DÉPLACÉ AVANT yield('scripts') -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <!-- Page level custom scripts -->
-    @yield('scripts')
-
-    <!-- Toastr, une bibliothèque de notification (si elle n'est pas encore incluse) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    @stack('scripts')
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Toggle sidebar on mobile
             const toggleBtn = document.getElementById('toggle-sidebar');
             const sidebar = document.getElementById('sidebar');
-            
+
             if (toggleBtn && sidebar) {
                 toggleBtn.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
                 });
             }
-            
+
             // Close sidebar when clicking outside on mobile
             document.addEventListener('click', function(event) {
                 if (window.innerWidth < 992) {
                     const isClickInsideSidebar = sidebar.contains(event.target);
                     const isClickOnToggleBtn = toggleBtn.contains(event.target);
-                    
+
                     if (!isClickInsideSidebar && !isClickOnToggleBtn && !sidebar.classList.contains('collapsed')) {
                         sidebar.classList.add('collapsed');
                     }
                 }
             });
-            
+
             // Adjust sidebar on window resize
             window.addEventListener('resize', function() {
                 if (window.innerWidth >= 992) {
@@ -713,4 +704,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

@@ -1,8 +1,5 @@
----
-description: Workflow de Développement ESBTP
-globs: 
-alwaysApply: false
----
+# Workflow de Développement ESBTP
+
 Ce document décrit le workflow complet pour le développement, les tests et le déploiement de l'application ESBTP.
 
 ## Installation et Configuration de l'Environnement Local
@@ -424,4 +421,4 @@ git push origin v1.0.0
 
 5. **Intégration Continue**
    - Exécuter les tests automatiquement à chaque push
-   - Vérifier le style de code et la qualité
+   - Vérifier le style de code et la qualité 

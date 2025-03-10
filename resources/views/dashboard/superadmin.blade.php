@@ -144,7 +144,7 @@
                             <i class="fas fa-book-open fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('matieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les matières</a>
+                    <a href="{{ route('esbtp.matieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les matières</a>
                 </div>
             </div>
         </div>
@@ -268,4 +268,4 @@
     </div>
     @endif
 </div>
-@endsection 
+@endsection

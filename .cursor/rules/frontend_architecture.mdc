@@ -1,9 +1,9 @@
 ---
-description: Architecture Frontend ESBTP
+description: 
 globs: 
 alwaysApply: false
 ---
-
+# Architecture Frontend ESBTP
 
 ## Structure des Vues
 
@@ -19,7 +19,6 @@ resources/
 │   │   └── auth.blade.php # Layout pour l'authentification
 │   ├── esbtp/             # Vues spécifiques à ESBTP
 │   │   ├── filieres/      # CRUD pour les filières
-│   │   ├── formations/    # CRUD pour les formations
 │   │   ├── niveaux-etudes/ # CRUD pour les niveaux d'étude
 │   │   ├── classes/       # CRUD pour les classes
 │   │   ├── matieres/      # CRUD pour les matières
@@ -179,7 +178,6 @@ Utiliser des modals pour les interactions complexes comme la sélection de class
                     <thead>
                         <tr>
                             <th>Filière</th>
-                            <th>Formation</th>
                             <th>Niveau</th>
                             <th>Action</th>
                         </tr>
@@ -348,4 +346,4 @@ La barre latérale doit s'adapter au rôle de l'utilisateur connecté :
         </nav>
     </div>
 </aside>
-```
+``` 

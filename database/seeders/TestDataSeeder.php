@@ -17,19 +17,9 @@ class TestDataSeeder extends Seeder
     {
         // Création d'une filière de test
         $filiereId = DB::table('esbtp_filieres')->insertGetId([
-            'name' => 'Génie Civil',
-            'code' => 'GC',
-            'description' => 'Formation en génie civil',
-            'is_active' => true,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        // Création d'une formation de test
-        $formationId = DB::table('esbtp_formations')->insertGetId([
-            'name' => 'Formation Générale',
-            'code' => 'FG',
-            'description' => 'Formation générale standard',
+            'name' => 'Génie Civil Test',
+            'code' => 'GC-TEST',
+            'description' => 'Formation test en génie civil',
             'is_active' => true,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
@@ -37,8 +27,10 @@ class TestDataSeeder extends Seeder
 
         // Création d'un niveau d'étude de test
         $niveauId = DB::table('esbtp_niveau_etudes')->insertGetId([
-            'name' => 'BTS 1ère année',
-            'code' => 'BTS1',
+            'name' => 'BTS 1ère année Test',
+            'code' => 'BTS1-TEST',
+            'type' => 'BTS',
+            'year' => 1,
             'description' => 'Première année de BTS',
             'is_active' => true,
             'created_at' => Carbon::now(),
@@ -62,7 +54,6 @@ class TestDataSeeder extends Seeder
             'filiere_id' => $filiereId,
             'niveau_etude_id' => $niveauId,
             'annee_universitaire_id' => $anneeId,
-            'formation_id' => $formationId, // Ajout de formation_id si la colonne existe
             'capacity' => 30,
             'description' => 'Classe de première année de BTS en Génie Civil',
             'is_active' => true,
@@ -72,4 +63,4 @@ class TestDataSeeder extends Seeder
 
         $this->command->info('Données de test créées avec succès!');
     }
-} 
+}

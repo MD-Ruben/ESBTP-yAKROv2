@@ -5,57 +5,77 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\ESBTPMatiere;
 use App\Models\ESBTPNiveauEtude;
-use Illuminate\Support\Facades\DB;
 
 class ESBTPMatiereNiveauSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seeder pour créer les relations entre matières et niveaux d'études.
      *
      * @return void
      */
     public function run()
     {
-        // Vider la table pivot avant d'ajouter de nouvelles données
-        DB::table('esbtp_matiere_niveau')->truncate();
+        $niveauBTS1 = ESBTPNiveauEtude::where('code', 'BTS1')->first();
+        $niveauBTS2 = ESBTPNiveauEtude::where('code', 'BTS2')->first();
 
-        // Récupérer toutes les matières et tous les niveaux d'études
-        $matieres = ESBTPMatiere::all();
-        $niveauxEtudes = ESBTPNiveauEtude::all();
-
-        // Si nous n'avons pas de matières ou de niveaux d'études, arrêter l'exécution
-        if ($matieres->isEmpty() || $niveauxEtudes->isEmpty()) {
-            $this->command->info('Aucune matière ou niveau d\'études trouvé. Impossible de créer des relations.');
+        if (!$niveauBTS1 || !$niveauBTS2) {
+            $this->command->error('Les niveaux d\'études BTS1 et BTS2 doivent être créés avant d\'exécuter ce seeder.');
             return;
         }
 
-        // Pour chaque matière, associer au moins un niveau d'études
-        foreach ($matieres as $matiere) {
-            // Pour simplifier, nous allons associer chaque matière à un ou deux niveaux d'études aléatoires
-            $niveauxToAttach = $niveauxEtudes->random(rand(1, min(2, $niveauxEtudes->count())));
-            
-            foreach ($niveauxToAttach as $niveau) {
-                // Générer un coefficient aléatoire entre 1 et 5
-                $coefficient = rand(10, 50) / 10;
-                
-                // Générer un nombre d'heures aléatoire entre 20 et 60
-                $heuresCours = rand(20, 60);
-                
-                // Créer l'entrée dans la table pivot
-                DB::table('esbtp_matiere_niveau')->insert([
-                    'matiere_id' => $matiere->id,
-                    'niveau_etude_id' => $niveau->id,
-                    'coefficient' => $coefficient,
-                    'heures_cours' => $heuresCours,
+        // Matières de BTS1
+        $matieresBTS1 = ESBTPMatiere::whereIn('code', [
+            'DESSIN_TECHNIQUE', 'MATHEMATIQUES', 'PHYSIQUE', 'CHIMIE',
+            'INFORMATIQUE', 'FRANCAIS', 'ANGLAIS', 'RDM', 'MDS',
+            'TOPO', 'CM', 'HYDROLOGIE', 'HYDRAULIQUE', 'GEOTECHNIQUE',
+            'TECHNIQUE_ENGINS', 'IHH', 'ELECTRICITE', 'SECURITE',
+            'MATERIAUX', 'IGC', 'GRV', 'CALCUL_TOPO', 'TOPO_GENERALE',
+            'TP_TOPO', 'GEOCHIMIE', 'GEOLOGIE_GENERALE', 'GEOLOGIE_HISTORIQUE',
+            'MECA_SOL', 'MECA_ROCHE', 'MINERALOGIE', 'MECA_FLUIDES',
+            'TOPO_MINIERE', 'ARCHITECTURE', 'DEMOGRAPHIE', 'DESSIN_BATIMENT',
+            'GEOGRAPHIE_URBAINE', 'INTRO_URBANISME', 'LECTURE_PHOTO',
+            'METRE_PRIX', 'SOCIOLOGIE_URBAINE', 'TECHNIQUE_GRAPHIQUE',
+            'TECHNO_BAT'
+        ])->get();
+
+        foreach ($matieresBTS1 as $matiere) {
+            if (!$niveauBTS1->matieres()->where('esbtp_matieres.id', $matiere->id)->exists()) {
+                $niveauBTS1->matieres()->attach($matiere->id, [
+                    'coefficient' => 1.0,
+                    'heures_cours' => 30,
                     'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                
-                $this->command->info("Matière '{$matiere->name}' associée au niveau '{$niveau->name}' avec coefficient {$coefficient} et {$heuresCours} heures.");
             }
         }
-        
-        $this->command->info('Toutes les relations entre matières et niveaux d\'études ont été créées avec succès.');
+
+        // Matières de BTS2
+        $matieresBTS2 = ESBTPMatiere::whereIn('code', [
+            'BA', 'GEO', 'ROUTES', 'HYDRO', 'AEP', 'ANGLAIS',
+            'ASSAINISSEMENT', 'CAO_DAO', 'COVADIS', 'DESSIN',
+            'DRAINAGE', 'DROIT', 'ENTREPRENEURIAT', 'ENTRETIEN_ROUTIER',
+            'ENVIRONNEMENT', 'GRV', 'GESTION', 'INFORMATIQUE',
+            'MATERIAUX', 'MATHEMATIQUES', 'METRE_PRIX', 'OGC',
+            'PROJET', 'QTE', 'SIGNALISATION', 'STATIQUE_RDM',
+            'TRE', 'TECHNIQUE_EXPRESSION', 'TECHNIQUES_ROUTIERES',
+            'TOPOGRAPHIE', 'VRD', 'ARCHICAD', 'BETON_ARME',
+            'DESSIN_BATIMENT', 'DROIT_CONSTRUCTION', 'OPTIQUE',
+            'TECHNO_BAT_PATHO', 'URBANISME'
+        ])->get();
+
+        foreach ($matieresBTS2 as $matiere) {
+            if (!$niveauBTS2->matieres()->where('esbtp_matieres.id', $matiere->id)->exists()) {
+                $niveauBTS2->matieres()->attach($matiere->id, [
+                    'coefficient' => 1.0,
+                    'heures_cours' => 30,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        $this->command->info('Les relations entre matières et niveaux d\'études ont été créées avec succès.');
     }
 }

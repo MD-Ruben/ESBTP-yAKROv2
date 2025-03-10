@@ -13,24 +13,13 @@ class CreateParcoursTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('parcours')) {
-            Schema::create('parcours', function (Blueprint $table) {
-                $table->id();
-                $table->string('code');
-                $table->string('name');
-                $table->text('description')->nullable();
-                $table->foreignId('formation_id')->nullable()->comment('ID de la formation à laquelle appartient le parcours')
-                      ->constrained()->nullOnDelete();
-                $table->foreignId('responsable_id')->nullable()->comment('ID de l\'utilisateur qui est responsable du parcours')
-                      ->constrained('users')->nullOnDelete();
-                $table->foreignId('created_by')->nullable()
-                      ->constrained('users')->nullOnDelete();
-                $table->foreignId('updated_by')->nullable()
-                      ->constrained('users')->nullOnDelete();
-                $table->timestamps();
-                $table->softDeletes();
-            });
-        }
+        Schema::create('parcours', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->comment('Nom du parcours');
+            $table->text('description')->nullable()->comment('Description du parcours');
+            $table->boolean('is_active')->default(true)->comment('Statut du parcours');
+            $table->timestamps();
+        });
     }
 
     /**

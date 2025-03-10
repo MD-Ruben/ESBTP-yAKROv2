@@ -18,7 +18,7 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -26,7 +26,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card h-100">
@@ -95,7 +95,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header bg-light">
@@ -115,63 +115,28 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6">
-                            <!-- Formations associées -->
+                            <!-- Type de formation -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Formations associées ({{ $matiere->formations->count() }})</h6>
+                                    <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Type de formation</h6>
                                 </div>
                                 <div class="card-body">
-                                    @if($matiere->formations->count() > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Nom</th>
-                                                        <th>Code</th>
-                                                        <th>Statut</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($matiere->formations as $formation)
-                                                        <tr>
-                                                            <td>{{ $formation->name }}</td>
-                                                            <td>{{ $formation->code }}</td>
-                                                            <td>
-                                                                @if($formation->is_active)
-                                                                    <span class="badge bg-success">Active</span>
-                                                                @else
-                                                                    <span class="badge bg-danger">Inactive</span>
-                                                                @endif
-                                                            </td>
-                                                            <td>
-                                                                <a href="{{ route('esbtp.formations.show', $formation) }}" class="btn btn-sm btn-info">
-                                                                    <i class="fas fa-eye"></i>
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <p class="text-muted text-center my-3">
-                                            <i class="fas fa-info-circle me-1"></i>Aucune formation associée à cette matière.
-                                        </p>
-                                    @endif
+                                    <p class="mb-0">
+                                        <span class="badge bg-info">{{ $matiere->type_formation }}</span>
+                                    </p>
                                 </div>
                             </div>
-                            
+
                             <!-- Niveaux d'études associés -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Niveaux d'études associés ({{ $matiere->niveauxEtudes->count() }})</h6>
+                                    <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Niveaux d'études associés ({{ $matiere->niveauxEtudes ? $matiere->niveauxEtudes->count() : 0 }})</h6>
                                 </div>
                                 <div class="card-body">
-                                    @if($matiere->niveauxEtudes->count() > 0)
+                                    @if($matiere->niveauxEtudes && $matiere->niveauxEtudes->count() > 0)
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -206,7 +171,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <!-- Enseignants associés -->
                             <div class="card mb-4">
@@ -251,7 +216,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Séances de cours -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -340,14 +305,20 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Évaluations -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="fas fa-tasks me-2"></i>Évaluations ({{ $matiere->evaluations->count() }})</h6>
-                                    <a href="{{ route('esbtp.evaluations.create') }}?matiere_id={{ $matiere->id }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-plus me-1"></i>Ajouter une évaluation
-                                    </a>
+                                    @if($matiere->evaluations->count() > 0)
+                                        <a href="{{ route('esbtp.evaluations.index', ['matiere_id' => $matiere->id]) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-plus me-1"></i>Ajouter une évaluation
+                                        </a>
+                                    @else
+                                        <a href="{{ route('esbtp.evaluations.create', ['matiere_id' => $matiere->id]) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-plus me-1"></i>Ajouter une évaluation
+                                        </a>
+                                    @endif
                                 </div>
                                 <div class="card-body">
                                     @if($matiere->evaluations->count() > 0)
@@ -409,7 +380,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -436,7 +407,7 @@
             <div class="modal-body">
                 <p>Êtes-vous sûr de vouloir supprimer cette matière ?</p>
                 <p><strong>Nom :</strong> {{ $matiere->name }}</p>
-                
+
                 @if($matiere->seancesCours->count() > 0 || $matiere->evaluations->count() > 0)
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -464,4 +435,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

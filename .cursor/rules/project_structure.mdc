@@ -1,8 +1,10 @@
 ---
-description: Structure du Projet ESBTP
-globs: 
-alwaysApply: false
+description: 
+globs: **/*
+alwaysApply: true
 ---
+# Structure du Projet ESBTP
+
 ## Organisation en Couches
 
 L'application ESBTP suit une architecture en couches:
@@ -55,4 +57,4 @@ L'application ESBTP suit une architecture en couches:
 - Les noms des classes doivent être en PascalCase
 - Les noms des méthodes et variables doivent être en camelCase
 - Les noms des tables doivent être en snake_case
-- Préfixer tous les éléments spécifiques à ESBTP pour éviter les conflits
+- Préfixer tous les éléments spécifiques à ESBTP pour éviter les conflits 

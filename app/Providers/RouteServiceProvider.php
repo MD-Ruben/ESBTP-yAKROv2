@@ -50,13 +50,14 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
-                
+
             // Charger les routes ESBTP
-            if (file_exists(base_path('routes/esbtp.php'))) {
-                Route::middleware('web')
-                    ->namespace($this->namespace)
-                    ->group(base_path('routes/esbtp.php'));
-            }
+            // Commenté pour éviter les routes dupliquées
+            // if (file_exists(base_path('routes/esbtp.php'))) {
+            //     Route::middleware('web')
+            //         ->namespace($this->namespace)
+            //         ->group(base_path('routes/esbtp.php'));
+            // }
         });
     }
 
@@ -82,7 +83,7 @@ class RouteServiceProvider extends ServiceProvider
             if (request()->is('/') || request()->is('login') || request()->is('register')) {
                 return;
             }
-            
+
             // Vérifier si la base de données est configurée
             if (!config('database.connections.' . config('database.default') . '.database')) {
                 $this->redirectToInstall();

@@ -1,8 +1,5 @@
----
-description: Schéma de Base de Données ESBTP
-globs: 
-alwaysApply: false
----
+# Schéma de Base de Données ESBTP
+
 ## Principales Entités
 
 ### Utilisateurs et Authentification
@@ -257,4 +254,4 @@ class ESBTPEtudiantController extends Controller
 - Inclure des méthodes `up()` et `down()` fonctionnelles
 - Utiliser les types de colonnes appropriés pour les données
 - Définir les contraintes d'intégrité (clés étrangères, index)
-- Commenter le code des migrations pour expliquer les choix de conception
+- Commenter le code des migrations pour expliquer les choix de conception 

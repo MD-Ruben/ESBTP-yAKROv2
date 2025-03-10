@@ -1,7 +1,12 @@
 ---
 description: Intégration de Base de Données avec Prisma
 globs: 
-alwaysApply: false
+alwaysApply: true
+---
+---
+description: Intégration de Base de Données avec Prisma
+globs: 
+alwaysApply: true
 ---
 Ce document détaille l'intégration de Prisma ORM avec Laravel dans l'application ESBTP, fournissant des directives pour la définition du schéma, les migrations, et l'utilisation du client Prisma.
 
@@ -613,4 +618,4 @@ Script pour générer des modèles Eloquent à partir du schéma Prisma:
 - [Documentation Officielle de Prisma](mdc:https:/www.prisma.io/docs)
 - [Prisma avec Laravel (Guides Communautaires)](mdc:https:/github.com/prisma/prisma-examples)
 - [Optimisation des Performances avec Prisma](mdc:https:/www.prisma.io/docs/concepts/components/prisma-client/query-optimization-performance)
-- [Meilleures Pratiques pour le Schéma Prisma](mdc:https:/www.prisma.io/docs/concepts/components/prisma-schema/best-practices)
+- [Meilleures Pratiques pour le Schéma Prisma](mdc:https:/www.prisma.io/docs/concepts/components/prisma-schema/best-practices) 

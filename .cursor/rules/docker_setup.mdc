@@ -1,7 +1,12 @@
 ---
+description: 
+globs: **/*
+alwaysApply: true
+---
+---
 description: Configuration Docker pour ESBTP
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 Ce document détaille la configuration Docker pour le projet ESBTP, fournissant un environnement de développement cohérent et portable, ainsi que des instructions pour le déploiement en production.
 

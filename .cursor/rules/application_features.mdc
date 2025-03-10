@@ -1,9 +1,9 @@
 ---
-description: Fonctionnalités de l'Application ESBTP
+description: Les features de l'application
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
- # Fonctionnalités de l'Application ESBTP
+# Fonctionnalités de l'Application ESBTP
 
 Ce document présente les principales fonctionnalités de l'application ESBTP, leurs interdépendances, et les règles métier associées.
 
@@ -19,7 +19,6 @@ ESBTP Application
 ├── Gestion des Utilisateurs & Authentification
 ├── Structure Académique
 │   ├── Filières
-│   ├── Formations
 │   ├── Niveaux d'Études
 │   └── Classes
 ├── Gestion des Étudiants
@@ -112,14 +111,6 @@ Représentent les domaines d'études spécifiques.
   - Génie Civil (avec options: Bâtiments, Travaux Publics, Géomètre Topographe, Urbanisme)
   - Mine - Géologie - Pétrole
 
-#### Formations
-
-Types de formation proposés par l'établissement.
-
-- **Types**:
-  - Formation Générale
-  - Formation Technologique et Professionnelle
-
 #### Niveaux d'Études
 
 Progression académique des étudiants.
@@ -130,10 +121,10 @@ Progression académique des étudiants.
 
 #### Classes
 
-Regroupements d'étudiants pour une filière, formation et niveau d'étude spécifiques.
+Regroupements d'étudiants pour une filière et niveau d'étude spécifiques.
 
 - **Structure**:
-  - Filière + Formation + Niveau d'Étude = Classe
+  - Filière + Niveau d'Étude = Classe
   - Exemple: "BTS Génie Civil option BÂTIMENT 1ère Année"
 
 - **Fonctionnalités**:
@@ -159,7 +150,7 @@ Processus d'ajout d'un nouvel étudiant dans le système.
   - Classe d'affectation
 
 - **Processus**:
-  1. Sélection de la classe (via un modal avec filtres par filière, niveau d'étude, formation, année universitaire)
+  1. Sélection de la classe (via un modal avec filtres par filière, niveau d'étude, année universitaire)
   2. Saisie des informations de l'étudiant
   3. Ajout ou sélection de parent(s) existant(s) (maximum 2 parents)
   4. Création automatique d'un compte utilisateur pour l'étudiant
@@ -183,7 +174,7 @@ Ensemble des fonctionnalités liées aux aspects éducatifs.
 Cours enseignés aux étudiants.
 
 - **Organisation**:
-  - Matières regroupées par filière, formation et niveau d'étude
+  - Matières regroupées par filière, et niveau d'étude
   - Attribution automatique des groupes de matières aux classes correspondantes
 
 - **Caractéristiques**:
@@ -191,9 +182,7 @@ Cours enseignés aux étudiants.
   - Coefficient pour les calculs de moyenne
   - Volume horaire par niveau d'étude (ex: Anglais technique - 1ère année: 40h, 2e année: 30h)
 
-- **Exemples de groupes**:
-  - Formation Générale: Technique d'expression, Anglais technique, Mathématiques, etc.
-  - Formation Technologique et Professionnelle: Géologie générale, Calculs topométriques, etc.
+
 
 #### Emplois du Temps
 
@@ -264,7 +253,7 @@ Suivi de la présence des étudiants aux cours.
 ## Interdépendances des Fonctionnalités
 
 1. **Structure Académique → Gestion des Étudiants**
-   - Les filières, formations et niveaux d'études doivent être définis avant de pouvoir créer des classes
+   - Les filières et niveaux d'études doivent être définis avant de pouvoir créer des classes
    - Les classes doivent exister avant de pouvoir inscrire des étudiants
 
 2. **Gestion des Étudiants → Gestion Pédagogique**
@@ -324,7 +313,6 @@ Principales interfaces par fonctionnalité:
 ### Structure Académique
 
 - Interface de gestion des filières
-- Interface de gestion des formations
 - Interface de gestion des niveaux d'études
 - Interface de gestion des classes
 
@@ -375,4 +363,4 @@ L'application est conçue pour permettre ces extensions futures:
 5. **Module Statistiques Avancées**
    - Tableaux de bord analytiques
    - Visualisation des performances
-   - Indicateurs de qualité de l'enseignement
+   - Indicateurs de qualité de l'enseignement 

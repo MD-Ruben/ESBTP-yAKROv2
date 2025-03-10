@@ -32,63 +32,140 @@ function ensurePermissionExists($permissionName) {
     return $permission;
 }
 
-// Liste des permissions d'attendance
-$attendancePermissions = [
-    'create attendance',
-    'view attendances',
-    'edit attendances',
-    'delete attendances'
+// Définir toutes les permissions nécessaires
+$allPermissions = [
+    // Filières
+    'view_filieres', 'create_filieres', 'edit_filieres', 'delete_filieres',
+
+    // Formations
+    'view_formations', 'create_formations', 'edit_formations', 'delete_formations',
+
+    // Niveaux d'études
+    'view_niveaux_etudes', 'create_niveaux_etudes', 'edit_niveaux_etudes', 'delete_niveaux_etudes',
+
+    // Classes
+    'view_classes', 'create_classe', 'edit_classes', 'delete_classes',
+
+    // Étudiants
+    'view_students', 'create_student', 'edit_students', 'delete_students',
+    'view_own_profile',
+
+    // Examens
+    'view_exams', 'create_exam', 'edit_exams', 'delete_exams',
+    'view_own_exams',
+
+    // Matières
+    'view_matieres', 'create_matieres', 'edit_matieres', 'delete_matieres',
+
+    // Notes
+    'view_grades', 'create_grade', 'edit_grades', 'delete_grades',
+    'view_own_grades',
+
+    // Bulletins
+    'view_bulletins', 'generate_bulletin', 'edit_bulletins', 'delete_bulletins',
+    'view_own_bulletin',
+
+    // Emplois du temps
+    'view_timetables', 'create_timetable', 'edit_timetables', 'delete_timetables',
+    'view_own_timetable',
+
+    // Messages
+    'send_messages', 'receive_messages',
+
+    // Présences
+    'view_attendances', 'create_attendance', 'edit_attendances', 'delete_attendances',
+    'view_own_attendances',
+
+    // Inscriptions
+    'inscriptions.view', 'inscriptions.create', 'inscriptions.edit', 'inscriptions.delete', 'inscriptions.validate'
 ];
 
-// Vérifier et créer les permissions manquantes
-echo "Vérification des permissions d'attendance...\n";
-foreach ($attendancePermissions as $permissionName) {
+// Vérifier et créer toutes les permissions
+echo "Vérification et création des permissions...\n";
+foreach ($allPermissions as $permissionName) {
     ensurePermissionExists($permissionName);
 }
 
-// Vérifier et créer les permissions d'inscription si elles n'existent pas déjà
-$inscriptionPermissions = [
-    'inscriptions.view',
-    'inscriptions.create',
-    'inscriptions.edit',
-    'inscriptions.delete',
-    'inscriptions.validate'
+// Définir les permissions pour chaque rôle
+$rolePermissions = [
+    'superAdmin' => $allPermissions, // Le superAdmin a toutes les permissions
+
+    'secretaire' => [
+        // Filières
+        'view_filieres',
+
+        // Formations
+        'view_formations',
+
+        // Niveaux d'études
+        'view_niveaux_etudes',
+
+        // Classes
+        'view_classes',
+
+        // Étudiants
+        'create_student', 'view_students',
+
+        // Examens
+        'view_exams',
+
+        // Matières
+        'view_matieres',
+
+        // Notes
+        'create_grade', 'view_grades',
+
+        // Bulletins
+        'generate_bulletin', 'view_bulletins',
+
+        // Emplois du temps
+        'create_timetable', 'view_timetables',
+
+        // Messages
+        'send_messages',
+
+        // Présences
+        'create_attendance', 'view_attendances',
+
+        // Inscriptions
+        'inscriptions.view', 'inscriptions.create', 'inscriptions.edit'
+    ],
+
+    'etudiant' => [
+        'view_own_profile',
+        'view_own_exams',
+        'view_own_grades',
+        'view_own_bulletin',
+        'view_own_timetable',
+        'receive_messages',
+        'view_own_attendances'
+    ]
 ];
 
-echo "Vérification et création des permissions d'inscription...\n";
-foreach ($inscriptionPermissions as $permissionName) {
-    $permission = Permission::firstOrCreate(['name' => $permissionName]);
-    echo "Permission '{$permissionName}' créée ou confirmée.\n";
-}
-
-// Récupérer ou créer le rôle superAdmin
-$superAdmin = Role::where('name', 'superAdmin')->first();
-if (!$superAdmin) {
-    $superAdmin = Role::create(['name' => 'superAdmin']);
-    echo "✅ Rôle 'superAdmin' créé.\n";
-} else {
-    echo "ℹ️ Rôle 'superAdmin' existe déjà.\n";
-}
-
-// Attribuer les permissions au rôle superAdmin
-echo "\nAttribution des permissions au rôle superAdmin...\n";
-foreach ($attendancePermissions as $permissionName) {
-    if (!$superAdmin->hasPermissionTo($permissionName)) {
-        $superAdmin->givePermissionTo($permissionName);
-        echo "✅ Permission '{$permissionName}' attribuée au superAdmin.\n";
+// Récupérer ou créer les rôles
+$roles = [];
+foreach (array_keys($rolePermissions) as $roleName) {
+    $role = Role::where('name', $roleName)->first();
+    if (!$role) {
+        $role = Role::create(['name' => $roleName]);
+        echo "✅ Rôle '{$roleName}' créé.\n";
     } else {
-        echo "ℹ️ superAdmin a déjà la permission '{$permissionName}'.\n";
+        echo "ℹ️ Rôle '{$roleName}' existe déjà.\n";
     }
+    $roles[$roleName] = $role;
 }
 
-// Attribuer toutes les permissions au rôle superAdmin
-echo "\nAttribution de toutes les permissions au rôle superAdmin...\n";
-foreach ($inscriptionPermissions as $permissionName) {
-    if (!$superAdmin->hasPermissionTo($permissionName)) {
-        $superAdmin->givePermissionTo($permissionName);
-        echo "✅ Permission '{$permissionName}' attribuée au superAdmin.\n";
-    } else {
-        echo "ℹ️ superAdmin a déjà la permission '{$permissionName}'.\n";
+// Attribuer les permissions aux rôles
+echo "\nAttribution des permissions aux rôles...\n";
+foreach ($rolePermissions as $roleName => $permissions) {
+    $role = $roles[$roleName];
+    foreach ($permissions as $permissionName) {
+        if (!$role->hasPermissionTo($permissionName)) {
+            $role->givePermissionTo($permissionName);
+            echo "✅ Permission '{$permissionName}' attribuée au rôle '{$roleName}'.\n";
+        } else {
+            echo "ℹ️ Le rôle '{$roleName}' a déjà la permission '{$permissionName}'.\n";
+        }
     }
 }
 
@@ -105,7 +182,7 @@ if ($users->count() > 0) {
 
 // Vérifier les permissions attribuées au rôle superAdmin
 echo "\nPermissions attribuées au rôle superAdmin :\n";
-$permissions = $superAdmin->permissions;
+$permissions = $roles['superAdmin']->permissions;
 foreach ($permissions as $permission) {
     echo "- {$permission->name}\n";
 }
@@ -115,4 +192,4 @@ echo "php artisan config:clear\n";
 echo "php artisan view:clear\n";
 echo "php artisan permission:cache-reset\n";
 
-echo "\n=== Fin du script ===\n"; 
+echo "\n=== Fin du script ===\n";

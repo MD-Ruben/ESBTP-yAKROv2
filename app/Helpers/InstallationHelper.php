@@ -12,7 +12,7 @@ class InstallationHelper
 {
     /**
      * Check if the application is installed
-     * 
+     *
      * This function checks multiple conditions to determine if the application
      * has been properly installed:
      * 1. The .env file exists
@@ -20,7 +20,7 @@ class InstallationHelper
      * 3. Database connection is working
      * 4. Required tables exist in the database
      * 5. Migration tables match existing tables
-     * 
+     *
      * @return bool
      */
     public static function isInstalled(): bool
@@ -28,18 +28,18 @@ class InstallationHelper
         try {
             // Vérifier si le fichier .env indique que l'application est installée
             $envInstalled = env('APP_INSTALLED', false);
-            
+
             // Vérifier si la base de données est configurée et si au moins un superAdmin existe
             $dbConfigured = self::isDatabaseConfigured();
             $hasAdminUser = self::hasAdminUser();
-            
+
             // Journaliser l'état de l'installation
             \Log::info(
-                "Installation status check: ENV=" . ($envInstalled ? 'true' : 'false') . 
-                ", DB=" . ($dbConfigured ? 'true' : 'false') . 
+                "Installation status check: ENV=" . ($envInstalled ? 'true' : 'false') .
+                ", DB=" . ($dbConfigured ? 'true' : 'false') .
                 ", AdminUser=" . ($hasAdminUser ? 'true' : 'false')
             );
-            
+
             // L'application est considérée comme installée si toutes les conditions sont remplies
             return $envInstalled && $dbConfigured && $hasAdminUser;
         } catch (\Exception $e) {
@@ -50,19 +50,19 @@ class InstallationHelper
 
     /**
      * Mark the application as installed in the .env file
-     * 
+     *
      * This function updates the .env file to set APP_INSTALLED=true
-     * 
+     *
      * @return bool
      */
     public static function markAsInstalled(): bool
     {
         try {
             $envPath = base_path('.env');
-            
+
             if (File::exists($envPath)) {
                 $envContent = File::get($envPath);
-                
+
                 // Check if APP_INSTALLED already exists in .env
                 if (strpos($envContent, 'APP_INSTALLED') !== false) {
                     // Replace existing APP_INSTALLED value
@@ -75,22 +75,22 @@ class InstallationHelper
                     // Add APP_INSTALLED=true to .env
                     $envContent .= "\nAPP_INSTALLED=true\n";
                 }
-                
+
                 // Write updated content back to .env file
                 File::put($envPath, $envContent);
-                
+
                 return true;
             }
-            
+
             return false;
         } catch (\Exception $e) {
             return false;
         }
     }
-    
+
     /**
      * Check if the database is properly configured
-     * 
+     *
      * @return bool
      */
     public static function isDatabaseConfigured(): bool
@@ -103,10 +103,10 @@ class InstallationHelper
             return false;
         }
     }
-    
+
     /**
      * Get the number of tables in the database
-     * 
+     *
      * @return int
      */
     public static function getTableCount(): int
@@ -115,17 +115,17 @@ class InstallationHelper
             if (!self::isDatabaseConfigured()) {
                 return 0;
             }
-            
+
             $tables = DB::select('SHOW TABLES');
             return count($tables);
         } catch (\Exception $e) {
             return 0;
         }
     }
-    
+
     /**
      * Check if an admin user exists
-     * 
+     *
      * @return bool
      */
     public static function hasAdminUser(): bool
@@ -143,9 +143,9 @@ class InstallationHelper
                 ->where('roles.name', '=', 'superAdmin')
                 ->where('model_has_roles.model_type', '=', User::class)
                 ->exists();
-            
+
             Log::info('Utilisateur superAdmin existe: ' . ($superAdminExists ? 'Oui' : 'Non'));
-            
+
             return $superAdminExists;
         } catch (\Exception $e) {
             Log::error("Erreur lors de la vérification de l'existence de l'administrateur: " . $e->getMessage());
@@ -155,7 +155,7 @@ class InstallationHelper
 
     /**
      * Récupère l'état complet de l'installation
-     * 
+     *
      * @return array Tableau associatif avec les statuts d'installation et le pourcentage de correspondance des tables
      */
     public static function getInstallationStatus()
@@ -166,7 +166,7 @@ class InstallationHelper
         $allTablesPresent = false;
         $requiredTables = ['users', 'roles', 'permissions', 'model_has_roles'];
         $allRequiredTablesExist = false;
-        
+
         // Initialisation des variables pour le calcul du match_percentage
         $matchPercentage = 0;
         $missingTables = [];
@@ -175,29 +175,29 @@ class InstallationHelper
         $existingTables = [];
         $matchingTables = [];
         $tableCount = 0;
-        
+
         if ($isDatabaseConfigured) {
             try {
                 // Vérifier les tables requises
                 $allRequiredTablesExist = self::checkRequiredTables($requiredTables);
                 $tableCount = self::getTableCount();
-                
+
                 // Récupérer les tables de migration et existantes
                 $migrationTables = self::getMigrationTableNames();
                 $existingTables = self::getExistingTables();
-                
+
                 // Calculer les tables manquantes et supplémentaires
                 $matchingTables = array_intersect($migrationTables, $existingTables);
                 $missingTables = array_diff($migrationTables, $existingTables);
                 $extraTables = array_diff($existingTables, $migrationTables);
-                
+
                 // Calculer le pourcentage de correspondance
-                $matchPercentage = count($migrationTables) > 0 
-                    ? round((count($matchingTables) / count($migrationTables)) * 100) 
+                $matchPercentage = count($migrationTables) > 0
+                    ? round((count($matchingTables) / count($migrationTables)) * 100)
                     : 0;
-                
+
                 $allTablesPresent = count($missingTables) === 0;
-                
+
                 // Journaliser les résultats pour le débogage
                 \Log::info("Match percentage: {$matchPercentage}%");
                 \Log::info("Missing tables: " . count($missingTables));
@@ -206,10 +206,10 @@ class InstallationHelper
                 \Log::error("Erreur lors du calcul du statut d'installation: " . $e->getMessage());
             }
         }
-        
+
         // L'application est considérée comme installée si toutes les conditions sont remplies
         $installed = $isEnvInstalled && $isDatabaseConfigured && $hasAdminUser && $allRequiredTablesExist;
-        
+
         return [
             'env_installed' => $isEnvInstalled,
             'db_configured' => $isDatabaseConfigured,
@@ -227,7 +227,7 @@ class InstallationHelper
             'installed' => $installed
         ];
     }
-    
+
     /**
      * Vérifie si toutes les tables requises existent
      *
@@ -253,7 +253,7 @@ class InstallationHelper
     /**
      * Normaliser un nom de table pour la vérification de correspondance
      * Cette fonction prend en charge les variations de noms ESBTP
-     * 
+     *
      * @param string $tableName
      * @return string
      */
@@ -263,30 +263,30 @@ class InstallationHelper
         if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
             return str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
         }
-        
+
         return $tableName;
     }
 
     /**
      * Extraction améliorée des noms de tables depuis les fichiers de migration
-     * 
+     *
      * @return array
      */
     public static function getExpectedTables()
     {
         $migrationFiles = glob(database_path('migrations/*.php'));
         $tableNames = [];
-        
+
         foreach ($migrationFiles as $file) {
             $filename = basename($file);
-            
+
             // Extraire le nom de la table à partir du nom du fichier
             if (preg_match('/create_(.+)_table\.php$/', $filename, $matches)) {
                 $tableName = $matches[1];
                 $tableName = self::normalizeTableName($tableName);
                 $tableNames[] = $tableName;
             }
-            
+
             // Analyser le contenu du fichier pour trouver tous les appels Schema::create
             $content = file_get_contents($file);
             if (preg_match_all('/Schema::create\([\'"]([^\'"]+)[\'"]/', $content, $contentMatches)) {
@@ -298,16 +298,16 @@ class InstallationHelper
                 }
             }
         }
-        
+
         // Log pour le débogage
         Log::info('Tables attendues: ' . implode(', ', $tableNames));
-        
+
         return $tableNames;
     }
 
     /**
      * Vérifier si toutes les tables ESBTP existent
-     * 
+     *
      * @return bool
      */
     public static function allESBTPTablesExist()
@@ -317,11 +317,8 @@ class InstallationHelper
                 Log::info("allESBTPTablesExist: La base de données n'est pas configurée");
                 return false;
             }
-            
+
             $esbtpTables = [
-                'esbtp_filieres',
-                'esbtp_niveau_etudes',
-                'esbtp_annee_universitaires',
                 'esbtp_inscriptions',
                 'esbtp_etudiants',
                 'esbtp_parents',
@@ -329,10 +326,6 @@ class InstallationHelper
                 'esbtp_paiements',
                 'esbtp_classes',
                 'esbtp_matieres',
-                'esbtp_formations',
-                'esbtp_filiere_formation',
-                'esbtp_formation_niveau',
-                'esbtp_formation_matiere',
                 'esbtp_evaluations',
                 'esbtp_notes',
                 'esbtp_bulletins',
@@ -344,17 +337,17 @@ class InstallationHelper
                 'esbtp_seance_cours',
                 'esbtp_attendances'
             ];
-            
+
             foreach ($esbtpTables as $table) {
                 $exists = Schema::hasTable($table);
                 Log::info("Table {$table} existe: " . ($exists ? 'Oui' : 'Non'));
-                
+
                 if (!$exists) {
                     Log::info("Table ESBTP manquante: {$table}");
                     return false;
                 }
             }
-            
+
             Log::info("Toutes les tables ESBTP existent");
             return true;
         } catch (\Exception $e) {
@@ -367,7 +360,7 @@ class InstallationHelper
      * Vérifie si toutes les tables requises existent dans la base de données
      * Cette fonction parcourt tous les fichiers de migration pour extraire les noms de tables
      * et vérifie leur existence
-     * 
+     *
      * @return array
      */
     public static function checkAllRequiredTables()
@@ -384,25 +377,25 @@ class InstallationHelper
                     'existing_count' => 0
                 ];
             }
-            
+
             // Extraire les tables attendues de tous les fichiers de migration
             $expectedTables = self::getExpectedTables();
-            
+
             $existingTables = [];
             $missingTables = [];
-            
+
             // Vérifier l'existence de chaque table
             foreach ($expectedTables as $table) {
                 $exists = Schema::hasTable($table);
                 Log::info("Table {$table} existe: " . ($exists ? 'Oui' : 'Non'));
-                
+
                 if ($exists) {
                     $existingTables[] = $table;
                 } else {
                     $missingTables[] = $table;
                 }
             }
-            
+
             $result = [
                 'all_exist' => count($missingTables) === 0,
                 'missing_tables' => $missingTables,
@@ -411,13 +404,13 @@ class InstallationHelper
                 'missing_count' => count($missingTables),
                 'existing_count' => count($existingTables)
             ];
-            
+
             // Journalisation du résultat
             Log::info("Vérification des tables requises: " . count($existingTables) . "/" . count($expectedTables) . " tables existent");
             if (count($missingTables) > 0) {
                 Log::info("Tables manquantes: " . implode(', ', $missingTables));
             }
-            
+
             return $result;
         } catch (\Exception $e) {
             Log::error("Erreur lors de la vérification des tables requises: " . $e->getMessage());
@@ -436,7 +429,7 @@ class InstallationHelper
     /**
      * Vérifier les tables par catégorie (modules)
      * Cette fonction vérifie l'existence des tables regroupées par module
-     * 
+     *
      * @return array
      */
     public static function checkTablesByCategory()
@@ -449,16 +442,13 @@ class InstallationHelper
                     'all_complete' => false
                 ];
             }
-            
+
             // Définir les catégories de tables (modules)
             $categories = [
                 'esbtp' => [
                     'name' => 'ESBTP',
                     'description' => 'Module ESBTP (École Supérieure BTP)',
                     'tables' => [
-                        'esbtp_filieres',
-                        'esbtp_niveau_etudes',
-                        'esbtp_annee_universitaires',
                         'esbtp_inscriptions',
                         'esbtp_etudiants',
                         'esbtp_parents',
@@ -466,10 +456,6 @@ class InstallationHelper
                         'esbtp_paiements',
                         'esbtp_classes',
                         'esbtp_matieres',
-                        'esbtp_formations',
-                        'esbtp_filiere_formation',
-                        'esbtp_formation_niveau',
-                        'esbtp_formation_matiere',
                         'esbtp_evaluations',
                         'esbtp_notes',
                         'esbtp_bulletins',
@@ -518,18 +504,18 @@ class InstallationHelper
                     ]
                 ]
             ];
-            
+
             $results = [];
             $allComplete = true;
-            
+
             // Vérifier chaque catégorie
             foreach ($categories as $key => $category) {
                 $missing = [];
                 $existing = [];
-                
+
                 foreach ($category['tables'] as $table) {
                     $exists = Schema::hasTable($table);
-                    
+
                     if ($exists) {
                         $existing[] = $table;
                     } else {
@@ -537,7 +523,7 @@ class InstallationHelper
                         $allComplete = false;
                     }
                 }
-                
+
                 $results[$key] = [
                     'name' => $category['name'],
                     'description' => $category['description'],
@@ -545,14 +531,14 @@ class InstallationHelper
                     'existing' => $existing,
                     'missing' => $missing,
                     'complete' => count($missing) === 0,
-                    'percentage' => count($category['tables']) > 0 
-                        ? round((count($existing) / count($category['tables'])) * 100) 
+                    'percentage' => count($category['tables']) > 0
+                        ? round((count($existing) / count($category['tables'])) * 100)
                         : 0
                 ];
-                
+
                 Log::info("Catégorie {$category['name']}: {$results[$key]['percentage']}% complet");
             }
-            
+
             return [
                 'categories' => $results,
                 'all_complete' => $allComplete
@@ -582,13 +568,13 @@ class InstallationHelper
 
             $tables = [];
             $results = DB::select('SHOW TABLES');
-            
+
             if ($results) {
                 foreach ($results as $result) {
                     $tables[] = reset($result); // Récupère la première valeur de l'objet
                 }
             }
-            
+
             Log::info('Tables existantes récupérées: ' . count($tables));
             return $tables;
         } catch (\Exception $e) {
@@ -607,11 +593,11 @@ class InstallationHelper
         try {
             $migrationFiles = self::getMigrationFiles();
             $tableNames = [];
-            
+
             foreach ($migrationFiles as $file) {
                 $filename = basename($file);
                 $tablesInFile = [];
-                
+
                 // D'abord, extraire le nom de la table à partir du nom de fichier
                 if (preg_match('/create_(.+)_table\.php$/', $filename, $matches)) {
                     $tableName = $matches[1];
@@ -619,10 +605,10 @@ class InstallationHelper
                     if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
                         $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
                     }
-                    
+
                     $tablesInFile[] = $tableName;
                 }
-                
+
                 // Ensuite, analyser le contenu du fichier pour trouver les appels Schema::create
                 $content = file_get_contents($file);
                 if (preg_match_all('/Schema::create\([\'"]([^\'"]+)[\'"]/', $content, $contentMatches)) {
@@ -631,13 +617,13 @@ class InstallationHelper
                         if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
                             $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
                         }
-                        
+
                         if (!in_array($tableName, $tablesInFile)) {
                             $tablesInFile[] = $tableName;
                         }
                     }
                 }
-                
+
                 // Vérifier également la méthode createTable qui pourrait être utilisée dans certaines migrations
                 if (preg_match_all('/->createTable\([\'"]([^\'"]+)[\'"]/', $content, $createTableMatches)) {
                     foreach ($createTableMatches[1] as $tableName) {
@@ -645,13 +631,13 @@ class InstallationHelper
                         if (strpos($tableName, 'esbtp_') === 0 || strpos($tableName, 'e_s_b_t_p_') === 0) {
                             $tableName = str_replace('e_s_b_t_p_', 'esbtp_', $tableName);
                         }
-                        
+
                         if (!in_array($tableName, $tablesInFile)) {
                             $tablesInFile[] = $tableName;
                         }
                     }
                 }
-                
+
                 // Ajouter les tables trouvées dans ce fichier à nos collections
                 foreach ($tablesInFile as $tableName) {
                     if (!in_array($tableName, $tableNames)) {
@@ -659,11 +645,11 @@ class InstallationHelper
                     }
                 }
             }
-            
+
             // Journaliser pour le débogage
             \Log::info('Fichiers de migration trouvés: ' . count($migrationFiles));
             \Log::info('Noms de tables extraits: ' . count($tableNames));
-            
+
             return $tableNames;
         } catch (\Exception $e) {
             \Log::error('Erreur lors de l\'extraction des noms de tables: ' . $e->getMessage());
@@ -683,9 +669,9 @@ class InstallationHelper
                 database_path('migrations'),
                 database_path('migrations/esbtp')
             ];
-            
+
             $files = [];
-            
+
             foreach ($migrationPaths as $path) {
                 if (is_dir($path)) {
                     $directoryFiles = glob($path . '/*.php');
@@ -694,7 +680,7 @@ class InstallationHelper
                     }
                 }
             }
-            
+
             return $files;
         } catch (\Exception $e) {
             \Log::error('Erreur lors de la récupération des fichiers de migration: ' . $e->getMessage());
@@ -704,7 +690,7 @@ class InstallationHelper
 
     /**
      * Vérifie que les données de base ESBTP sont présentes dans la base de données
-     * 
+     *
      * @return array Tableau contenant le statut et les détails des données manquantes
      */
     public static function checkESBTPData()
@@ -745,7 +731,7 @@ class InstallationHelper
                 $result['annees'] = false;
                 $result['missing_data'][] = 'Années universitaires ESBTP';
             }
-            
+
             // Vérifier la table étudiants
             if (Schema::hasTable('esbtp_etudiants')) {
                 \Log::info('Table esbtp_etudiants existe');
@@ -755,7 +741,7 @@ class InstallationHelper
                 $result['missing_data'][] = 'Table étudiants ESBTP';
                 \Log::warning('Table esbtp_etudiants n\'existe pas');
             }
-            
+
             // Vérifier la table parents
             if (Schema::hasTable('esbtp_parents')) {
                 \Log::info('Table esbtp_parents existe');
@@ -765,7 +751,7 @@ class InstallationHelper
                 $result['missing_data'][] = 'Table parents ESBTP';
                 \Log::warning('Table esbtp_parents n\'existe pas');
             }
-            
+
             // Vérifier la table paiements
             if (Schema::hasTable('esbtp_paiements')) {
                 \Log::info('Table esbtp_paiements existe');
@@ -792,4 +778,4 @@ class InstallationHelper
             ];
         }
     }
-} 
+}

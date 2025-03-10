@@ -125,17 +125,6 @@ class ESBTPMatiere extends Model
     }
 
     /**
-     * Relation avec les formations associées à cette matière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function formations()
-    {
-        return $this->belongsToMany(ESBTPFormation::class, 'esbtp_formation_matiere', 'matiere_id', 'formation_id')
-                    ->withTimestamps();
-    }
-
-    /**
      * Obtenir le coefficient pour une classe spécifique.
      *
      * @param int $classeId
@@ -210,7 +199,17 @@ class ESBTPMatiere extends Model
     {
         return $this->niveaux();
     }
-    
+
+    /**
+     * Relation avec les séances de cours.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function seancesCours()
+    {
+        return $this->hasMany(ESBTPSeanceCours::class, 'matiere_id');
+    }
+
     /**
      * Accesseur pour obtenir le coefficient par défaut.
      *
@@ -220,7 +219,7 @@ class ESBTPMatiere extends Model
     {
         return $this->coefficient ?? $this->niveaux()->pluck('pivot.coefficient')->avg() ?? 1.0;
     }
-    
+
     /**
      * Accesseur pour obtenir le total d'heures par défaut.
      *
@@ -228,7 +227,7 @@ class ESBTPMatiere extends Model
      */
     public function getTotalHeuresDefaultAttribute()
     {
-        return $this->heures_cm + $this->heures_td + $this->heures_tp + $this->heures_stage + $this->heures_perso ?? 
+        return $this->heures_cm + $this->heures_td + $this->heures_tp + $this->heures_stage + $this->heures_perso ??
                $this->niveaux()->pluck('pivot.heures_cours')->sum() ?? 0;
     }
-} 
+}

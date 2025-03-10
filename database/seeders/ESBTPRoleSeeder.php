@@ -32,8 +32,6 @@ class ESBTPRoleSeeder extends Seeder
         $allPermissions = [
             // Filières
             'create_filieres', 'view_filieres', 'edit_filieres', 'delete_filieres',
-            // Formations
-            'create_formations', 'view_formations', 'edit_formations', 'delete_formations',
             // Niveaux d'études
             'create_niveaux_etudes', 'view_niveaux_etudes', 'edit_niveaux_etudes', 'delete_niveaux_etudes',
             // Classes
@@ -54,6 +52,12 @@ class ESBTPRoleSeeder extends Seeder
             'send_messages', 'receive_messages',
             // Présences
             'create_attendance', 'view_attendances', 'edit_attendances', 'delete_attendances', 'view_own_attendances',
+            // Inscriptions
+            'inscriptions.view',
+            'inscriptions.create',
+            'inscriptions.edit',
+            'inscriptions.delete',
+            'inscriptions.validate'
         ];
 
         // Création de toutes les permissions
@@ -85,4 +89,4 @@ class ESBTPRoleSeeder extends Seeder
 
         $this->command->info('Tous les rôles et permissions ESBTP ont été créés avec succès.');
     }
-} 
+}

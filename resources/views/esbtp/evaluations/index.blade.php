@@ -20,14 +20,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <!-- Formulaire de filtrage -->
                     <div class="row mb-4">
                         <div class="col-md-12">
@@ -48,7 +48,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        
+
                                         <div class="col-md-3">
                                             <label for="matiere_id" class="form-label">Matière</label>
                                             <select name="matiere_id" id="matiere_id" class="form-select select2">
@@ -60,7 +60,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        
+
                                         <div class="col-md-3">
                                             <label for="type" class="form-label">Type d'évaluation</label>
                                             <select name="type" id="type" class="form-select select2">
@@ -71,7 +71,7 @@
                                                 <option value="tp" {{ request('type') == 'tp' ? 'selected' : '' }}>TP</option>
                                             </select>
                                         </div>
-                                        
+
                                         <div class="col-md-3">
                                             <label for="is_published" class="form-label">Statut</label>
                                             <select name="is_published" id="is_published" class="form-select select2">
@@ -80,17 +80,17 @@
                                                 <option value="0" {{ request('is_published') == '0' ? 'selected' : '' }}>Non publié</option>
                                             </select>
                                         </div>
-                                        
+
                                         <div class="col-md-3">
                                             <label for="date_debut" class="form-label">Date début</label>
                                             <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ request('date_debut') }}">
                                         </div>
-                                        
+
                                         <div class="col-md-3">
                                             <label for="date_fin" class="form-label">Date fin</label>
                                             <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ request('date_fin') }}">
                                         </div>
-                                        
+
                                         <div class="col-md-6 d-flex align-items-end">
                                             <button type="submit" class="btn btn-primary me-2">
                                                 <i class="fas fa-filter me-1"></i>Filtrer
@@ -104,7 +104,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped datatable">
                             <thead>
@@ -163,9 +163,11 @@
                                                 <a href="{{ route('esbtp.evaluations.edit', $evaluation) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                @if(auth()->user()->hasRole('secretaire'))
                                                 <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-sm btn-primary" title="Saisie des notes">
                                                     <i class="fas fa-pen"></i>
                                                 </a>
+                                                @endif
                                                 <form action="{{ route('esbtp.evaluations.destroy', $evaluation) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette évaluation?');">
                                                     @csrf
                                                     @method('DELETE')
@@ -184,7 +186,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-3">
                         {{ $evaluations->appends(request()->query())->links() }}
                     </div>
@@ -192,7 +194,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Statistiques des évaluations -->
     <div class="row mt-3">
         <div class="col-md-3">
@@ -237,7 +239,7 @@
         $('.select2').select2({
             theme: 'bootstrap-5'
         });
-        
+
         $('.datatable').DataTable({
             "responsive": true,
             "autoWidth": false,
@@ -250,4 +252,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

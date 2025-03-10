@@ -1,7 +1,12 @@
 ---
 description: Organisation des Fichiers et Bonnes Pratiques
 globs: 
-alwaysApply: false
+alwaysApply: true
+---
+---
+description: Organisation des Fichiers et Bonnes Pratiques
+globs: 
+alwaysApply: true
 ---
 Ce document définit les règles pour organiser et créer des fichiers et dossiers dans l'application ESBTP afin de maintenir une structure cohérente, légère et facile à comprendre.
 

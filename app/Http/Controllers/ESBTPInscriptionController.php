@@ -95,21 +95,21 @@ class ESBTPInscriptionController extends Controller
 
         // Calculer les statistiques
         $statsQuery = ESBTPInscription::query();
-        
+
         if ($filiere) {
             $statsQuery->where('filiere_id', $filiere);
         }
-        
+
         if ($niveau) {
             $statsQuery->where('niveau_id', $niveau);
         }
-        
+
         if ($annee) {
             $statsQuery->where('annee_universitaire_id', $annee);
         } elseif ($anneeEnCours) {
             $statsQuery->where('annee_universitaire_id', $anneeEnCours->id);
         }
-        
+
         $stats = [
             'total' => $statsQuery->count(),
             'actives' => (clone $statsQuery)->where('status', 'active')->count(),
@@ -119,14 +119,14 @@ class ESBTPInscriptionController extends Controller
         ];
 
         return view('esbtp.inscriptions.index', compact(
-            'inscriptions', 
-            'filieres', 
-            'niveaux', 
-            'annees', 
-            'search', 
-            'filiere', 
-            'niveau', 
-            'annee', 
+            'inscriptions',
+            'filieres',
+            'niveaux',
+            'annees',
+            'search',
+            'filiere',
+            'niveau',
+            'annee',
             'status',
             'stats',
             'anneeEnCours'
@@ -141,18 +141,16 @@ class ESBTPInscriptionController extends Controller
         $filieres = ESBTPFiliere::where('is_active', true)->get();
         $niveaux = ESBTPNiveauEtude::where('is_active', true)->get();
         $annees = ESBTPAnneeUniversitaire::where('is_active', true)->get();
-        $formations = DB::table('esbtp_formations')->where('is_active', true)->get();
         $anneeEnCours = ESBTPAnneeUniversitaire::where('is_active', true)->first();
 
         // Renommer les variables pour les utiliser dans le modal
         $anneeUniversitaires = $annees;
         $niveauEtudes = $niveaux;
-        
+
         return view('esbtp.inscriptions.create', compact(
-            'filieres', 
-            'niveaux', 
-            'annees', 
-            'formations', 
+            'filieres',
+            'niveaux',
+            'annees',
             'anneeEnCours',
             'anneeUniversitaires',
             'niveauEtudes'
@@ -174,41 +172,41 @@ class ESBTPInscriptionController extends Controller
             'date_naissance' => 'required|date',
             'genre' => 'required|in:Homme,Femme',
         ]);
-        
+
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
-        
+
         try {
             // Log des données soumises pour débogage
             Log::info('Données reçues:', $request->all());
-            
+
             DB::beginTransaction();
-            
+
             // Récupérer les informations complètes de la classe sélectionnée
             $classe = ESBTPClasse::with(['filiere', 'niveau', 'annee'])
                 ->findOrFail($request->classe_id);
-            
+
             // Préparer les données de l'étudiant
             $etudiantData = $request->only([
                 'nom', 'prenoms', 'email', 'telephone', 'date_naissance',
                 'lieu_naissance', 'genre', 'adresse', 'ville', 'commune'
             ]);
-            
+
             // Conversion du genre pour correspondre à la colonne sexe de la table esbtp_etudiants
             $etudiantData['sexe'] = $etudiantData['genre'] === 'Homme' ? 'M' : 'F';
             unset($etudiantData['genre']); // Supprimer la clé 'genre' qui n'existe pas dans la table
-            
+
             // Définir le statut comme 'actif' au lieu de 'en_attente' pour l'étudiant
             $etudiantData['statut'] = 'actif';
-            
+
             // Traiter la photo si fournie
             if ($request->hasFile('photo')) {
                 $etudiantData['photo'] = $this->handlePhotoUpload($request->file('photo'));
             }
-            
+
             // Préparer les données d'inscription
             $inscriptionData = [
                 'date_inscription' => $request->date_inscription ?? now()->format('Y-m-d'),
@@ -221,16 +219,16 @@ class ESBTPInscriptionController extends Controller
                 'montant_scolarite' => $request->montant_scolarite ?? 0,
                 'frais_inscription' => $request->frais_inscription ?? 0,
             ];
-            
+
             // Si la classe a des relations filière et niveau, les ajouter aux données de l'étudiant
             if ($classe->filiere_id) {
                 $etudiantData['filiere_id'] = $classe->filiere_id;
             }
-            
+
             if ($classe->niveau_etude_id) {
                 $etudiantData['niveau_etude_id'] = $classe->niveau_etude_id;
             }
-            
+
             // Préparer les données de paiement
             $paiementData = null;
             if ($request->filled('montant_verse') && $request->montant_verse > 0) {
@@ -242,10 +240,10 @@ class ESBTPInscriptionController extends Controller
                     'commentaire' => $request->commentaire,
                 ];
             }
-            
+
             // Préparer les données des parents
             $parentsData = [];
-            
+
             // Traiter les parents du formulaire
             if ($request->has('parents')) {
                 foreach ($request->parents as $parent) {
@@ -255,7 +253,7 @@ class ESBTPInscriptionController extends Controller
                             'parent_id' => $parent['parent_id'],
                             'relation' => $parent['relation'] ?? 'Autre'
                         ];
-                    } 
+                    }
                     elseif (isset($parent['type']) && $parent['type'] === 'nouveau' && !empty($parent['nom']) && !empty($parent['prenoms'])) {
                         // Nouveau parent
                         $parentsData[] = [
@@ -270,7 +268,7 @@ class ESBTPInscriptionController extends Controller
                     }
                 }
             }
-            
+
             // Créer l'inscription
             $inscription = $this->inscriptionService->createInscription(
                 $etudiantData,
@@ -279,9 +277,9 @@ class ESBTPInscriptionController extends Controller
                 $paiementData,
                 auth()->id()
             );
-            
+
             DB::commit();
-            
+
             // Stocker les informations du compte dans la session
             if ($inscription && $inscription->etudiant && $inscription->etudiant->user) {
                 $user = $inscription->etudiant->user;
@@ -291,14 +289,14 @@ class ESBTPInscriptionController extends Controller
                     'role' => 'Étudiant'
                 ]);
             }
-            
+
             return redirect()->route('esbtp.inscriptions.show', $inscription)
                 ->with('success', 'Inscription enregistrée avec succès !');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
                 ->withInput();
@@ -310,30 +308,17 @@ class ESBTPInscriptionController extends Controller
      */
     public function show(ESBTPInscription $inscription)
     {
-        // Charger les relations nécessaires
+        // Charger toutes les relations nécessaires
         $inscription->load([
-            'etudiant.user',
             'etudiant.parents',
             'filiere',
             'niveau',
             'classe',
             'anneeUniversitaire',
-            'paiements' => function($q) {
-                $q->orderBy('date_paiement', 'desc');
-            },
-            'createdBy',
-            'updatedBy'
+            'paiements'
         ]);
-        
-        // Vérifier si des infos de compte sont disponibles dans la session
-        $accountInfo = session('account_info');
-        
-        if ($accountInfo) {
-            // Supprimer les infos de la session après les avoir récupérées
-            session()->forget('account_info');
-        }
-        
-        return view('esbtp.inscriptions.show', compact('inscription', 'accountInfo'));
+
+        return view('esbtp.inscriptions.show', compact('inscription'));
     }
 
     /**
@@ -347,10 +332,10 @@ class ESBTPInscriptionController extends Controller
                 ->route('esbtp.inscriptions.show', $inscription->id)
                 ->with('error', 'Les inscriptions terminées ne peuvent pas être modifiées.');
         }
-        
+
         // Charger les relations nécessaires
         $inscription->load(['etudiant', 'filiere', 'niveau', 'classe', 'anneeUniversitaire']);
-        
+
         // Récupérer les données pour les selects
         $filieres = ESBTPFiliere::where('is_active', true)->get();
         $niveaux = ESBTPNiveauEtude::where('is_active', true)->get();
@@ -359,14 +344,14 @@ class ESBTPInscriptionController extends Controller
             ->where('niveau_etude_id', $inscription->niveau_id)
             ->where('annee_universitaire_id', $inscription->annee_universitaire_id)
             ->get();
-            
+
         $annees = ESBTPAnneeUniversitaire::orderBy('start_date', 'desc')->get();
-        
+
         return view('esbtp.inscriptions.edit', compact(
-            'inscription', 
-            'filieres', 
-            'niveaux', 
-            'classes', 
+            'inscription',
+            'filieres',
+            'niveaux',
+            'classes',
             'annees'
         ));
     }
@@ -382,7 +367,7 @@ class ESBTPInscriptionController extends Controller
                 ->route('esbtp.inscriptions.show', $inscription->id)
                 ->with('error', 'Les inscriptions terminées ne peuvent pas être modifiées.');
         }
-        
+
         // Validation des données
         $validator = Validator::make($request->all(), [
             'filiere_id' => 'required|exists:esbtp_filieres,id',
@@ -405,7 +390,7 @@ class ESBTPInscriptionController extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             // Mettre à jour l'inscription
             $inscription->filiere_id = $request->input('filiere_id');
             $inscription->niveau_id = $request->input('niveau_id');
@@ -415,19 +400,19 @@ class ESBTPInscriptionController extends Controller
             $inscription->montant_scolarite = $request->input('montant_scolarite');
             $inscription->frais_inscription = $request->input('frais_inscription');
             $inscription->observations = $request->input('observations');
-            
+
             // Mettre à jour le statut et les champs associés
             $nouveauStatut = $request->input('status');
             $ancienStatut = $inscription->status;
-            
+
             if ($nouveauStatut !== $ancienStatut) {
                 $inscription->status = $nouveauStatut;
-                
+
                 if ($nouveauStatut === 'active' && $ancienStatut !== 'active') {
                     $inscription->date_validation = now();
                     $inscription->validated_by = Auth::id();
                 }
-                
+
                 // Si l'inscription devient inactive ou annulée, mettre à jour l'étudiant si nécessaire
                 if (in_array($nouveauStatut, ['annulée', 'terminée'])) {
                     $etudiant = $inscription->etudiant;
@@ -435,7 +420,7 @@ class ESBTPInscriptionController extends Controller
             ->where('id', '!=', $inscription->id)
                         ->whereIn('status', ['active', 'en_attente'])
                         ->exists();
-                        
+
                     if (!$autresInscriptionsActives && $etudiant->statut === 'actif') {
                         if ($nouveauStatut === 'terminée') {
                             $etudiant->statut = 'diplômé';
@@ -446,16 +431,16 @@ class ESBTPInscriptionController extends Controller
                     }
                 }
             }
-            
+
             $inscription->updated_by = Auth::id();
             $inscription->save();
-            
+
             DB::commit();
-            
+
             return redirect()
                 ->route('esbtp.inscriptions.show', $inscription->id)
                 ->with('success', 'Inscription mise à jour avec succès.');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()
@@ -472,7 +457,7 @@ class ESBTPInscriptionController extends Controller
     {
         try {
             $result = $this->inscriptionService->validerInscription($inscription->id, Auth::id());
-            
+
             if ($result['success']) {
                 return redirect()
                     ->route('esbtp.inscriptions.show', $inscription->id)
@@ -480,7 +465,7 @@ class ESBTPInscriptionController extends Controller
             } else {
                 throw new \Exception($result['message']);
             }
-            
+
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -503,11 +488,11 @@ class ESBTPInscriptionController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        
+
         try {
             $motif = $request->input('motif');
             $result = $this->inscriptionService->annulerInscription($inscription->id, $motif, Auth::id());
-            
+
             if ($result['success']) {
                 return redirect()
                     ->route('esbtp.inscriptions.show', $inscription->id)
@@ -515,7 +500,7 @@ class ESBTPInscriptionController extends Controller
             } else {
                 throw new \Exception($result['message']);
             }
-            
+
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -555,7 +540,7 @@ class ESBTPInscriptionController extends Controller
         $niveauId = $request->input('niveau_id') ?? $request->input('niveau_etude_id');
         $anneeId = $request->input('annee_id') ?? $request->input('annee_universitaire_id');
         $formationId = $request->input('formation_id');
-        
+
         // Ajouter des logs pour debug
         \Illuminate\Support\Facades\Log::info('Récupération des classes (Inscription)', [
             'filiere_id' => $filiereId,
@@ -564,51 +549,49 @@ class ESBTPInscriptionController extends Controller
             'formation_id' => $formationId,
             'request' => $request->all()
         ]);
-        
+
         $query = ESBTPClasse::select(
-                'esbtp_classes.*', 
+                'esbtp_classes.*',
                 'f.name as filiere_name',
                 'n.name as niveau_name',
-                'a.name as annee_name',
-                'fo.name as formation_name'
+                'a.name as annee_name'
             )
             ->leftJoin('esbtp_filieres as f', 'esbtp_classes.filiere_id', '=', 'f.id')
             ->leftJoin('esbtp_niveau_etudes as n', 'esbtp_classes.niveau_etude_id', '=', 'n.id')
             ->leftJoin('esbtp_annee_universitaires as a', 'esbtp_classes.annee_universitaire_id', '=', 'a.id')
-            ->leftJoin('esbtp_formations as fo', 'esbtp_classes.formation_id', '=', 'fo.id')
             ->where('esbtp_classes.is_active', true);
-        
+
         // Appliquer les filtres seulement s'ils sont fournis
         if ($filiereId) {
             $query->where('esbtp_classes.filiere_id', $filiereId);
         }
-        
+
         if ($niveauId) {
             $query->where('esbtp_classes.niveau_etude_id', $niveauId);
         }
-        
+
         if ($anneeId) {
             $query->where('esbtp_classes.annee_universitaire_id', $anneeId);
         }
-        
+
         if ($formationId) {
             $query->where('esbtp_classes.formation_id', $formationId);
         }
-        
+
         // Log pour vérifier la requête SQL générée
         \Illuminate\Support\Facades\Log::info('Requête SQL pour les classes (Inscription)', [
             'sql' => $query->toSql(),
             'bindings' => $query->getBindings()
         ]);
-        
+
         $classes = $query->get();
-        
+
         // Log pour vérifier les résultats
         \Illuminate\Support\Facades\Log::info('Classes trouvées (Inscription)', [
             'count' => $classes->count(),
             'first_few' => $classes->take(3)
         ]);
-            
+
         return response()->json($classes);
     }
 
@@ -619,11 +602,11 @@ class ESBTPInscriptionController extends Controller
     {
         try {
             $inscription->delete();
-            
+
             return redirect()
                 ->route('esbtp.inscriptions.index')
                 ->with('success', 'Inscription supprimée avec succès.');
-                
+
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -643,4 +626,4 @@ class ESBTPInscriptionController extends Controller
         $photo->storeAs('public/photos/etudiants', $filename);
         return $filename;
     }
-} 
+}

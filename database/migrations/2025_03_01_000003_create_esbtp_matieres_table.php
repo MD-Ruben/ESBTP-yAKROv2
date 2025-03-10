@@ -17,7 +17,6 @@ class CreateESBTPMatieresTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('code')->unique();
-            $table->string('nom');
             $table->text('description')->nullable();
             $table->integer('coefficient')->default(1);
             $table->integer('heures_cm')->default(0); // Cours magistraux
@@ -29,17 +28,17 @@ class CreateESBTPMatieresTable extends Migration
             $table->foreignId('filiere_id')->nullable()->constrained('esbtp_filieres');
             $table->enum('type_formation', ['generale', 'technologique_professionnelle'])->default('generale');
             $table->string('couleur')->nullable();
-            
+
             // Valeurs par défaut pour le coefficient et le total d'heures
             $table->float('coefficient_default')->default(1.0);
             $table->integer('total_heures_default')->default(30);
-            
+
             $table->boolean('is_active')->default(true);
-            
+
             // Traçabilité
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -49,14 +48,14 @@ class CreateESBTPMatieresTable extends Migration
             $table->id();
             $table->foreignId('classe_id')->constrained('esbtp_classes')->onDelete('cascade');
             $table->foreignId('matiere_id')->constrained('esbtp_matieres')->onDelete('cascade');
-            
+
             // Coefficients spécifiques pour cette matière dans cette classe
             $table->float('coefficient')->default(1.0);
             $table->integer('total_heures')->default(30);
             $table->boolean('is_active')->default(true);
-            
+
             $table->timestamps();
-            
+
             // Contrainte d'unicité pour éviter les doublons
             $table->unique(['classe_id', 'matiere_id']);
         });
@@ -67,7 +66,7 @@ class CreateESBTPMatieresTable extends Migration
             $table->foreignId('filiere_id')->constrained('esbtp_filieres')->onDelete('cascade');
             $table->foreignId('matiere_id')->constrained('esbtp_matieres')->onDelete('cascade');
             $table->timestamps();
-            
+
             // Contrainte d'unicité pour éviter les doublons
             $table->unique(['filiere_id', 'matiere_id']);
         });
@@ -78,7 +77,7 @@ class CreateESBTPMatieresTable extends Migration
             $table->foreignId('niveau_id')->constrained('esbtp_niveau_etudes')->onDelete('cascade');
             $table->foreignId('matiere_id')->constrained('esbtp_matieres')->onDelete('cascade');
             $table->timestamps();
-            
+
             // Contrainte d'unicité pour éviter les doublons
             $table->unique(['niveau_id', 'matiere_id']);
         });
@@ -91,7 +90,7 @@ class CreateESBTPMatieresTable extends Migration
             $table->foreignId('annee_universitaire_id')->constrained('esbtp_annee_universitaires');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             // Contrainte d'unicité pour éviter les doublons
             $table->unique(['enseignant_id', 'matiere_id', 'annee_universitaire_id'], 'enseignant_matiere_annee_unique');
         });
@@ -110,4 +109,4 @@ class CreateESBTPMatieresTable extends Migration
         Schema::dropIfExists('esbtp_classe_matiere');
         Schema::dropIfExists('esbtp_matieres');
     }
-} 
+}

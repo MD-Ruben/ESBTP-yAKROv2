@@ -1,3 +1,8 @@
+---
+description: Système d'Authentification et d'Autorisation ESBTP
+globs: 
+alwaysApply: true
+---
 # Système d'Authentification et d'Autorisation ESBTP
 
 ## Vue d'Ensemble

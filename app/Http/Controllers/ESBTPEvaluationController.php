@@ -22,58 +22,58 @@ class ESBTPEvaluationController extends Controller
     {
         $query = ESBTPEvaluation::with(['classe', 'matiere', 'createdBy'])
             ->orderBy('date_evaluation', 'desc');
-        
+
         // Filtres
         if (request()->has('classe_id') && request('classe_id') != '') {
             $query->where('classe_id', request('classe_id'));
         }
-        
+
         if (request()->has('matiere_id') && request('matiere_id') != '') {
             $query->where('matiere_id', request('matiere_id'));
         }
-        
+
         if (request()->has('type') && request('type') != '') {
             $query->where('type', request('type'));
         }
-        
+
         if (request()->has('is_published') && request('is_published') != '') {
             $query->where('is_published', request('is_published'));
         }
-        
+
         if (request()->has('date_debut') && request('date_debut') != '') {
             $query->where('date_evaluation', '>=', request('date_debut'));
         }
-        
+
         if (request()->has('date_fin') && request('date_fin') != '') {
             $query->where('date_evaluation', '<=', request('date_fin'));
         }
-        
+
         // Paginer les résultats
         $evaluations = $query->paginate(15);
-        
+
         // Statistiques
         $totalEvaluations = ESBTPEvaluation::count();
         $evaluationsPubliees = ESBTPEvaluation::where('is_published', true)->count();
         $examens = ESBTPEvaluation::where('type', 'examen')->count();
         $devoirs = ESBTPEvaluation::where('type', 'devoir')->count();
-        
+
         // Récupération des classes pour le filtre
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        
+
         // Récupération des matières pour le filtre
         $matieres = ESBTPMatiere::orderBy('name')->get();
-        
+
         // Récupération des types d'évaluation pour le filtre
         $types = ESBTPEvaluation::select('type')->distinct()->pluck('type');
-        
+
         return view('esbtp.evaluations.index', compact(
-            'evaluations', 
-            'classes', 
-            'matieres', 
-            'types', 
-            'totalEvaluations', 
-            'evaluationsPubliees', 
-            'examens', 
+            'evaluations',
+            'classes',
+            'matieres',
+            'types',
+            'totalEvaluations',
+            'evaluationsPubliees',
+            'examens',
             'devoirs'
         ));
     }
@@ -83,52 +83,27 @@ class ESBTPEvaluationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+        // Get the matiere_id from the request
+        $matiere_id = $request->input('matiere_id');
+
+        // If matiere_id is provided, check if evaluations exist for this subject
+        if ($matiere_id) {
+            $matiere = ESBTPMatiere::findOrFail($matiere_id);
+            $evaluationsCount = ESBTPEvaluation::where('matiere_id', $matiere_id)->count();
+
+            // If evaluations exist, redirect to the evaluations list filtered by this subject
+            if ($evaluationsCount > 0) {
+                return redirect()->route('esbtp.evaluations.index', ['matiere_id' => $matiere_id])
+                    ->with('info', 'Il existe déjà des évaluations pour cette matière. Vous pouvez en ajouter une nouvelle ici.');
+            }
+        }
+
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-        
-        // Vérifier s'il y a des matières disponibles, sinon en créer une pour les tests
-        $matieresCount = ESBTPMatiere::count();
-        
-        if ($matieresCount == 0) {
-            // Créer une matière de test si aucune n'existe
-            try {
-                $testMatiere = new ESBTPMatiere();
-                $testMatiere->name = 'Matière Test';
-                $testMatiere->nom = 'Matière Test';
-                $testMatiere->code = 'TEST001';
-                $testMatiere->coefficient = 1;
-                $testMatiere->is_active = true;
-                $testMatiere->save();
-                
-                \Log::info('Matière de test créée avec succès');
-            } catch (\Exception $e) {
-                \Log::error('Erreur lors de la création de la matière de test: ' . $e->getMessage());
-            }
-        }
-        
         $matieres = ESBTPMatiere::where('is_active', true)->orderBy('name')->get();
-        
-        // Si toujours pas de matières, créer une entrée directement en base
-        if ($matieres->isEmpty()) {
-            try {
-                \DB::table('esbtp_matieres')->insert([
-                    'name' => 'Matière Test',
-                    'nom' => 'Matière Test',
-                    'code' => 'TEST001',
-                    'coefficient' => 1,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-                
-                $matieres = ESBTPMatiere::all();
-                \Log::info('Matière insérée directement en base');
-            } catch (\Exception $e) {
-                \Log::error('Erreur lors de l\'insertion directe: ' . $e->getMessage());
-            }
-        }
-        
-        // Préparer les matières pour le JavaScript
+
+        // Prepare subjects for JavaScript
         $matieresJson = $matieres->map(function ($matiere) {
             return [
                 'id' => $matiere->id,
@@ -137,8 +112,8 @@ class ESBTPEvaluationController extends Controller
                 'coefficient' => $matiere->coefficient ?? 1
             ];
         });
-        
-        return view('esbtp.evaluations.create', compact('classes', 'matieres', 'matieresJson'));
+
+        return view('esbtp.evaluations.create', compact('classes', 'matieres', 'matieresJson', 'matiere_id'));
     }
 
     /**
@@ -151,13 +126,13 @@ class ESBTPEvaluationController extends Controller
     {
         // Log the incoming request data for debugging
         \Log::info('Données du formulaire d\'évaluation:', $request->all());
-        
+
         // Log l'état de la classe ESBTPEvaluation
         \Log::info('Attributs attendus dans ESBTPEvaluation:', [
             'fillable' => (new \App\Models\ESBTPEvaluation())->getFillable(),
             'colonnes_table' => \Schema::getColumnListing('esbtp_evaluations')
         ]);
-        
+
         $validator = \Validator::make($request->all(), [
             'titre' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -203,7 +178,7 @@ class ESBTPEvaluationController extends Controller
             $evaluation->matiere_id = $request->matiere_id;
             $evaluation->created_by = \Auth::id();
             $evaluation->is_published = $request->has('is_published') ? 1 : 0;
-            
+
             \Log::info('Tentative de sauvegarde de l\'évaluation:', [
                 'titre' => $evaluation->titre,
                 'matiere_id' => $evaluation->matiere_id,
@@ -213,20 +188,20 @@ class ESBTPEvaluationController extends Controller
                 'duree_minutes' => $evaluation->duree_minutes,
                 'is_published' => $evaluation->is_published
             ]);
-            
+
             // Log aussi les attributs du modèle avant sauvegarde
             \Log::info('Attributs du modèle avant sauvegarde:', $evaluation->getAttributes());
-            
+
             $evaluation->save();
-            
+
             \Log::info('Évaluation créée avec succès. ID: ' . $evaluation->id);
-            
+
             return redirect()->route('esbtp.evaluations.index')
                 ->with('success', 'L\'évaluation a été créée avec succès');
         } catch (\Exception $e) {
             \Log::error('Erreur lors de la création de l\'évaluation: ' . $e->getMessage());
             \Log::error('Trace: ' . $e->getTraceAsString());
-            
+
             return redirect()->back()
                 ->with('error', 'Une erreur est survenue lors de la création de l\'évaluation: ' . $e->getMessage())
                 ->withInput();
@@ -242,7 +217,7 @@ class ESBTPEvaluationController extends Controller
     public function show(ESBTPEvaluation $evaluation)
     {
         $evaluation->load(['classe', 'matiere', 'createdBy', 'notes.etudiant']);
-        
+
         // Récupérer les étudiants qui n'ont pas encore de note pour cette évaluation
         $etudiantsAvecNote = $evaluation->notes->pluck('etudiant_id')->toArray();
         $etudiantsSansNote = ESBTPEtudiant::whereHas('inscriptions', function($query) use ($evaluation) {
@@ -251,7 +226,7 @@ class ESBTPEvaluationController extends Controller
             ->whereNotIn('id', $etudiantsAvecNote)
             ->orderBy('nom')
             ->get();
-        
+
         return view('esbtp.evaluations.show', compact('evaluation', 'etudiantsSansNote'));
     }
 
@@ -265,7 +240,7 @@ class ESBTPEvaluationController extends Controller
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $matieres = ESBTPMatiere::orderBy('name')->get();
-        
+
         return view('esbtp.evaluations.edit', compact('evaluation', 'classes', 'matieres'));
     }
 
@@ -300,14 +275,14 @@ class ESBTPEvaluationController extends Controller
 
         try {
             $hasNotes = $evaluation->notes()->count() > 0;
-            
+
             // Si l'évaluation a déjà des notes et que l'utilisateur essaie de changer la classe ou la matière
             if ($hasNotes && ($evaluation->classe_id != $request->classe_id || $evaluation->matiere_id != $request->matiere_id)) {
                 return redirect()->back()
                     ->with('error', 'Impossible de modifier la classe ou la matière car des notes sont déjà associées à cette évaluation')
                     ->withInput();
             }
-            
+
             $evaluation->titre = $request->titre;
             $evaluation->description = $request->description;
             $evaluation->type = $request->type;
@@ -315,15 +290,15 @@ class ESBTPEvaluationController extends Controller
             $evaluation->coefficient = $request->coefficient;
             $evaluation->bareme = $request->bareme;
             $evaluation->duree_minutes = $request->duree_minutes;
-            
+
             // Mettre à jour la classe et la matière uniquement s'il n'y a pas de notes
             if (!$hasNotes) {
                 $evaluation->classe_id = $request->classe_id;
                 $evaluation->matiere_id = $request->matiere_id;
             }
-            
+
             $evaluation->save();
-            
+
             return redirect()->route('esbtp.evaluations.show', $evaluation)
                 ->with('success', 'L\'évaluation a été mise à jour avec succès');
         } catch (\Exception $e) {
@@ -359,45 +334,45 @@ class ESBTPEvaluationController extends Controller
     {
         // Récupérer l'utilisateur connecté
         $user = Auth::user();
-        
+
         // Récupérer l'étudiant associé à l'utilisateur
         $etudiant = $user->etudiant;
-        
+
         if (!$etudiant) {
             return redirect()->route('dashboard')
                 ->with('error', 'Votre compte utilisateur n\'est pas associé à un étudiant.');
         }
-        
+
         // Récupérer la classe de l'étudiant
         $inscription = $etudiant->inscriptions()->where('statut', 'active')->first();
-        
+
         if (!$inscription || !$inscription->classe) {
             return redirect()->route('dashboard')
                 ->with('error', 'Vous n\'êtes inscrit dans aucune classe pour le moment.');
         }
-        
+
         $classe = $inscription->classe;
-        
+
         // Récupérer les paramètres de filtre
-        $anneeId = $request->input('annee_universitaire_id', 
+        $anneeId = $request->input('annee_universitaire_id',
             ESBTPAnneeUniversitaire::where('is_current', true)->first()->id ?? null);
         $periode = $request->input('periode');
         $statut = $request->input('statut');
-        
+
         // Initialiser la requête pour récupérer les évaluations
         $query = ESBTPEvaluation::with(['matiere', 'classe'])
             ->where('classe_id', $classe->id);
-        
+
         // Filtrer par année universitaire
         if ($anneeId) {
             $query->where('annee_universitaire_id', $anneeId);
         }
-        
+
         // Filtrer par période
         if ($periode) {
             $query->where('periode', $periode);
         }
-        
+
         // Filtrer par statut
         if ($statut) {
             if ($statut === 'passees') {
@@ -406,26 +381,26 @@ class ESBTPEvaluationController extends Controller
                 $query->where('date_evaluation', '>=', now());
             }
         }
-        
+
         // Récupérer les évaluations paginées
         $evaluations = $query->orderBy('date_evaluation', 'asc')->paginate(10);
-        
+
         // Récupérer toutes les années universitaires pour le filtre
         $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
-        
+
         // Compter les évaluations passées et à venir
         $evaluationsPassees = ESBTPEvaluation::where('classe_id', $classe->id)
             ->where('date_evaluation', '<', now())->count();
-            
+
         $evaluationsAVenir = ESBTPEvaluation::where('classe_id', $classe->id)
             ->where('date_evaluation', '>=', now())->count();
-        
+
         // Prochaine évaluation
         $prochaineEvaluation = ESBTPEvaluation::where('classe_id', $classe->id)
             ->where('date_evaluation', '>=', now())
             ->orderBy('date_evaluation', 'asc')
             ->first();
-        
+
         return view('esbtp.evaluations.etudiant', compact(
             'etudiant',
             'classe',
@@ -439,4 +414,4 @@ class ESBTPEvaluationController extends Controller
             'prochaineEvaluation'
         ));
     }
-} 
+}

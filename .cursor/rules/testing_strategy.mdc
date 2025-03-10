@@ -1,8 +1,5 @@
----
-description: Stratégie de Test ESBTP
-globs: 
-alwaysApply: false
----
+# Stratégie de Test ESBTP
+
 Ce document définit l'approche complète pour tester l'application ESBTP, garantissant la qualité et la fiabilité du code.
 
 ## Principes de Test
@@ -674,18 +671,18 @@ public function etudiant_sans_notes_a_moyenne_zero()
 
 ### Documentation
 
-- [Documentation PHPUnit](mdc:https:/phpunit.de/documentation.html)
-- [Guide de test Laravel](mdc:https:/laravel.com/docs/testing)
-- [Laravel Dusk](mdc:https:/laravel.com/docs/dusk)
+- [Documentation PHPUnit](https://phpunit.de/documentation.html)
+- [Guide de test Laravel](https://laravel.com/docs/testing)
+- [Laravel Dusk](https://laravel.com/docs/dusk)
 
 ### Outils de Qualité
 
-- [PHPStan](mdc:https:/phpstan.org)
-- [PHP_CodeSniffer](mdc:https:/github.com/squizlabs/PHP_CodeSniffer)
-- [Laravel Pint](mdc:https:/laravel.com/docs/pint)
+- [PHPStan](https://phpstan.org/)
+- [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer)
+- [Laravel Pint](https://laravel.com/docs/pint)
 
 ### Formations Recommandées
 
 - Test-Driven Laravel
 - Laracasts Testing Series
-- Advanced PHPUnit Techniques
+- Advanced PHPUnit Techniques 

@@ -10,9 +10,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Détails de l'évaluation : {{ $evaluation->titre }}</h5>
                     <div>
+                        @if(auth()->user()->hasRole('secretaire'))
                         <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-primary me-2">
                             <i class="fas fa-pen me-1"></i>Saisir les notes
                         </a>
+                        @endif
                         <a href="{{ route('esbtp.evaluations.edit', $evaluation) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
@@ -28,7 +30,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="row">
                         <!-- Informations sur l'évaluation -->
                         <div class="col-md-6">
@@ -72,7 +74,7 @@
                                                 <td>
                                                     <a href="{{ route('esbtp.classes.show', $evaluation->classe) }}">
                                                         {{ $evaluation->classe->name }}
-                                                    </a> 
+                                                    </a>
                                                     ({{ $evaluation->classe->filiere->name }} - {{ $evaluation->classe->niveau->name }})
                                                 </td>
                                             </tr>
@@ -115,7 +117,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Statistiques et description -->
                         <div class="col-md-6">
                             <div class="card mb-3">
@@ -130,7 +132,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <div class="card">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">Statistiques des notes</h6>
@@ -174,7 +176,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Liste des notes -->
                     <div class="row mt-4">
                         <div class="col-12">
@@ -342,7 +344,7 @@
     $(document).ready(function() {
         // Initialisation des tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
-        
+
         // Initialisation de DataTable
         $('.datatable').DataTable({
             "responsive": true,
@@ -354,4 +356,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

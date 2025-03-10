@@ -18,7 +18,7 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -26,7 +26,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card h-100">
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header bg-light">
@@ -113,7 +113,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <!-- Options (sous-filières) -->
@@ -168,14 +168,14 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Niveaux d'études -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Niveaux d'études ({{ $filiere->niveauxEtudes->count() }})</h6>
+                                    <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Niveaux d'études ({{ $filiere->niveauxEtudes ? $filiere->niveauxEtudes->count() : 0 }})</h6>
                                 </div>
                                 <div class="card-body">
-                                    @if($filiere->niveauxEtudes->count() > 0)
+                                    @if($filiere->niveauxEtudes && $filiere->niveauxEtudes->count() > 0)
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -208,15 +208,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <!-- Formations -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Formations ({{ $filiere->formations->count() }})</h6>
-                                                                    </div>
+                                    <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Formations ({{ $filiere->formations ? $filiere->formations->count() : 0 }})</h6>
+                                </div>
                                 <div class="card-body">
-                                    @if($filiere->formations->count() > 0)
+                                    @if($filiere->formations && $filiere->formations->count() > 0)
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -260,17 +260,17 @@
                                         @endif
                                     </div>
                             </div>
-                            
+
                             <!-- Classes -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Classes ({{ $filiere->classes->count() }})</h6>
+                                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Classes ({{ $filiere->classes ? $filiere->classes->count() : 0 }})</h6>
                                     <a href="{{ route('esbtp.classes.create', ['filiere_id' => $filiere->id]) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-plus me-1"></i>Ajouter une classe
                                     </a>
                                 </div>
                                 <div class="card-body">
-                                    @if($filiere->classes->count() > 0)
+                                    @if($filiere->classes && $filiere->classes->count() > 0)
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -309,7 +309,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -336,21 +336,21 @@
             <div class="modal-body">
                 <p>Êtes-vous sûr de vouloir supprimer cette filière ?</p>
                 <p><strong>Nom :</strong> {{ $filiere->name }}</p>
-                
-                @if($filiere->options->count() > 0 || $filiere->classes->count() > 0)
+
+                @if($filiere->options && $filiere->options->count() > 0 || $filiere->classes && $filiere->classes->count() > 0)
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         <strong>Attention :</strong> Cette filière est liée à :
                         <ul class="mb-0 mt-1">
-                            @if($filiere->options->count() > 0)
+                            @if($filiere->options && $filiere->options->count() > 0)
                                 <li>{{ $filiere->options->count() }} option(s)</li>
                             @endif
-                            @if($filiere->classes->count() > 0)
+                            @if($filiere->classes && $filiere->classes->count() > 0)
                                 <li>{{ $filiere->classes->count() }} classe(s)</li>
                             @endif
-                    </ul>
+                        </ul>
                         La suppression de cette filière pourrait causer des erreurs dans le système. Assurez-vous de supprimer ou de réaffecter ces éléments avant de continuer.
-                </div>
+                    </div>
                 @endif
             </div>
             <div class="modal-footer">
@@ -364,4 +364,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

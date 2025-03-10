@@ -28,11 +28,11 @@
                             </ul>
                         </div>
                     @endif
-                    
+
                     <form action="{{ route('esbtp.classes.update', $classe) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Nom de la classe <span class="text-danger">*</span></label>
@@ -41,7 +41,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="code" class="form-label">Code <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $classe->code) }}" required>
@@ -50,7 +50,7 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="filiere_id" class="form-label">Filière <span class="text-danger">*</span></label>
@@ -66,7 +66,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <label for="niveau_etude_id" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
                                 <select class="form-select @error('niveau_etude_id') is-invalid @enderror" id="niveau_etude_id" name="niveau_etude_id" required>
@@ -81,7 +81,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <label for="annee_universitaire_id" class="form-label">Année universitaire <span class="text-danger">*</span></label>
                                 <select class="form-select @error('annee_universitaire_id') is-invalid @enderror" id="annee_universitaire_id" name="annee_universitaire_id" required>
@@ -97,7 +97,7 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="capacity" class="form-label">Capacité maximale <span class="text-danger">*</span></label>
@@ -105,29 +105,9 @@
                                 @error('capacity')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="text-muted">
-                                    Actuellement {{ $classe->nombre_etudiants }} étudiants inscrits sur {{ $classe->capacity }} places.
-                                </small>
-                            </div>
-                            
-                            <div class="col-md-8">
-                                <label for="formation_ids" class="form-label">Formations associées</label>
-                                <select class="form-select @error('formation_ids') is-invalid @enderror" id="formation_ids" name="formation_ids[]" multiple>
-                                    @foreach($formations as $formation)
-                                        <option value="{{ $formation->id }}" {{ in_array($formation->id, old('formation_ids', $formationIds)) ? 'selected' : '' }}>
-                                            {{ $formation->name }} ({{ $formation->code }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('formation_ids')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-text text-muted">
-                                    La modification des formations peut affecter les matières associées à cette classe.
-                                </small>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description', $classe->description) }}</textarea>
@@ -135,7 +115,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
                         <div class="mb-3">
                             <div class="form-check">
                                 <input class="form-check-input @error('is_active') is-invalid @enderror" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $classe->is_active) ? 'checked' : '' }}>
@@ -147,7 +127,7 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <div class="text-end">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>Mettre à jour la classe
@@ -171,13 +151,21 @@
                 placeholder: 'Sélectionner une option',
                 allowClear: true
             });
-            
-            $('#formation_ids').select2({
-                theme: 'bootstrap4',
-                placeholder: 'Sélectionner les formations associées',
-                allowClear: true
-            });
         }
+
+        // Auto-génération du code de classe basé sur le nom
+        $('#name').on('blur', function() {
+            if ($('#code').val() === '') {
+                const name = $(this).val();
+                if (name) {
+                    // Extraire les premières lettres de chaque mot et les convertir en majuscules
+                    const code = name.split(' ')
+                        .map(word => word.charAt(0).toUpperCase())
+                        .join('');
+                    $('#code').val(code);
+                }
+            }
+        });
     });
 </script>
-@endsection 
+@endsection

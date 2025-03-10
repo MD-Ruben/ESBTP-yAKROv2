@@ -20,14 +20,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped datatable">
                             <thead>
@@ -36,7 +36,6 @@
                                     <th>Nom</th>
                                     <th>Code</th>
                                     <th>Type</th>
-                                    <th>Formations associées</th>
                                     <th>Niveaux d'études</th>
                                     <th>Classes</th>
                                     <th>Statut</th>
@@ -57,29 +56,11 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @forelse($filiere->formations as $formation)
-                                                <span class="badge bg-secondary">{{ $formation->name }}</span>
+                                            @forelse($filiere->niveauxEtudes as $niveau)
+                                                <span class="badge bg-success">{{ $niveau->name }}</span>
                                             @empty
-                                                <span class="text-muted">Aucune formation associée</span>
-                                            @endforelse
-                                        </td>
-                                        <td>
-                                            @php
-                                                $niveaux = [];
-                                                foreach($filiere->formations as $formation) {
-                                                    foreach($formation->niveauxEtudes as $niveau) {
-                                                        $niveaux[$niveau->id] = $niveau->name;
-                                                    }
-                                                }
-                                            @endphp
-                                            
-                                            @if(count($niveaux) > 0)
-                                                @foreach($niveaux as $id => $name)
-                                                    <span class="badge bg-success">{{ $name }}</span>
-                                                @endforeach
-                                            @else
                                                 <span class="text-muted">Aucun niveau associé</span>
-                                            @endif
+                                            @endforelse
                                         </td>
                                         <td>
                                             <span class="badge bg-dark">{{ $filiere->classes ? $filiere->classes->count() : 0 }} classe(s)</span>
@@ -119,6 +100,16 @@
                                                                 @endif
                                                             </ul>
                                                         </li>
+                                                    @else
+                                                        <li>
+                                                            <form action="{{ route('esbtp.filieres.destroy', $filiere->id) }}" method="POST" class="delete-form">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette filière ?')">
+                                                                    <i class="fas fa-trash-alt me-2"></i>Supprimer
+                                                                </button>
+                                                            </form>
+                                                        </li>
                                                     @endif
                                                 </ul>
                                             </div>
@@ -126,7 +117,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">Aucune filière trouvée.</td>
+                                        <td colspan="8" class="text-center">Aucune filière trouvée.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -151,4 +142,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

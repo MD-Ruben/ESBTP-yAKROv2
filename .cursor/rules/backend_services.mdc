@@ -1,3 +1,8 @@
+---
+description: Architecture Backend et Services ESBTP
+globs: 
+alwaysApply: true
+---
 # Architecture Backend et Services ESBTP
 
 ## Organisation des Contrôleurs

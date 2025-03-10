@@ -1,8 +1,10 @@
 ---
-description: Standards de Code ESBTP
-globs: 
-alwaysApply: false
+description: 
+globs: **/*
+alwaysApply: true
 ---
+# Standards de Code ESBTP
+
 Ce document définit les standards de code et les meilleures pratiques à suivre pour le développement de l'application ESBTP.
 
 ## Principes Généraux
@@ -755,4 +757,4 @@ Ce document définit les standards de code et les meilleures pratiques à suivre
           run: composer install
         - name: Run Tests
           run: php artisan test
-  ```
+  
