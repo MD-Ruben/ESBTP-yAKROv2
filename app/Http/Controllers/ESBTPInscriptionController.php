@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class ESBTPInscriptionController extends Controller
 {
@@ -459,6 +460,20 @@ class ESBTPInscriptionController extends Controller
             $result = $this->inscriptionService->validerInscription($inscription->id, Auth::id());
 
             if ($result['success']) {
+                // Récupérer l'étudiant et son compte utilisateur
+                $etudiant = $inscription->etudiant;
+                if ($etudiant && $etudiant->user_id) {
+                    $user = User::find($etudiant->user_id);
+                    if ($user) {
+                        // Stocker les informations du compte dans la session
+                        session()->flash('account_info', [
+                            'username' => $user->username,
+                            'password' => session('generated_password'),
+                            'role' => 'Étudiant'
+                        ]);
+                    }
+                }
+
                 return redirect()
                     ->route('esbtp.inscriptions.show', $inscription->id)
                     ->with('success', 'Inscription validée avec succès.');

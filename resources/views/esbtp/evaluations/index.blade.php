@@ -4,228 +4,112 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Liste des évaluations</h5>
                     <a href="{{ route('esbtp.evaluations.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus-circle me-1"></i>Ajouter une évaluation
+                        <i class="fas fa-plus"></i> Nouvelle évaluation
                     </a>
                 </div>
+
                 <div class="card-body">
-                    @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @if(session('success'))
+                        <div class="alert alert-success">
                             {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
-                    @if (session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @if(session('error'))
+                        <div class="alert alert-danger">
                             {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-
-                    <!-- Formulaire de filtrage -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0">Filtrer les évaluations</h6>
-                                </div>
-                                <div class="card-body">
-                                    <form action="{{ route('esbtp.evaluations.index') }}" method="GET" class="row g-3">
-                                        <div class="col-md-3">
-                                            <label for="classe_id" class="form-label">Classe</label>
-                                            <select name="classe_id" id="classe_id" class="form-select select2">
-                                                <option value="">Toutes les classes</option>
-                                                @foreach($classes as $classe)
-                                                    <option value="{{ $classe->id }}" {{ request('classe_id') == $classe->id ? 'selected' : '' }}>
-                                                        {{ $classe->name }} ({{ $classe->filiere->name }} - {{ $classe->niveau->name }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label for="matiere_id" class="form-label">Matière</label>
-                                            <select name="matiere_id" id="matiere_id" class="form-select select2">
-                                                <option value="">Toutes les matières</option>
-                                                @foreach($matieres as $matiere)
-                                                    <option value="{{ $matiere->id }}" {{ request('matiere_id') == $matiere->id ? 'selected' : '' }}>
-                                                        {{ $matiere->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label for="type" class="form-label">Type d'évaluation</label>
-                                            <select name="type" id="type" class="form-select select2">
-                                                <option value="">Tous les types</option>
-                                                <option value="examen" {{ request('type') == 'examen' ? 'selected' : '' }}>Examen</option>
-                                                <option value="devoir" {{ request('type') == 'devoir' ? 'selected' : '' }}>Devoir</option>
-                                                <option value="quiz" {{ request('type') == 'quiz' ? 'selected' : '' }}>Quiz</option>
-                                                <option value="tp" {{ request('type') == 'tp' ? 'selected' : '' }}>TP</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label for="is_published" class="form-label">Statut</label>
-                                            <select name="is_published" id="is_published" class="form-select select2">
-                                                <option value="">Tous</option>
-                                                <option value="1" {{ request('is_published') == '1' ? 'selected' : '' }}>Publié</option>
-                                                <option value="0" {{ request('is_published') == '0' ? 'selected' : '' }}>Non publié</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label for="date_debut" class="form-label">Date début</label>
-                                            <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ request('date_debut') }}">
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label for="date_fin" class="form-label">Date fin</label>
-                                            <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ request('date_fin') }}">
-                                        </div>
-
-                                        <div class="col-md-6 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-primary me-2">
-                                                <i class="fas fa-filter me-1"></i>Filtrer
-                                            </button>
-                                            <a href="{{ route('esbtp.evaluations.index') }}" class="btn btn-secondary">
-                                                <i class="fas fa-redo me-1"></i>Réinitialiser
-                                            </a>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped datatable">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Titre</th>
                                     <th>Type</th>
+                                    <th>Date</th>
                                     <th>Classe</th>
                                     <th>Matière</th>
-                                    <th>Date</th>
-                                    <th>Coefficient</th>
-                                    <th>Barème</th>
-                                    <th>Notes</th>
                                     <th>Statut</th>
+                                    <th>Publication</th>
+                                    <th>Notes</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($evaluations as $evaluation)
                                     <tr>
-                                        <td>{{ $evaluation->id }}</td>
                                         <td>{{ $evaluation->titre }}</td>
+                                        <td>{{ ucfirst($evaluation->type) }}</td>
+                                        <td>{{ $evaluation->date_evaluation->format('d/m/Y') }}</td>
+                                        <td>{{ $evaluation->classe->nom }}</td>
+                                        <td>{{ $evaluation->matiere->nom }}</td>
                                         <td>
-                                            @if($evaluation->type == 'examen')
-                                                <span class="badge bg-danger">Examen</span>
-                                            @elseif($evaluation->type == 'devoir')
-                                                <span class="badge bg-primary">Devoir</span>
-                                            @elseif($evaluation->type == 'quiz')
-                                                <span class="badge bg-info">Quiz</span>
-                                            @elseif($evaluation->type == 'tp')
-                                                <span class="badge bg-warning">TP</span>
-                                            @else
-                                                <span class="badge bg-secondary">{{ $evaluation->type }}</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $evaluation->classe->name }}</td>
-                                        <td>{{ $evaluation->matiere->name }}</td>
-                                        <td>{{ $evaluation->date_evaluation ? date('d/m/Y', strtotime($evaluation->date_evaluation)) : 'Non définie' }}</td>
-                                        <td>{{ $evaluation->coefficient }}</td>
-                                        <td>{{ $evaluation->bareme }}</td>
-                                        <td>
-                                            <span class="badge bg-success">{{ $evaluation->notes->count() }} / {{ $evaluation->classe->nombre_etudiants }}</span>
+                                            <form action="{{ route('esbtp.evaluations.update-status', $evaluation) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                    <option value="draft" {{ $evaluation->status === 'draft' ? 'selected' : '' }}>Brouillon</option>
+                                                    <option value="scheduled" {{ $evaluation->status === 'scheduled' ? 'selected' : '' }}>Planifiée</option>
+                                                    <option value="in_progress" {{ $evaluation->status === 'in_progress' ? 'selected' : '' }}>En cours</option>
+                                                    <option value="completed" {{ $evaluation->status === 'completed' ? 'selected' : '' }}>Terminée</option>
+                                                    <option value="cancelled" {{ $evaluation->status === 'cancelled' ? 'selected' : '' }}>Annulée</option>
+                                                </select>
+                                            </form>
                                         </td>
                                         <td>
-                                            @if($evaluation->is_published)
-                                                <span class="badge bg-success">Publié</span>
-                                            @else
-                                                <span class="badge bg-warning">Non publié</span>
-                                            @endif
+                                            <form action="{{ route('esbtp.evaluations.toggle-published', $evaluation) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm {{ $evaluation->is_published ? 'btn-success' : 'btn-secondary' }}">
+                                                    {{ $evaluation->is_published ? 'Publiée' : 'Non publiée' }}
+                                                </button>
+                                            </form>
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('esbtp.evaluations.show', $evaluation) }}" class="btn btn-sm btn-info" title="Voir les détails">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('esbtp.evaluations.edit', $evaluation) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                            <form action="{{ route('esbtp.evaluations.toggle-notes-published', $evaluation) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm {{ $evaluation->notes_published ? 'btn-success' : 'btn-secondary' }}" {{ !$evaluation->canPublishNotes() && !$evaluation->notes_published ? 'disabled' : '' }}>
+                                                    {{ $evaluation->notes_published ? 'Notes publiées' : 'Notes non publiées' }}
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <a href="{{ route('esbtp.evaluations.show', $evaluation) }}" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if($evaluation->isEditable())
+                                                <a href="{{ route('esbtp.evaluations.edit', $evaluation) }}" class="btn btn-warning btn-sm">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                @if(auth()->user()->hasRole('secretaire'))
-                                                <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-sm btn-primary" title="Saisie des notes">
-                                                    <i class="fas fa-pen"></i>
-                                                </a>
-                                                @endif
-                                                <form action="{{ route('esbtp.evaluations.destroy', $evaluation) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette évaluation?');">
+                                            @endif
+                                            @if($evaluation->isDeletable())
+                                                <form action="{{ route('esbtp.evaluations.destroy', $evaluation) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette évaluation ?')">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                            </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="11" class="text-center">Aucune évaluation trouvée.</td>
+                                        <td colspan="9" class="text-center">Aucune évaluation trouvée</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="mt-3">
-                        {{ $evaluations->appends(request()->query())->links() }}
+                    <div class="d-flex justify-content-center mt-3">
+                        {{ $evaluations->links() }}
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistiques des évaluations -->
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Total des évaluations</h5>
-                    <p class="card-text fs-4">{{ $totalEvaluations }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Évaluations publiées</h5>
-                    <p class="card-text fs-4">{{ $evaluationsPubliees }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Examens</h5>
-                    <p class="card-text fs-4">{{ $examens }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Devoirs</h5>
-                    <p class="card-text fs-4">{{ $devoirs }}</p>
                 </div>
             </div>
         </div>

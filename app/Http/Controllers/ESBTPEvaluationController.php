@@ -414,4 +414,86 @@ class ESBTPEvaluationController extends Controller
             'prochaineEvaluation'
         ));
     }
+
+    public function studentEvaluations()
+    {
+        $student = Auth::user()->etudiant;
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        $evaluations = ESBTPEvaluation::with(['matiere', 'classe'])
+            ->forStudent($student->id)
+            ->orderBy('date_evaluation', 'desc')
+            ->get()
+            ->groupBy('type');
+
+        return view('etudiants.evaluations', compact('evaluations'));
+    }
+
+    public function updateStatus(Request $request, ESBTPEvaluation $evaluation)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:' . implode(',', [
+                ESBTPEvaluation::STATUS_DRAFT,
+                ESBTPEvaluation::STATUS_SCHEDULED,
+                ESBTPEvaluation::STATUS_IN_PROGRESS,
+                ESBTPEvaluation::STATUS_COMPLETED,
+                ESBTPEvaluation::STATUS_CANCELLED
+            ])
+        ]);
+
+        try {
+            $evaluation->update([
+                'status' => $validated['status'],
+                'updated_by' => Auth::id()
+            ]);
+
+            return back()->with('success', 'Statut de l\'évaluation mis à jour avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Une erreur est survenue lors de la mise à jour du statut.');
+        }
+    }
+
+    public function togglePublished(ESBTPEvaluation $evaluation)
+    {
+        try {
+            $evaluation->update([
+                'is_published' => !$evaluation->is_published,
+                'updated_by' => Auth::id()
+            ]);
+
+            $message = $evaluation->is_published
+                ? 'Évaluation publiée avec succès.'
+                : 'Évaluation dépubliée avec succès.';
+
+            return back()->with('success', $message);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Une erreur est survenue lors de la modification de la publication.');
+        }
+    }
+
+    public function toggleNotesPublished(ESBTPEvaluation $evaluation)
+    {
+        if (!$evaluation->canPublishNotes() && !$evaluation->notes_published) {
+            return back()->with('error', 'Les notes ne peuvent pas être publiées pour cette évaluation.');
+        }
+
+        try {
+            $evaluation->update([
+                'notes_published' => !$evaluation->notes_published,
+                'updated_by' => Auth::id()
+            ]);
+
+            $message = $evaluation->notes_published
+                ? 'Notes publiées avec succès.'
+                : 'Notes dépubliées avec succès.';
+
+            return back()->with('success', $message);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Une erreur est survenue lors de la modification de la publication des notes.');
+        }
+    }
 }

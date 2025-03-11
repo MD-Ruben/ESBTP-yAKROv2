@@ -61,7 +61,7 @@ Contrôleurs organisés par rôle utilisateur (Etudiant, Parent, Secretaire, etc
 </li>
 
 <li class="nav-item">
-    <a href="{{ route('mes-examens.index') }}" class="nav-link">
+    <a href="{{ route('esbtp.mes-evaluations.index') }}" class="nav-link">
         <i class="fas fa-file-alt nav-icon"></i>
         <span>Mes examens</span>
     </a>

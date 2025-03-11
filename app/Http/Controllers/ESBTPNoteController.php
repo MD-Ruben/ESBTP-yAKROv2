@@ -397,7 +397,7 @@ class ESBTPNoteController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('etudiants.notes', compact('notes', 'etudiant'));
+        return view('esbtp.etudiants.notes', compact('notes', 'etudiant'));
     }
 
     /**

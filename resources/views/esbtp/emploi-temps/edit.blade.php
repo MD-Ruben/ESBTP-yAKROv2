@@ -10,7 +10,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Modifier un emploi du temps</h5>
                     <div>
-                        <a href="{{ route('esbtp.emplois-temps.index') }}" class="btn btn-secondary me-2">
+                        <a href="{{ route('esbtp.emploi-temps.index') }}" class="btn btn-secondary me-2">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
                         <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-info">
@@ -29,10 +29,10 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('esbtp.emplois-temps.update', $emploiTemps->id) }}" method="POST">
+                    <form action="{{ route('esbtp.emploi-temps.update', $emploiTemps->id) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -43,7 +43,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="classe_id" class="form-label">Classe *</label>
@@ -61,7 +61,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -79,7 +79,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="periode" class="form-label">Période *</label>
@@ -95,7 +95,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -106,7 +106,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="date_fin" class="form-label">Date de fin</label>
@@ -117,23 +117,23 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ (old('is_active', $emploiTemps->is_active) == 1) ? 'checked' : '' }}>
                             <label class="form-check-label" for="is_active">
                                 Emploi du temps actif
                             </label>
                             <div class="form-text">
-                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span> 
+                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span>
                                 Un seul emploi du temps peut être actif par classe et par période. Si vous activez cet emploi du temps, les autres emplois du temps pour la même classe et la même période seront automatiquement désactivés.
                             </div>
                         </div>
-                        
+
                         <div class="alert alert-info">
                             <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Information</h6>
                             <p class="mb-0">Cet emploi du temps contient actuellement <strong>{{ $emploiTemps->seances->count() }} séances</strong> de cours.</p>
                         </div>
-                        
+
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 <i class="fas fa-trash me-1"></i>Supprimer l'emploi du temps
@@ -170,7 +170,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <form action="{{ route('esbtp.emplois-temps.destroy', $emploiTemps->id) }}" method="POST">
+                <form action="{{ route('esbtp.emploi-temps.destroy', $emploiTemps->id) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
@@ -190,22 +190,22 @@
             width: '100%',
             placeholder: 'Sélectionnez un élément'
         });
-        
+
         // Validation des dates
         $('#date_fin').on('change', function() {
             var dateDebut = $('#date_debut').val();
             var dateFin = $(this).val();
-            
+
             if (dateDebut && dateFin && dateDebut > dateFin) {
                 alert("La date de fin doit être postérieure à la date de début.");
                 $(this).val('{{ $emploiTemps->date_fin ? $emploiTemps->date_fin->format("Y-m-d") : "" }}');
             }
         });
-        
+
         $('#date_debut').on('change', function() {
             var dateDebut = $(this).val();
             var dateFin = $('#date_fin').val();
-            
+
             if (dateDebut && dateFin && dateDebut > dateFin) {
                 alert("La date de début doit être antérieure à la date de fin.");
                 $(this).val('{{ $emploiTemps->date_debut ? $emploiTemps->date_debut->format("Y-m-d") : "" }}');
@@ -213,4 +213,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

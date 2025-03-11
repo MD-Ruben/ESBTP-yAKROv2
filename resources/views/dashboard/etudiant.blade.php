@@ -21,7 +21,7 @@
                             <i class="fas fa-id-card fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-primary mt-3">Voir mon profil</a>
+                    <a href="{{ route('esbtp.etudiants.show', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-primary mt-3">Voir mon profil</a>
                 </div>
             </div>
         </div>
@@ -40,7 +40,7 @@
                             <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('classes.show', $classe->id) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
+                    <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
                 </div>
             </div>
         </div>
@@ -101,7 +101,7 @@
                             <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('attendances.student', $etudiant->id) }}" class="btn btn-sm btn-danger mt-3">Voir mes présences</a>
+                    <a href="{{ route('esbtp.mes-absences.index') }}" class="btn btn-sm btn-danger mt-3">Voir mes présences</a>
                 </div>
             </div>
         </div>

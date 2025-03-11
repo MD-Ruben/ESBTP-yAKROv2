@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('esbtp.evaluations.form')
 
 @section('title', 'Ajouter une évaluation - ESBTP-yAKRO')
 

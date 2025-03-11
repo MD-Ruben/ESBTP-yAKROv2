@@ -10,7 +10,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Détails de l'étudiant: {{ $etudiant->nom }} {{ $etudiant->prenoms }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.etudiants.edit', $etudiant) }}" class="btn btn-warning me-2">
+                        <a href="{{ route('esbtp.etudiants.edit', ['etudiant' => $etudiant->id]) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
                         <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-secondary">
@@ -107,7 +107,7 @@
                                             <span>{{ $etudiant->user->email }}</span>
                                         </div>
                                         <div class="d-grid gap-2">
-                                            <a href="{{ route('esbtp.etudiants.reset-password', $etudiant) }}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?')">
+                                            <a href="{{ route('esbtp.etudiants.reset-password', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?')">
                                                 <i class="fas fa-key me-1"></i>Réinitialiser le mot de passe
                                             </a>
                                         </div>
@@ -116,7 +116,7 @@
                                             <i class="fas fa-exclamation-triangle me-2"></i>
                                             Aucun compte utilisateur n'est associé à cet étudiant.
                                             <div class="mt-2">
-                                                <a href="{{ route('esbtp.etudiants.edit', $etudiant) }}" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ route('esbtp.etudiants.edit', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-user-plus me-1"></i>Créer un compte
                                                 </a>
                                             </div>
@@ -184,7 +184,7 @@
                                                                                     <ul class="list-unstyled mb-0">
                                                                                         @foreach($autresEtudiants as $autreEtudiant)
                                                                                             <li>
-                                                                                                <a href="{{ route('esbtp.etudiants.show', $autreEtudiant) }}">
+                                                                                                <a href="{{ route('esbtp.etudiants.show', ['etudiant' => $autreEtudiant->id]) }}">
                                                                                                     {{ $autreEtudiant->nom }} {{ $autreEtudiant->prenoms }}
                                                                                                 </a>
                                                                                             </li>
@@ -312,4 +312,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

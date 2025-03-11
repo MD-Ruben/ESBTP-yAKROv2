@@ -350,6 +350,72 @@
             background-color: var(--esbtp-orange-dark);
             border-color: var(--esbtp-orange-dark);
         }
+
+        .notifications-dropdown {
+            width: 320px;
+            padding: 0;
+            max-height: 400px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notifications-header h6 {
+            margin: 0;
+        }
+
+        .notifications-body {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .notification-item:hover {
+            background-color: var(--esbtp-light-green);
+        }
+
+        .notification-item.unread {
+            background-color: var(--esbtp-light-orange);
+        }
+
+        .notification-item .notification-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .notification-item .notification-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .notifications-footer {
+            border-top: 1px solid #eee;
+        }
+
+        .notifications-footer a {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        #unreadNotificationCount {
+            display: none;
+        }
+
+        #unreadNotificationCount:not(:empty) {
+            display: flex;
+        }
     </style>
     @stack('styles')
 </head>
@@ -441,8 +507,8 @@
                 <div class="menu-category">Emploi du temps</div>
                 @hasanyrole('superAdmin|secretaire')
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.emplois-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.emplois-temps.*') ? 'active' : '' }}">
-                        <i class="fas fa-calendar-week nav-icon"></i>
+                    <a href="{{ route('esbtp.emploi-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
                         <span>Gestion des emplois du temps</span>
                     </a>
                 </li>
@@ -488,19 +554,19 @@
 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('mes-examens.index') }}" class="nav-link {{ request()->routeIs('mes-examens.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mes-evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-evaluations.index') ? 'active' : '' }}">
                         <i class="fas fa-file-alt nav-icon"></i>
                         <span>Mes examens</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('mes-notes.index') }}" class="nav-link {{ request()->routeIs('mes-notes.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mes-notes.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notes.index') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-list nav-icon"></i>
                         <span>Mes notes</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('mon-bulletin.index') }}" class="nav-link {{ request()->routeIs('mon-bulletin.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mon-bulletin.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-bulletin.index') ? 'active' : '' }}">
                         <i class="fas fa-chart-pie nav-icon"></i>
                         <span>Mon bulletin</span>
                     </a>
@@ -526,9 +592,19 @@
 
                 @role('etudiant')
                 <li class="nav-item">
-                    <a href="{{ route('mes-absences.index') }}" class="nav-link {{ request()->routeIs('mes-absences.index') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.mes-absences.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-absences.index') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-check nav-icon"></i>
                         <span>Mes absences</span>
+                    </a>
+                </li>
+                @endrole
+
+                @role('etudiant')
+                <div class="menu-category">Communication</div>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.mes-notifications.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notifications.index') ? 'active' : '' }}">
+                        <i class="fas fa-bell nav-icon"></i>
+                        <span>Mes notifications</span>
                     </a>
                 </li>
                 @endrole
@@ -630,10 +706,26 @@
 
             <div class="topbar-actions">
                 <div class="action-item">
-                    <button class="action-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
+                    <div class="dropdown">
+                        <button class="action-btn" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="unreadNotificationCount">0</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notifications-dropdown" aria-labelledby="notificationsDropdown">
+                            <div class="notifications-header">
+                                <h6 class="dropdown-header">Notifications</h6>
+                                <button class="btn btn-link btn-sm mark-all-read">Tout marquer comme lu</button>
+                            </div>
+                            <div class="notifications-body" id="notificationsContainer">
+                                <div class="text-center p-3">
+                                    <small>Chargement...</small>
+                                </div>
+                            </div>
+                            <div class="notifications-footer">
+                                <a href="@if(auth()->user()->hasRole('etudiant')){{ route('esbtp.mes-notifications.index') }}@else{{ route('notifications.index') }}@endif" class="dropdown-item text-center">Voir toutes les notifications</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="action-item dropdown">
@@ -676,6 +768,7 @@
             // Toggle sidebar on mobile
             const toggleBtn = document.getElementById('toggle-sidebar');
             const sidebar = document.getElementById('sidebar');
+            const notificationsDropdown = document.getElementById('notificationsDropdown');
 
             if (toggleBtn && sidebar) {
                 toggleBtn.addEventListener('click', function() {
@@ -683,13 +776,19 @@
                 });
             }
 
+            // Empêcher la propagation du click sur le dropdown des notifications
+            notificationsDropdown?.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+
             // Close sidebar when clicking outside on mobile
             document.addEventListener('click', function(event) {
                 if (window.innerWidth < 992) {
                     const isClickInsideSidebar = sidebar.contains(event.target);
                     const isClickOnToggleBtn = toggleBtn.contains(event.target);
+                    const isClickOnNotifications = notificationsDropdown.contains(event.target);
 
-                    if (!isClickInsideSidebar && !isClickOnToggleBtn && !sidebar.classList.contains('collapsed')) {
+                    if (!isClickInsideSidebar && !isClickOnToggleBtn && !isClickOnNotifications && !sidebar.classList.contains('collapsed')) {
                         sidebar.classList.add('collapsed');
                     }
                 }
@@ -702,6 +801,105 @@
                 }
             });
         });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const notificationsDropdown = document.getElementById('notificationsDropdown');
+        const notificationsContainer = document.getElementById('notificationsContainer');
+        const unreadCount = document.getElementById('unreadNotificationCount');
+        let isLoading = false;
+
+        function updateUnreadCount() {
+            @if(auth()->user()->hasRole('etudiant'))
+            fetch('{{ route("esbtp.notifications.unreadCount") }}')
+            @else
+            fetch('{{ route("notifications.unreadCount") }}')
+            @endif
+                .then(response => response.json())
+                .then(data => {
+                    unreadCount.textContent = data.count > 0 ? data.count : '';
+                });
+        }
+
+        function loadNotifications() {
+            if (isLoading) return;
+            isLoading = true;
+
+            notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Chargement...</small></div>';
+
+            @if(auth()->user()->hasRole('etudiant'))
+            fetch('{{ route("esbtp.mes-notifications.index") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            @else
+            fetch('{{ route("notifications.index") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            @endif
+                .then(response => response.text())
+                .then(html => {
+                    notificationsContainer.innerHTML = html;
+                    isLoading = false;
+                })
+                .catch(() => {
+                    notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Erreur de chargement</small></div>';
+                    isLoading = false;
+                });
+        }
+
+        function markAsRead(id) {
+            @if(auth()->user()->hasRole('etudiant'))
+            fetch(`{{ url('esbtp/mes-notifications') }}/${id}/read`, {
+            @else
+            fetch(`{{ url('notifications') }}/${id}/read`, {
+            @endif
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                updateUnreadCount();
+            });
+        }
+
+        document.querySelector('.mark-all-read')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            @if(auth()->user()->hasRole('etudiant'))
+            fetch('{{ route("esbtp.mes-notifications.markAllAsRead") }}', {
+            @else
+            fetch('{{ route("notifications.markAllAsRead") }}', {
+            @endif
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                updateUnreadCount();
+                loadNotifications();
+            });
+        });
+
+        notificationsDropdown?.addEventListener('click', function() {
+            loadNotifications();
+        });
+
+        // Initial unread count
+        updateUnreadCount();
+
+        // Update unread count every minute
+        setInterval(updateUnreadCount, 60000);
+    });
     </script>
 </body>
 </html>

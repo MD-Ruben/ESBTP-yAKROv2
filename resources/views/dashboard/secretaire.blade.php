@@ -22,7 +22,7 @@
                             <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                    <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                             <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('attendances.today') }}" class="btn btn-sm btn-success mt-3">Gérer les présences</a>
+                    <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-sm btn-success mt-3">Gérer les présences</a>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                             <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('attendances.justifications') }}" class="btn btn-sm btn-warning mt-3">Traiter les justifications</a>
+                    <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-sm btn-warning mt-3">Traiter les justifications</a>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
                             <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('timetables.index') }}" class="btn btn-sm btn-info mt-3">Gérer les emplois du temps</a>
+                    <a href="{{ route('esbtp.emploi-temps.index') }}" class="btn btn-sm btn-info mt-3">Gérer les emplois du temps</a>
                 </div>
             </div>
         </div>
@@ -161,7 +161,7 @@
                                     <td>{{ $etudiant->classe->nom ?? 'Non assigné' }}</td>
                                     <td>{{ $etudiant->created_at->format('d/m/Y') }}</td>
                                     <td>
-                                        <a href="{{ route('etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-info">Détails</a>
+                                        <a href="{{ route('esbtp.etudiants.show', $etudiant->id) }}" class="btn btn-sm btn-info">Détails</a>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -224,7 +224,7 @@
                                 <option value="specific_class">Classe spécifique</option>
                             </select>
                         </div>
-                        
+
                         <div class="mb-3" id="specific_user_container" style="display: none;">
                             <label for="recipient_id" class="form-label">Sélectionner un étudiant</label>
                             <select class="form-select" id="recipient_id" name="recipient_id">
@@ -234,7 +234,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        
+
                         <div class="mb-3" id="specific_class_container" style="display: none;">
                             <label for="recipient_group" class="form-label">Sélectionner une classe</label>
                             <select class="form-select" id="recipient_group" name="recipient_group">
@@ -244,7 +244,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="subject" class="form-label">Sujet</label>
                             <input type="text" class="form-control" id="subject" name="subject" required>
@@ -268,7 +268,7 @@
         const recipientType = document.getElementById('recipient_type');
         const specificUserContainer = document.getElementById('specific_user_container');
         const specificClassContainer = document.getElementById('specific_class_container');
-        
+
         recipientType.addEventListener('change', function() {
             if (this.value === 'specific_user') {
                 specificUserContainer.style.display = 'block';
@@ -284,4 +284,4 @@
     });
 </script>
 @endpush
-@endsection 
+@endsection

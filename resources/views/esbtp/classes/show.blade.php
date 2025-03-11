@@ -10,10 +10,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Détails de la classe: {{ $classe->name }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.classes.matieres', $classe) }}" class="btn btn-primary me-2">
+                        <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-primary me-2">
                             <i class="fas fa-book me-1"></i>Gérer les matières
                         </a>
-                        <a href="{{ route('esbtp.classes.edit', $classe) }}" class="btn btn-warning me-2">
+                        <a href="{{ route('esbtp.classes.edit', ['classe' => $classe->id]) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
                         <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
@@ -116,44 +116,10 @@
                         </div>
 
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">Formations associées</h6>
-                                </div>
-                                <div class="card-body">
-                                    @if($classe->formations->count() > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Code</th>
-                                                        <th>Nom</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($classe->formations as $formation)
-                                                        <tr>
-                                                            <td>{{ $formation->code }}</td>
-                                                            <td>{{ $formation->name }}</td>
-                                                            <td>{{ Str::limit($formation->description, 100) }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <div class="alert alert-info mb-0">
-                                            Aucune formation associée à cette classe.
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-
                             <div class="card">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">Matières enseignées</h6>
-                                    <a href="{{ route('esbtp.classes.matieres', $classe) }}" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-cog me-1"></i>Gérer
                                     </a>
                                 </div>
@@ -186,7 +152,7 @@
                                     @else
                                         <div class="alert alert-info mb-0">
                                             Aucune matière associée à cette classe.
-                                            <a href="{{ route('esbtp.classes.matieres', $classe) }}" class="alert-link">Ajouter des matières</a>
+                                            <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="alert-link">Ajouter des matières</a>
                                         </div>
                                     @endif
                                 </div>
@@ -227,7 +193,7 @@
                                                             </td>
                                                             <td>
                                                                 <div class="btn-group" role="group">
-                                                                    <a href="{{ route('esbtp.etudiants.show', $etudiant) }}" class="btn btn-sm btn-info">
+                                                                    <a href="{{ route('esbtp.etudiants.show', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-info">
                                                                         <i class="fas fa-eye"></i>
                                                                     </a>
                                                                 </div>
@@ -265,4 +231,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

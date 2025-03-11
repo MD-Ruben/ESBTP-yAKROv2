@@ -213,29 +213,36 @@ class ESBTPClasseController extends Controller
      */
     public function updateMatieres(Request $request, ESBTPClasse $classe)
     {
-        $validatedData = $request->validate([
-            'matieres' => 'required|array',
-            'matieres.*.id' => 'required|exists:esbtp_matieres,id',
-            'matieres.*.coefficient' => 'required|numeric|min:0',
-            'matieres.*.total_heures' => 'required|integer|min:0',
-            'matieres.*.is_active' => 'boolean',
+        // Valider les données du formulaire
+        $request->validate([
+            'matiere_ids' => 'nullable|array',
+            'matiere_ids.*' => 'exists:esbtp_matieres,id',
+            'coefficients' => 'nullable|array',
+            'coefficients.*' => 'numeric|min:0',
+            'heures' => 'nullable|array',
+            'heures.*' => 'integer|min:0',
+            'active' => 'nullable|array',
+            'active.*' => 'boolean',
         ]);
 
         // Réinitialiser les matières existantes
         $classe->matieres()->detach();
 
-        // Ajouter les nouvelles matières avec leurs coefficients
-        foreach ($validatedData['matieres'] as $matiere) {
-            $classe->matieres()->attach($matiere['id'], [
-                'coefficient' => $matiere['coefficient'],
-                'total_heures' => $matiere['total_heures'],
-                'is_active' => isset($matiere['is_active']) ? $matiere['is_active'] : true,
+        // Récupérer les IDs des matières sélectionnées
+        $matiereIds = $request->input('matiere_ids', []);
+
+        // Ajouter les matières sélectionnées avec leurs coefficients et heures
+        foreach ($matiereIds as $matiereId) {
+            $classe->matieres()->attach($matiereId, [
+                'coefficient' => $request->input("coefficients.{$matiereId}", 1),
+                'total_heures' => $request->input("heures.{$matiereId}", 0),
+                'is_active' => $request->has("active.{$matiereId}") ? true : false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        return redirect()->route('esbtp.classes.show', $classe)
+        return redirect()->route('esbtp.classes.show', ['classe' => $classe->id])
             ->with('success', 'Les matières ont été mises à jour avec succès.');
     }
 

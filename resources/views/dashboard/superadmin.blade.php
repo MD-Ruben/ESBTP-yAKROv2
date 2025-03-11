@@ -22,7 +22,7 @@
                             <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                    <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                             <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('filieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les filières</a>
+                    <a href="{{ route('esbtp.filieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les filières</a>
                 </div>
             </div>
         </div>
@@ -82,7 +82,7 @@
                             <i class="fas fa-book fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('formations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les formations</a>
+                    <a href="{{ route('esbtp.formations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les formations</a>
                 </div>
             </div>
         </div>
@@ -104,7 +104,7 @@
                             <i class="fas fa-layer-group fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('niveaux-etude.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les niveaux</a>
+                    <a href="{{ route('esbtp.niveaux-etudes.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les niveaux</a>
                 </div>
             </div>
         </div>
@@ -124,7 +124,7 @@
                             <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('classes.index') }}" class="btn btn-sm btn-success mt-3">Gérer les classes</a>
+                    <a href="{{ route('esbtp.classes.index') }}" class="btn btn-sm btn-success mt-3">Gérer les classes</a>
                 </div>
             </div>
         </div>
@@ -164,7 +164,7 @@
                             <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('evaluations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les examens</a>
+                    <a href="{{ route('esbtp.evaluations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les examens</a>
                 </div>
             </div>
         </div>

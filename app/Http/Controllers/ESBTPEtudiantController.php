@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use App\Models\ESBTPParent;
+use App\Models\ESBTPInscription;
 
 class ESBTPEtudiantController extends Controller
 {
@@ -433,7 +434,7 @@ class ESBTPEtudiantController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('etudiants.show', $etudiant->id)
+                ->route('esbtp.etudiants.show', $etudiant->id)
                 ->with('success', 'Informations de l\'étudiant mises à jour avec succès!');
 
         } catch (\Exception $e) {
@@ -478,7 +479,7 @@ class ESBTPEtudiantController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('etudiants.index')
+                ->route('esbtp.etudiants.index')
                 ->with('success', 'Étudiant supprimé avec succès!');
 
         } catch (\Exception $e) {
@@ -714,41 +715,25 @@ class ESBTPEtudiantController extends Controller
      */
     public function profile()
     {
-        $user = Auth::user();
+        $etudiant = auth()->user()->etudiant;
 
-        // Récupérer l'étudiant associé à l'utilisateur connecté
-        $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
-
-        // Si l'utilisateur n'est pas un étudiant (par exemple, superAdmin, secretaire), afficher une vue alternative
-        if (!$etudiant) {
-            if ($user->hasRole('superAdmin')) {
-                return view('esbtp.admin.profile', compact('user'));
-            } elseif ($user->hasRole('secretaire')) {
-                return view('esbtp.secretaires.profile', compact('user'));
-            } else {
-                // Redirection par défaut si le rôle n'est pas reconnu
-                return redirect()->route('esbtp.welcome')->with('error', 'Profil non disponible');
-            }
-        }
-
-        // Récupérer l'inscription active de l'étudiant
-        $inscriptionActive = DB::table('esbtp_inscriptions')
-            ->join('esbtp_annee_universitaires', 'esbtp_inscriptions.annee_universitaire_id', '=', 'esbtp_annee_universitaires.id')
-            ->join('esbtp_classes', 'esbtp_inscriptions.classe_id', '=', 'esbtp_classes.id')
-            ->join('esbtp_niveau_etudes', 'esbtp_classes.niveau_etude_id', '=', 'esbtp_niveau_etudes.id')
-            ->join('esbtp_filieres', 'esbtp_classes.filiere_id', '=', 'esbtp_filieres.id')
-            ->select(
-                'esbtp_inscriptions.*',
-                'esbtp_annee_universitaires.libelle as annee',
-                'esbtp_classes.nom as classe',
-                'esbtp_niveau_etudes.libelle as niveau',
-                'esbtp_filieres.nom as filiere'
-            )
-            ->where('esbtp_inscriptions.etudiant_id', $etudiant->id)
-            ->where('esbtp_annee_universitaires.est_actif', 1)
+        // Charger l'inscription active en premier
+        $inscription = ESBTPInscription::with(['filiere', 'niveau', 'classe', 'anneeUniversitaire', 'paiements'])
+            ->where('etudiant_id', $etudiant->id)
+            ->where('status', 'active')
+            ->whereHas('anneeUniversitaire', function($query) {
+                $query->where('is_active', true);
+            })
+            ->latest('date_inscription')
             ->first();
 
-        return view('esbtp.etudiants.profile', compact('etudiant', 'inscriptionActive'));
+        // Charger l'historique des inscriptions
+        $etudiant->load(['inscriptions' => function($query) {
+            $query->with(['filiere', 'niveau', 'classe', 'anneeUniversitaire'])
+                  ->orderBy('date_inscription', 'desc');
+        }]);
+
+        return view('esbtp.etudiants.profile', compact('etudiant', 'inscription'));
     }
 
     /**

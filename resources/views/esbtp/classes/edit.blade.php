@@ -10,7 +10,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Modifier la classe: {{ $classe->name }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.classes.show', $classe) }}" class="btn btn-info me-2">
+                        <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-info me-2">
                             <i class="fas fa-eye me-1"></i>Voir les détails
                         </a>
                         <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
@@ -29,7 +29,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('esbtp.classes.update', $classe) }}" method="POST">
+                    <form action="{{ route('esbtp.classes.update', ['classe' => $classe->id]) }}" method="POST">
                         @csrf
                         @method('PUT')
 

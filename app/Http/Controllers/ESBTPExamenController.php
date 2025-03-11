@@ -133,22 +133,22 @@ class ESBTPExamenController extends Controller
     {
         $user = Auth::user();
         $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
-        
+
         if (!$etudiant) {
             return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
         }
-        
+
         $examens = ESBTPExamen::where('classe_id', $etudiant->classe_id)
             ->where('date', '>=', now()->subDays(1))
             ->orderBy('date', 'asc')
             ->get();
-        
+
         $examensTermines = ESBTPExamen::where('classe_id', $etudiant->classe_id)
             ->where('date', '<', now()->subDays(1))
             ->orderBy('date', 'desc')
             ->limit(10)
             ->get();
-        
+
         return view('etudiants.examens', compact('examens', 'examensTermines', 'etudiant'));
     }
-} 
+}

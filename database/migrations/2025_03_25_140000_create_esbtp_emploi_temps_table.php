@@ -15,13 +15,14 @@ class CreateESBTPEmploiTempsTable extends Migration
     {
         // Vérifier si la table des emplois du temps existe déjà
         $tableEmploiTempsExists = Schema::hasTable('esbtp_emploi_temps');
-        
+
         // Si la table n'existe pas, la créer
         if (!$tableEmploiTempsExists) {
             Schema::create('esbtp_emploi_temps', function (Blueprint $table) {
                 $table->id();
                 $table->string('titre');
                 $table->foreignId('classe_id')->constrained('esbtp_classes')->onDelete('cascade');
+                $table->foreignId('annee_universitaire_id')->nullable()->constrained('esbtp_annee_universitaires')->onDelete('set null');
                 $table->string('semestre')->nullable(); // 'semestre1', 'semestre2', etc.
                 $table->date('date_debut')->nullable();
                 $table->date('date_fin')->nullable();
@@ -31,15 +32,15 @@ class CreateESBTPEmploiTempsTable extends Migration
                 $table->timestamps();
                 $table->softDeletes();
             });
-            
+
             \Log::info('Table esbtp_emploi_temps créée avec succès.');
         } else {
             \Log::info('La table esbtp_emploi_temps existe déjà.');
         }
-        
+
         // Vérifier si la table des séances de cours existe déjà
         $tableSeanceCoursExists = Schema::hasTable('esbtp_seance_cours');
-        
+
         // Si la table n'existe pas, la créer
         if (!$tableSeanceCoursExists) {
             Schema::create('esbtp_seance_cours', function (Blueprint $table) {
@@ -59,7 +60,7 @@ class CreateESBTPEmploiTempsTable extends Migration
                 $table->timestamps();
                 $table->softDeletes();
             });
-            
+
             \Log::info('Table esbtp_seance_cours créée avec succès.');
         } else {
             \Log::info('La table esbtp_seance_cours existe déjà.');
@@ -76,4 +77,4 @@ class CreateESBTPEmploiTempsTable extends Migration
         Schema::dropIfExists('esbtp_seance_cours');
         Schema::dropIfExists('esbtp_emploi_temps');
     }
-} 
+}

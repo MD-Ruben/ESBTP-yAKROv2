@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Gestion des emplois du temps</h5>
-                    <a href="{{ route('esbtp.emplois-temps.create') }}" class="btn btn-primary">
+                    <a href="{{ route('esbtp.emploi-temps.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-1"></i>Ajouter un emploi du temps
                     </a>
                 </div>
@@ -20,7 +20,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
@@ -71,14 +71,14 @@
                                                 <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-sm btn-info" title="Voir">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('esbtp.emplois-temps.edit', $emploiTemps->id) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                                <a href="{{ route('esbtp.emploi-temps.edit', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $emploiTemps->id }}" title="Supprimer">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
-                                            
+
                                             <!-- Modal de confirmation de suppression -->
                                             <div class="modal fade" id="deleteModal{{ $emploiTemps->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $emploiTemps->id }}" aria-hidden="true">
                                                 <div class="modal-dialog">
@@ -95,7 +95,7 @@
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <form action="{{ route('esbtp.emplois-temps.destroy', $emploiTemps->id) }}" method="POST">
+                                                            <form action="{{ route('esbtp.emploi-temps.destroy', $emploiTemps->id) }}" method="POST">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
@@ -126,7 +126,7 @@
                     <h5 class="card-title mb-0">Recherche par classe</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('esbtp.emplois-temps.index') }}" method="GET">
+                    <form action="{{ route('esbtp.emploi-temps.index') }}" method="GET">
                         <div class="mb-3">
                             <label for="filiere_id" class="form-label">Filière</label>
                             <select class="form-select select2" id="filiere_id" name="filiere_id">
@@ -169,7 +169,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-info text-white">
@@ -217,7 +217,7 @@
             "pageLength": 25,
             "order": [[6, 'desc']] // Trier par date de création par défaut
         });
-        
+
         // Amélioration des listes déroulantes avec Select2
         $('.select2').select2({
             theme: 'bootstrap-5',
@@ -225,4 +225,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

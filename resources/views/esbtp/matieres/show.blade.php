@@ -13,7 +13,7 @@
                         <a href="{{ route('esbtp.matieres.index') }}" class="btn btn-secondary me-2">
                             <i class="fas fa-list me-1"></i>Liste des matières
                         </a>
-                        <a href="{{ route('esbtp.matieres.edit', $matiere) }}" class="btn btn-primary">
+                        <a href="{{ route('esbtp.matieres.edit', ['matiere' => $matiere->id]) }}" class="btn btn-primary">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
                     </div>
@@ -64,7 +64,7 @@
                                                 <th>Unité d'enseignement :</th>
                                                 <td>
                                                     @if($matiere->uniteEnseignement)
-                                                        <a href="{{ route('esbtp.unites-enseignement.show', $matiere->uniteEnseignement) }}">
+                                                        <a href="{{ route('esbtp.unites-enseignement.show', ['uniteEnseignement' => $matiere->uniteEnseignement->id]) }}">
                                                             {{ $matiere->uniteEnseignement->name }} ({{ $matiere->uniteEnseignement->code }})
                                                         </a>
                                                     @else
@@ -154,7 +154,7 @@
                                                             <td>{{ $niveau->code }}</td>
                                                             <td>{{ $niveau->diplome ?? '-' }}</td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.niveaux-etudes.show', $niveau) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.niveaux-etudes.show', ['niveauEtude' => $niveau->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>
@@ -177,7 +177,7 @@
                             <div class="card mb-4">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Enseignants associés ({{ $matiere->enseignants->count() }})</h6>
-                                    <a href="{{ route('esbtp.matieres.edit', $matiere) }}?section=enseignants" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('esbtp.matieres.edit', ['matiere' => $matiere->id]) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-plus me-1"></i>Gérer les enseignants
                                     </a>
                                 </div>
@@ -200,7 +200,7 @@
                                                             <td>{{ $enseignant->matricule }}</td>
                                                             <td>{{ $enseignant->specialite ?? '-' }}</td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.enseignants.show', $enseignant) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.enseignants.show', ['enseignant' => $enseignant->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>
@@ -289,7 +289,7 @@
                                                                 @endswitch
                                                             </td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.seances-cours.edit', $seance) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.seances-cours.edit', ['seanceCour' => $seance->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>
@@ -386,7 +386,7 @@
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="fas fa-trash me-1"></i>Supprimer
                         </button>
-                        <a href="{{ route('esbtp.matieres.edit', $matiere) }}" class="btn btn-primary">
+                        <a href="{{ route('esbtp.matieres.edit', ['matiere' => $matiere->id]) }}" class="btn btn-primary">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
                     </div>
@@ -426,7 +426,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <form action="{{ route('esbtp.matieres.destroy', $matiere) }}" method="POST">
+                <form action="{{ route('esbtp.matieres.destroy', ['matiere' => $matiere->id]) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Confirmer la suppression</button>

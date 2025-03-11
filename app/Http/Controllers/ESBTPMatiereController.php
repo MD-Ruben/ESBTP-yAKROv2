@@ -255,7 +255,7 @@ class ESBTPMatiereController extends Controller
         // Attacher les matières à la classe
         $classe->matieres()->attach($matieresData);
 
-        return redirect()->route('esbtp.classes.matieres', $classe->id)
+        return redirect()->route('esbtp.classes.matieres', ['classe' => $classe->id])
             ->with('success', count($matieresData) . ' matière(s) ajoutée(s) à la classe avec succès.');
     }
 

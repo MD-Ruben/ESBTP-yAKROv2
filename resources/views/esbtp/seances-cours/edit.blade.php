@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Modifier une séance de cours</h5>
-                    <a href="{{ route('esbtp.emplois-temps.show', $seancesCour->emploi_temps_id) }}" class="btn btn-secondary">
+                    <a href="{{ route('esbtp.emploi-temps.show', $seancesCour->emploi_temps_id) }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Retour à l'emploi du temps
                     </a>
                 </div>
@@ -35,7 +35,7 @@
                     <form action="{{ route('esbtp.seances-cours.update', $seancesCour->id) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -53,7 +53,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="enseignant_id" class="form-label">Enseignant *</label>
@@ -71,7 +71,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -90,7 +90,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_debut" class="form-label">Heure de début *</label>
@@ -100,7 +100,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_fin" class="form-label">Heure de fin *</label>
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -128,7 +128,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="salle" class="form-label">Salle *</label>
@@ -138,7 +138,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ (old('is_active', $seancesCour->is_active) == 1) ? 'checked' : '' }}>
@@ -148,7 +148,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label for="commentaire" class="form-label">Commentaire</label>
                             <textarea class="form-control @error('commentaire') is-invalid @enderror" id="commentaire" name="commentaire" rows="3">{{ old('commentaire', $seancesCour->commentaire) }}</textarea>
@@ -156,12 +156,12 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
                         <div class="alert alert-info">
                             <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Information</h6>
                             <p class="mb-0">Le système vérifiera automatiquement les conflits d'horaires pour cette séance (même enseignant, même salle ou même classe au même moment). Si des conflits sont détectés, vous devrez les résoudre avant de pouvoir enregistrer cette séance.</p>
                         </div>
-                        
+
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 <i class="fas fa-trash me-1"></i>Supprimer la séance
@@ -192,7 +192,7 @@
                     @php
                         $jours = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                     @endphp
-                    {{ $jours[$seancesCour->jour_semaine] ?? 'Jour inconnu' }} de {{ $seancesCour->heure_debut }} à {{ $seancesCour->heure_fin }} - 
+                    {{ $jours[$seancesCour->jour_semaine] ?? 'Jour inconnu' }} de {{ $seancesCour->heure_debut }} à {{ $seancesCour->heure_fin }} -
                     {{ $seancesCour->matiere->name }}
                 </p>
                 <p class="text-danger">
@@ -222,22 +222,22 @@
             width: '100%',
             placeholder: 'Sélectionnez un élément'
         });
-        
+
         // Validation des horaires
         $('#heure_fin').on('change', function() {
             const heureDebut = $('#heure_debut').val();
             const heureFin = $(this).val();
-            
+
             if (heureDebut && heureFin && heureDebut >= heureFin) {
                 alert("L'heure de fin doit être postérieure à l'heure de début.");
                 $(this).val('{{ $seancesCour->heure_fin }}');
             }
         });
-        
+
         $('#heure_debut').on('change', function() {
             const heureDebut = $(this).val();
             const heureFin = $('#heure_fin').val();
-            
+
             if (heureDebut && heureFin && heureDebut >= heureFin) {
                 alert("L'heure de début doit être antérieure à l'heure de fin.");
                 $(this).val('{{ $seancesCour->heure_debut }}');
@@ -245,4 +245,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

@@ -9,7 +9,7 @@
     <!-- Filtres -->
     <div class="card mb-4">
         <div class="card-body">
-            <form action="{{ route('mes-examens.index') }}" method="GET" class="row">
+            <form action="{{ route('esbtp.mes-evaluations.index') }}" method="GET" class="row">
                 <div class="col-md-3 mb-2">
                     <label for="annee_universitaire_id">Année Universitaire</label>
                     <select name="annee_universitaire_id" id="annee_universitaire_id" class="form-control">
@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-md-3 mb-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary">Filtrer</button>
-                    <a href="{{ route('mes-examens.index') }}" class="btn btn-secondary ml-2">Réinitialiser</a>
+                    <a href="{{ route('esbtp.mes-evaluations.index') }}" class="btn btn-secondary ml-2">Réinitialiser</a>
                 </div>
             </form>
         </div>
@@ -150,13 +150,13 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-center mt-4">
                 {{ $evaluations->appends(request()->query())->links() }}
             </div>
         </div>
     </div>
-    
+
     <!-- Calendrier des examens -->
     <div class="card mb-4">
         <div class="card-header">
@@ -209,4 +209,4 @@
         calendar.render();
     });
 </script>
-@endsection 
+@endsection

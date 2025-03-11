@@ -15,7 +15,7 @@ Ces contrôleurs se trouvent directement dans `app/Http/Controllers` :
 | ESBTPClasseController             | Gestion des classes                   | `/esbtp/classes`                            |
 | ESBTPEmploiTempsController        | Gestion des emplois du temps          | `/esbtp/emplois-temps`, `/mon-emploi-temps` |
 | ESBTPEtudiantController           | Gestion des étudiants                 | `/esbtp/etudiants`, `/mon-profil`           |
-| ESBTPEvaluationController         | Gestion des évaluations               | `/esbtp/evaluations`, `/mes-examens`        |
+| ESBTPEvaluationController         | Gestion des évaluations               | `/esbtp/evaluations`, `/mes-evaluations`    |
 | ESBTPFiliereController            | Gestion des filières                  | `/esbtp/filieres`                           |
 | ESBTPFormationController          | Gestion des formations                | `/esbtp/formations`                         |
 | ESBTPInscriptionController        | Gestion des inscriptions              | `/esbtp/inscriptions`                       |

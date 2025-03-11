@@ -9,7 +9,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Créer un nouvel emploi du temps</h5>
-                    <a href="{{ route('esbtp.emplois-temps.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('esbtp.emploi-temps.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                     </a>
                 </div>
@@ -24,9 +24,9 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('esbtp.emplois-temps.store') }}" method="POST">
+                    <form action="{{ route('esbtp.emploi-temps.store') }}" method="POST">
                         @csrf
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -38,7 +38,7 @@
                                     <small class="form-text text-muted">Ex: Emploi du temps BTS 1ère année Génie Civil - Semestre 1</small>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="classe_id" class="form-label">Classe *</label>
@@ -56,7 +56,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -74,7 +74,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="periode" class="form-label">Période *</label>
@@ -90,7 +90,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -101,7 +101,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="date_fin" class="form-label">Date de fin</label>
@@ -112,23 +112,23 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
                             <label class="form-check-label" for="is_active">
                                 Emploi du temps actif
                             </label>
                             <div class="form-text">
-                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span> 
+                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span>
                                 Un seul emploi du temps peut être actif par classe et par période. Si vous activez cet emploi du temps, les autres emplois du temps pour la même classe et la même période seront automatiquement désactivés.
                             </div>
                         </div>
-                        
+
                         <div class="alert alert-warning">
                             <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Remarque importante</h6>
                             <p class="mb-0">Après avoir créé l'emploi du temps, vous pourrez y ajouter des séances de cours. Assurez-vous que la classe sélectionnée a des matières et des enseignants assignés avant de créer l'emploi du temps.</p>
                         </div>
-                        
+
                         <div class="d-flex justify-content-end">
                             <button type="reset" class="btn btn-secondary me-2">Annuler</button>
                             <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -150,22 +150,22 @@
             width: '100%',
             placeholder: 'Sélectionnez un élément'
         });
-        
+
         // Validation des dates
         $('#date_fin').on('change', function() {
             var dateDebut = $('#date_debut').val();
             var dateFin = $(this).val();
-            
+
             if (dateDebut && dateFin && dateDebut > dateFin) {
                 alert("La date de fin doit être postérieure à la date de début.");
                 $(this).val('');
             }
         });
-        
+
         $('#date_debut').on('change', function() {
             var dateDebut = $(this).val();
             var dateFin = $('#date_fin').val();
-            
+
             if (dateDebut && dateFin && dateDebut > dateFin) {
                 alert("La date de début doit être antérieure à la date de fin.");
                 $(this).val('');
@@ -173,4 +173,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

@@ -29,6 +29,7 @@ class ESBTPEmploiTemps extends Model
         'date_debut',
         'date_fin',
         'is_active',
+        'is_current',
         'created_by',
         'updated_by'
     ];
@@ -39,9 +40,10 @@ class ESBTPEmploiTemps extends Model
      * @var array
      */
     protected $casts = [
-        'date_debut' => 'datetime',
-        'date_fin' => 'datetime',
+        'date_debut' => 'date',
+        'date_fin' => 'date',
         'is_active' => 'boolean',
+        'is_current' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -58,13 +60,13 @@ class ESBTPEmploiTemps extends Model
     }
 
     /**
-     * Obtient l'année universitaire associée à la classe de cet emploi du temps.
+     * Relation avec l'année universitaire associée à cet emploi du temps.
      *
-     * @return \App\Models\ESBTPAnneeUniversitaire
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function getAnneeAttribute()
+    public function annee()
     {
-        return $this->classe ? $this->classe->annee : null;
+        return $this->belongsTo(ESBTPAnneeUniversitaire::class, 'annee_universitaire_id');
     }
 
     /**
@@ -113,16 +115,16 @@ class ESBTPEmploiTemps extends Model
             5 => 'Samedi',
             6 => 'Dimanche',
         ];
-        
+
         $seancesParJour = [];
-        
+
         foreach ($jours as $index => $jour) {
             $seancesParJour[$jour] = $this->seances()
                 ->where('jour_semaine', $index)
                 ->orderBy('heure_debut')
                 ->get();
         }
-        
+
         return $seancesParJour;
     }
 
@@ -135,7 +137,7 @@ class ESBTPEmploiTemps extends Model
     {
         $debut = $this->date_debut ? $this->date_debut->format('d/m/Y') : 'Non définie';
         $fin = $this->date_fin ? $this->date_fin->format('d/m/Y') : 'Non définie';
-        
+
         return "Du {$debut} au {$fin}";
     }
 
@@ -147,8 +149,8 @@ class ESBTPEmploiTemps extends Model
     public function estEnCours()
     {
         $now = now();
-        return $this->is_active 
-            && $this->date_debut <= $now 
+        return $this->is_active
+            && $this->date_debut <= $now
             && ($this->date_fin === null || $this->date_fin >= $now);
     }
 
@@ -161,15 +163,15 @@ class ESBTPEmploiTemps extends Model
     {
         $conflicts = [];
         $seancesParJour = $this->getSeancesParJour();
-        
+
         foreach ($seancesParJour as $jour => $seances) {
             for ($i = 0; $i < count($seances); $i++) {
                 for ($j = $i + 1; $j < count($seances); $j++) {
                     $seance1 = $seances[$i];
                     $seance2 = $seances[$j];
-                    
+
                     // Vérifier si les horaires se chevauchent
-                    if (($seance1->heure_debut < $seance2->heure_fin) && 
+                    if (($seance1->heure_debut < $seance2->heure_fin) &&
                         ($seance1->heure_fin > $seance2->heure_debut)) {
                         $conflicts[] = [
                             'jour' => $jour,
@@ -180,7 +182,23 @@ class ESBTPEmploiTemps extends Model
                 }
             }
         }
-        
+
         return $conflicts;
     }
-} 
+
+    public function scopeCurrent($query)
+    {
+        return $query->where('is_current', true);
+    }
+
+    public static function setAsCurrent($id)
+    {
+        self::where('classe_id', function($query) use ($id) {
+            $query->select('classe_id')
+                  ->from('esbtp_emploi_temps')
+                  ->where('id', $id);
+        })->update(['is_current' => false]);
+
+        return self::where('id', $id)->update(['is_current' => true]);
+    }
+}

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('esbtp.evaluations.form')
 
 @section('title', 'Modifier l\'évaluation : ' . $evaluation->titre . ' - ESBTP-yAKRO')
 
@@ -32,7 +32,7 @@
                     <form action="{{ route('esbtp.evaluations.update', $evaluation) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="row">
                             <!-- Informations générales de l'évaluation -->
                             <div class="col-md-6">
@@ -48,7 +48,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="type" class="form-label">Type d'évaluation <span class="text-danger">*</span></label>
                                             <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
@@ -62,7 +62,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="date_evaluation" class="form-label">Date de l'évaluation <span class="text-danger">*</span></label>
                                             <input type="date" class="form-control @error('date_evaluation') is-invalid @enderror" id="date_evaluation" name="date_evaluation" value="{{ old('date_evaluation', $evaluation->date_evaluation ? date('Y-m-d', strtotime($evaluation->date_evaluation)) : '') }}" required>
@@ -70,7 +70,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="duree_minutes" class="form-label">Durée (en minutes)</label>
                                             <input type="number" class="form-control @error('duree_minutes') is-invalid @enderror" id="duree_minutes" name="duree_minutes" value="{{ old('duree_minutes', $evaluation->duree_minutes) }}" min="1">
@@ -81,7 +81,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Paramètres de notation -->
                             <div class="col-md-6">
                                 <div class="card mb-3">
@@ -103,7 +103,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="matiere_id" class="form-label">Matière <span class="text-danger">*</span></label>
                                             <select class="form-select select2 @error('matiere_id') is-invalid @enderror" id="matiere_id" name="matiere_id" required>
@@ -114,7 +114,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="coefficient" class="form-label">Coefficient <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control @error('coefficient') is-invalid @enderror" id="coefficient" name="coefficient" value="{{ old('coefficient', $evaluation->coefficient) }}" step="0.1" min="0.1" required>
@@ -122,7 +122,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="bareme" class="form-label">Barème <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control @error('bareme') is-invalid @enderror" id="bareme" name="bareme" value="{{ old('bareme', $evaluation->bareme) }}" step="0.1" min="1" required>
@@ -134,7 +134,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Description et options supplémentaires -->
                             <div class="col-12">
                                 <div class="card mb-3">
@@ -149,7 +149,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        
+
                                         <div class="form-check form-switch mb-3">
                                             <input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" {{ old('is_published', $evaluation->is_published) ? 'checked' : '' }}>
                                             <label class="form-check-label" for="is_published">Publier l'évaluation</label>
@@ -158,7 +158,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Notes existantes -->
                             @if($evaluation->notes->count() > 0)
                             <div class="col-12">
@@ -169,7 +169,7 @@
                                     <div class="card-body">
                                         <div class="alert alert-info">
                                             <i class="fas fa-info-circle me-2"></i>
-                                            Cette évaluation a déjà <strong>{{ $evaluation->notes->count() }}</strong> notes enregistrées. 
+                                            Cette évaluation a déjà <strong>{{ $evaluation->notes->count() }}</strong> notes enregistrées.
                                             La modification de certains paramètres (barème, coefficient) peut affecter les calculs des moyennes et des bulletins.
                                         </div>
                                         <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-primary">
@@ -179,7 +179,7 @@
                                 </div>
                             </div>
                             @endif
-                            
+
                             <!-- Boutons de soumission -->
                             <div class="col-12">
                                 <div class="card mb-3">
@@ -216,7 +216,7 @@
             </div>
             <div class="modal-body">
                 <p>Êtes-vous sûr de vouloir supprimer cette évaluation ?</p>
-                
+
                 @if($evaluation->notes->count() > 0)
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -244,7 +244,7 @@
         $('.select2').select2({
             theme: 'bootstrap-5'
         });
-        
+
         // Chargement des matières en fonction de la classe sélectionnée
         function loadMatieres(classeId) {
             if (classeId) {
@@ -258,7 +258,7 @@
                         $.each(data, function(key, matiere) {
                             $('#matiere_id').append('<option value="' + matiere.id + '">' + matiere.name + '</option>');
                         });
-                        
+
                         // Présélectionner la matière si elle était déjà choisie
                         const selectedMatiere = "{{ old('matiere_id', $evaluation->matiere_id) }}";
                         if (selectedMatiere) {
@@ -274,14 +274,14 @@
                 $('#matiere_id').append('<option value="">Sélectionner une matière</option>');
             }
         }
-        
+
         // Chargement initial des matières
         loadMatieres($('#classe_id').val());
-        
+
         // Chargement des matières lors du changement de classe
         $('#classe_id').change(function() {
             loadMatieres($(this).val());
         });
     });
 </script>
-@endsection 
+@endsection

@@ -23,7 +23,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 col-sm-6">
             <div class="card card-stats">
                 <div class="card-header card-header-success">
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 col-sm-6">
             <div class="card card-stats">
                 <div class="card-header card-header-warning">
@@ -57,7 +57,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 col-sm-6">
             <div class="card card-stats">
                 <div class="card-header card-header-info">
@@ -75,7 +75,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="card">
@@ -116,7 +116,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header card-header-warning">
@@ -140,7 +140,7 @@
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('esbtp.emplois-temps.create') }}" class="btn btn-warning btn-block">
+                            <a href="{{ route('esbtp.emploi-temps.create') }}" class="btn btn-warning btn-block">
                                 <i class="fa fa-calendar-alt"></i> Créer un Emploi du Temps
                             </a>
                         </div>
@@ -150,4 +150,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

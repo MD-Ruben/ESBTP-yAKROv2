@@ -39,6 +39,15 @@
                         </div>
                     @endif
 
+                    @if(session('account_info'))
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Informations de connexion</h6>
+                            <p class="mb-1"><strong>Nom d'utilisateur:</strong> {{ session('account_info')['username'] }}</p>
+                            <p class="mb-1"><strong>Mot de passe:</strong> {{ session('account_info')['password'] }}</p>
+                            <p class="mb-0"><strong>Rôle:</strong> {{ session('account_info')['role'] }}</p>
+                        </div>
+                    @endif
+
                     <!-- Informations de l'étudiant -->
                     <div class="row mb-4">
                         <div class="col-md-12">
@@ -170,6 +179,7 @@
             </div>
             <form action="{{ route('esbtp.inscriptions.valider', $inscription) }}" method="POST">
                 @csrf
+                @method('PUT')
                 <div class="modal-body">
                     <p>Êtes-vous sûr de vouloir valider cette inscription ?</p>
                     <p>L'étudiant sera automatiquement activé et pourra accéder à son compte.</p>
@@ -191,43 +201,44 @@
                 <h5 class="modal-title">Enregistrer un paiement</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('esbtp.paiements.store') }}" method="POST">
+            <form action="{{ route('esbtp.paiements.store') }}" method="POST" id="paiementForm">
                 @csrf
                 <input type="hidden" name="inscription_id" value="{{ $inscription->id }}">
                 <input type="hidden" name="etudiant_id" value="{{ $inscription->etudiant->id }}">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="montant" class="form-label">Montant</label>
-                        <input type="number" class="form-control" id="montant" name="montant" required min="0">
+                    <div class="form-group">
+                        <label for="montant">Montant</label>
+                        <input type="number" class="form-control" id="montant" name="montant" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="date_paiement" class="form-label">Date de paiement</label>
-                        <input type="date" class="form-control" id="date_paiement" name="date_paiement" required value="{{ date('Y-m-d') }}">
+                    <div class="form-group">
+                        <label for="date_paiement">Date de paiement</label>
+                        <input type="date" class="form-control" id="date_paiement" name="date_paiement" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="mode_paiement" class="form-label">Mode de paiement</label>
-                        <select class="form-select" id="mode_paiement" name="mode_paiement" required>
-                            <option value="Espèces">Espèces</option>
-                            <option value="Chèque">Chèque</option>
-                            <option value="Virement">Virement</option>
-                            <option value="Mobile Money">Mobile Money</option>
+                    <div class="form-group">
+                        <label for="mode_paiement">Mode de paiement</label>
+                        <select class="form-control" id="mode_paiement" name="mode_paiement" required>
+                            <option value="especes">Espèces</option>
+                            <option value="cheque">Chèque</option>
+                            <option value="virement">Virement</option>
+                            <option value="carte">Carte bancaire</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="reference_paiement" class="form-label">Référence</label>
+                    <div class="form-group">
+                        <label for="reference_paiement">Référence du paiement</label>
                         <input type="text" class="form-control" id="reference_paiement" name="reference_paiement">
                     </div>
-                    <div class="mb-3">
-                        <label for="motif" class="form-label">Motif</label>
-                        <select class="form-select" id="motif" name="motif" required>
-                            <option value="Frais d'inscription">Frais d'inscription</option>
-                            <option value="Scolarité">Scolarité</option>
-                            <option value="Autre">Autre</option>
+                    <div class="form-group">
+                        <label for="motif">Motif</label>
+                        <select class="form-control" id="motif" name="motif" required>
+                            <option value="inscription">Frais d'inscription</option>
+                            <option value="scolarite">Frais de scolarité</option>
+                            <option value="examen">Frais d'examen</option>
+                            <option value="autre">Autre</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="commentaire" class="form-label">Commentaire</label>
-                        <textarea class="form-control" id="commentaire" name="commentaire" rows="2"></textarea>
+                    <div class="form-group">
+                        <label for="commentaire">Commentaire</label>
+                        <textarea class="form-control" id="commentaire" name="commentaire" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

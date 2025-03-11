@@ -20,14 +20,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped datatable">
                             <thead>
@@ -79,16 +79,16 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('esbtp.classes.show', $classe) }}" class="btn btn-sm btn-info" title="Voir les détails">
+                                                <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-info" title="Voir les détails">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('esbtp.classes.edit', $classe) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                                <a href="{{ route('esbtp.classes.edit', ['classe' => $classe->id]) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="{{ route('esbtp.classes.matieres', $classe) }}" class="btn btn-sm btn-primary" title="Gérer les matières">
+                                                <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-sm btn-primary" title="Gérer les matières">
                                                     <i class="fas fa-book"></i>
                                                 </a>
-                                                <form action="{{ route('esbtp.classes.destroy', $classe) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe?');">
+                                                <form action="{{ route('esbtp.classes.destroy', ['classe' => $classe->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
@@ -125,4 +125,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

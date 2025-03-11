@@ -10,11 +10,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Ajouter une séance de cours</h5>
                     @if(isset($emploiTemps))
-                        <a href="{{ route('esbtp.emplois-temps.show', $emploiTemps->id) }}" class="btn btn-secondary">
+                        <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour à l'emploi du temps
                         </a>
                     @else
-                        <a href="{{ route('esbtp.emplois-temps.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('esbtp.emploi-temps.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour aux emplois du temps
                         </a>
                     @endif
@@ -30,9 +30,19 @@
                         </div>
                     @endif
 
+                    @if(isset($classe))
+                        <div class="mb-4 border-start border-primary ps-3">
+                            <h6 class="text-primary">Informations sur l'emploi du temps</h6>
+                            <p class="mb-1"><strong>Classe :</strong> {{ $classe->name }}</p>
+                            <p class="mb-1"><strong>Filière :</strong> {{ $classe->filiere->name }}</p>
+                            <p class="mb-1"><strong>Niveau :</strong> {{ $classe->niveau->name }}</p>
+                            <p class="mb-1"><strong>Année universitaire :</strong> {{ $classe->annee->name }}</p>
+                        </div>
+                    @endif
+
                     <form action="{{ route('esbtp.seances-cours.store') }}" method="POST">
                         @csrf
-                        
+
                         @if(isset($emploiTemps))
                             <input type="hidden" name="emploi_temps_id" value="{{ $emploiTemps->id }}">
                         @else
@@ -51,7 +61,7 @@
                                 @enderror
                             </div>
                         @endif
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -69,11 +79,11 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="enseignant_id" class="form-label">Enseignant *</label>
-                                    <select class="form-select @error('enseignant_id') is-invalid @enderror" id="enseignant_id" name="enseignant_id" required>
+                                    <label for="enseignant_id" class="form-label">Enseignant</label>
+                                    <select class="form-select @error('enseignant_id') is-invalid @enderror" id="enseignant_id" name="enseignant_id">
                                         <option value="">Sélectionner un enseignant</option>
                                         @foreach($enseignants as $enseignant)
                                             <option value="{{ $enseignant->id }}" {{ old('enseignant_id') == $enseignant->id ? 'selected' : '' }}>
@@ -87,47 +97,47 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="jour_semaine" class="form-label">Jour de la semaine *</label>
                                     <select class="form-select @error('jour_semaine') is-invalid @enderror" id="jour_semaine" name="jour_semaine" required>
                                         <option value="">Sélectionner un jour</option>
-                                        <option value="1" {{ (old('jour_semaine') == 1 || (isset($request) && $request->jour == 1)) ? 'selected' : '' }}>Lundi</option>
-                                        <option value="2" {{ (old('jour_semaine') == 2 || (isset($request) && $request->jour == 2)) ? 'selected' : '' }}>Mardi</option>
-                                        <option value="3" {{ (old('jour_semaine') == 3 || (isset($request) && $request->jour == 3)) ? 'selected' : '' }}>Mercredi</option>
-                                        <option value="4" {{ (old('jour_semaine') == 4 || (isset($request) && $request->jour == 4)) ? 'selected' : '' }}>Jeudi</option>
-                                        <option value="5" {{ (old('jour_semaine') == 5 || (isset($request) && $request->jour == 5)) ? 'selected' : '' }}>Vendredi</option>
-                                        <option value="6" {{ (old('jour_semaine') == 6 || (isset($request) && $request->jour == 6)) ? 'selected' : '' }}>Samedi</option>
+                                        <option value="1" {{ (old('jour_semaine') == 1 || $jour == 1) ? 'selected' : '' }}>Lundi</option>
+                                        <option value="2" {{ (old('jour_semaine') == 2 || $jour == 2) ? 'selected' : '' }}>Mardi</option>
+                                        <option value="3" {{ (old('jour_semaine') == 3 || $jour == 3) ? 'selected' : '' }}>Mercredi</option>
+                                        <option value="4" {{ (old('jour_semaine') == 4 || $jour == 4) ? 'selected' : '' }}>Jeudi</option>
+                                        <option value="5" {{ (old('jour_semaine') == 5 || $jour == 5) ? 'selected' : '' }}>Vendredi</option>
+                                        <option value="6" {{ (old('jour_semaine') == 6 || $jour == 6) ? 'selected' : '' }}>Samedi</option>
                                     </select>
                                     @error('jour_semaine')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_debut" class="form-label">Heure de début *</label>
-                                    <input type="time" class="form-control @error('heure_debut') is-invalid @enderror" id="heure_debut" name="heure_debut" value="{{ old('heure_debut') ?: (isset($request) && $request->heure ? sprintf('%02d:00', $request->heure) : '') }}" required>
+                                    <input type="time" class="form-control @error('heure_debut') is-invalid @enderror" id="heure_debut" name="heure_debut" value="{{ old('heure_debut') ?: ($heure ? sprintf('%02d:00', $heure) : '') }}" required>
                                     @error('heure_debut')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_fin" class="form-label">Heure de fin *</label>
-                                    <input type="time" class="form-control @error('heure_fin') is-invalid @enderror" id="heure_fin" name="heure_fin" value="{{ old('heure_fin') ?: (isset($request) && $request->heure ? sprintf('%02d:00', $request->heure + 1) : '') }}" required>
+                                    <input type="time" class="form-control @error('heure_fin') is-invalid @enderror" id="heure_fin" name="heure_fin" value="{{ old('heure_fin') ?: ($heure ? sprintf('%02d:00', $heure + 1) : '') }}" required>
                                     @error('heure_fin')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -144,7 +154,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="salle" class="form-label">Salle *</label>
@@ -154,7 +164,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
@@ -164,7 +174,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label for="details" class="form-label">Détails</label>
                             <textarea class="form-control @error('details') is-invalid @enderror" id="details" name="details" rows="3">{{ old('details') }}</textarea>
@@ -172,12 +182,12 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
                         <div class="alert alert-info">
                             <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Information</h6>
                             <p class="mb-0">Le système vérifiera automatiquement les conflits d'horaires pour cette séance (même enseignant, même salle ou même classe au même moment). Si des conflits sont détectés, vous devrez les résoudre avant de pouvoir enregistrer cette séance.</p>
                         </div>
-                        
+
                         <div class="d-flex justify-content-end">
                             <button type="reset" class="btn btn-secondary me-2">Annuler</button>
                             <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -199,22 +209,22 @@
             width: '100%',
             placeholder: 'Sélectionnez un élément'
         });
-        
+
         // Validation des horaires
         $('#heure_fin').on('change', function() {
             const heureDebut = $('#heure_debut').val();
             const heureFin = $(this).val();
-            
+
             if (heureDebut && heureFin && heureDebut >= heureFin) {
                 alert("L'heure de fin doit être postérieure à l'heure de début.");
                 $(this).val('');
             }
         });
-        
+
         $('#heure_debut').on('change', function() {
             const heureDebut = $(this).val();
             const heureFin = $('#heure_fin').val();
-            
+
             if (heureDebut && heureFin && heureDebut >= heureFin) {
                 alert("L'heure de début doit être antérieure à l'heure de fin.");
                 $(this).val('');
@@ -222,4 +232,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

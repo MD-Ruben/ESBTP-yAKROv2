@@ -33,6 +33,8 @@ class ESBTPEvaluation extends Model
         'bareme',
         'duree_minutes',
         'is_published',
+        'notes_published',
+        'status',
         'created_by',
         'updated_by'
     ];
@@ -43,15 +45,23 @@ class ESBTPEvaluation extends Model
      * @var array
      */
     protected $casts = [
-        'date_evaluation' => 'datetime',
+        'date_evaluation' => 'date',
+        'is_published' => 'boolean',
+        'notes_published' => 'boolean',
         'coefficient' => 'float',
         'bareme' => 'float',
-        'duree_minutes' => 'integer',
-        'is_published' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'duree_minutes' => 'integer'
     ];
+
+    const STATUS_DRAFT = 'draft';
+    const STATUS_SCHEDULED = 'scheduled';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const TYPE_DEVOIR = 'devoir';
+    const TYPE_EXAMEN = 'examen';
+    const TYPE_RATTRAPAGE = 'rattrapage';
 
     /**
      * Relation avec la classe associée à cette évaluation.
@@ -104,48 +114,103 @@ class ESBTPEvaluation extends Model
     }
 
     /**
-     * Calcule le nombre d'étudiants qui ont une note pour cette évaluation.
+     * Scope pour filtrer les évaluations pour un étudiant donné.
      *
-     * @return int
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $studentId
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function getNombreNotesAttribute()
+    public function scopeForStudent($query, $studentId)
     {
-        return $this->notes()->count();
+        return $query->whereHas('classe.etudiants', function ($q) use ($studentId) {
+            $q->where('esbtp_etudiants.id', $studentId);
+        });
     }
 
     /**
-     * Calcule le nombre d'étudiants qui n'ont pas encore de note pour cette évaluation.
+     * Types d'évaluation disponibles
      *
-     * @return int
+     * @return array
      */
-    public function getNombreSansNoteAttribute()
+    public static function getTypes()
     {
-        if ($this->classe) {
-            return $this->classe->nombre_etudiants - $this->nombre_notes;
-        }
-        return 0;
+        return [
+            'examen' => 'Examen',
+            'devoir' => 'Devoir',
+            'tp' => 'Travaux Pratiques',
+            'projet' => 'Projet',
+            'oral' => 'Évaluation Orale'
+        ];
     }
 
-    /**
-     * Calcule la note moyenne pour cette évaluation.
-     *
-     * @return float|null
-     */
-    public function getMoyenneAttribute()
+    public function scopeDraft($query)
     {
-        if ($this->nombre_notes > 0) {
-            return round($this->notes()->avg('note'), 2);
-        }
-        return null;
+        return $query->where('status', self::STATUS_DRAFT);
     }
 
-    /**
-     * Détermine si l'évaluation peut être supprimée.
-     * 
-     * @return bool
-     */
-    public function canBeDeleted()
+    public function scopeScheduled($query)
     {
-        return $this->notes()->count() === 0;
+        return $query->where('status', self::STATUS_SCHEDULED);
     }
-} 
+
+    public function scopeInProgress($query)
+    {
+        return $query->where('status', self::STATUS_IN_PROGRESS);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
+
+    public function scopeUnpublished($query)
+    {
+        return $query->where('is_published', false);
+    }
+
+    public function scopeNotesPublished($query)
+    {
+        return $query->where('notes_published', true);
+    }
+
+    public function scopeNotesUnpublished($query)
+    {
+        return $query->where('notes_published', false);
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('date_evaluation', '>', now())
+                    ->where('status', '!=', self::STATUS_CANCELLED);
+    }
+
+    public function scopePast($query)
+    {
+        return $query->where('date_evaluation', '<', now());
+    }
+
+    public function isEditable()
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_SCHEDULED]);
+    }
+
+    public function canPublishNotes()
+    {
+        return $this->status === self::STATUS_COMPLETED && !$this->notes_published;
+    }
+
+    public function isDeletable()
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_SCHEDULED, self::STATUS_CANCELLED]);
+    }
+}

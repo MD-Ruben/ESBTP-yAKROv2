@@ -17,75 +17,141 @@ class ESBTPRoleSeeder extends Seeder
     public function run()
     {
         // Création des rôles
-        $roles = [
-            'superAdmin' => 'Super Administrateur',
-            'secretaire' => 'Secrétaire Académique',
-            'etudiant' => 'Étudiant',
+        $superAdmin = Role::firstOrCreate(['name' => 'superAdmin']);
+        $secretaire = Role::firstOrCreate(['name' => 'secretaire']);
+        $etudiant = Role::firstOrCreate(['name' => 'etudiant']);
+        $enseignant = Role::firstOrCreate(['name' => 'enseignant']);
+
+        // Permissions pour les filières
+        $filierePermissions = [
+            'create filieres', 'view filieres', 'edit filieres', 'delete filieres'
         ];
 
-        foreach ($roles as $roleCode => $roleLabel) {
-            Role::firstOrCreate(['name' => $roleCode, 'guard_name' => 'web']);
-            $this->command->info("Rôle {$roleLabel} créé avec succès.");
-        }
+        // Permissions pour les niveaux d'études
+        $niveauPermissions = [
+            'create niveau etudes', 'view niveau etudes', 'edit niveau etudes', 'delete niveau etudes'
+        ];
 
-        // Liste de toutes les permissions possibles
-        $allPermissions = [
-            // Filières
-            'create_filieres', 'view_filieres', 'edit_filieres', 'delete_filieres',
-            // Niveaux d'études
-            'create_niveaux_etudes', 'view_niveaux_etudes', 'edit_niveaux_etudes', 'delete_niveaux_etudes',
-            // Classes
-            'create_classes', 'view_classes', 'edit_classes', 'delete_classes',
-            // Étudiants
-            'create_students', 'view_students', 'edit_students', 'delete_students', 'view_own_profile',
-            // Examens
-            'create_exams', 'view_exams', 'edit_exams', 'delete_exams', 'view_own_exams',
-            // Matières
-            'create_matieres', 'view_matieres', 'edit_matieres', 'delete_matieres',
-            // Notes
-            'create_grades', 'view_grades', 'edit_grades', 'delete_grades', 'view_own_grades',
-            // Bulletins
-            'generate_bulletin', 'view_bulletins', 'edit_bulletins', 'delete_bulletins', 'view_own_bulletin',
-            // Emplois du temps
-            'create_timetable', 'view_timetables', 'edit_timetables', 'delete_timetables', 'view_own_timetable',
-            // Messages
-            'send_messages', 'receive_messages',
-            // Présences
-            'create_attendance', 'view_attendances', 'edit_attendances', 'delete_attendances', 'view_own_attendances',
-            // Inscriptions
-            'inscriptions.view',
-            'inscriptions.create',
-            'inscriptions.edit',
-            'inscriptions.delete',
-            'inscriptions.validate'
+        // Permissions pour les classes
+        $classePermissions = [
+            'create classes', 'view classes', 'edit classes', 'delete classes'
+        ];
+
+        // Permissions pour les étudiants
+        $studentPermissions = [
+            'create students', 'view students', 'edit students', 'delete students',
+            'view own profile', 'view own grades', 'view own timetable', 'view own bulletin',
+            'view own attendances', 'view own exams', 'receive own messages'
+        ];
+
+        // Permissions pour les examens
+        $examPermissions = [
+            'create exams', 'view exams', 'edit exams', 'delete exams'
+        ];
+
+        // Permissions pour les matières
+        $matierePermissions = [
+            'create matieres', 'view matieres', 'edit matieres', 'delete matieres'
+        ];
+
+        // Permissions pour les notes
+        $gradePermissions = [
+            'create grades', 'view grades', 'edit grades', 'delete grades'
+        ];
+
+        // Permissions pour les bulletins
+        $bulletinPermissions = [
+            'generate bulletin', 'view bulletins', 'edit bulletins', 'delete bulletins'
+        ];
+
+        // Permissions pour les emplois du temps
+        $timetablePermissions = [
+            'create timetable', 'view timetables', 'edit timetables', 'delete timetables'
+        ];
+
+        // Permissions pour les messages
+        $messagePermissions = [
+            'send messages', 'receive messages'
+        ];
+
+        // Permissions pour les présences
+        $attendancePermissions = [
+            'create attendance', 'view attendances', 'edit attendances', 'delete attendances'
+        ];
+        // Inscriptions
+        $inscriptionPermissions = [
+            'inscriptions.view', 'inscriptions.create', 'inscriptions.edit', 'inscriptions.delete', 'inscriptions.validate'
         ];
 
         // Création de toutes les permissions
+        $allPermissions = array_merge(
+            $filierePermissions,
+            $niveauPermissions,
+            $classePermissions,
+            $studentPermissions,
+            $examPermissions,
+            $matierePermissions,
+            $gradePermissions,
+            $bulletinPermissions,
+            $timetablePermissions,
+            $messagePermissions,
+            $attendancePermissions,
+            $inscriptionPermissions
+        );
+
         foreach ($allPermissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Attribution des permissions aux rôles
-        $rolePermissions = [
-            'superAdmin' => $allPermissions,
-            'secretaire' => [
-                'view_filieres', 'view_formations', 'view_niveaux_etudes', 'view_classes',
-                'create_students', 'view_students', 'view_exams', 'view_matieres',
-                'create_grades', 'view_grades', 'generate_bulletin', 'view_bulletins',
-                'create_timetable', 'view_timetables', 'send_messages',
-                'create_attendance', 'view_attendances'
-            ],
-            'etudiant' => [
-                'view_own_profile', 'view_own_exams', 'view_own_grades', 'view_own_bulletin',
-                'view_own_timetable', 'receive_messages', 'view_own_attendances'
-            ]
-        ];
+        // Attribution des permissions au superAdmin
+        $superAdmin->givePermissionTo($allPermissions);
 
-        foreach ($rolePermissions as $roleName => $permissions) {
-            $role = Role::findByName($roleName);
-            $role->syncPermissions($permissions);
-            $this->command->info("Permissions attribuées au rôle {$roleName}");
-        }
+        // Attribution des permissions au secrétaire
+        $secretaire->givePermissionTo([
+            'view filieres',
+            'view classes',
+            'create students',
+            'view students',
+            'view exams',
+            'view matieres',
+            'create grades',
+            'view grades',
+            'generate bulletin',
+            'view bulletins',
+            'create timetable',
+            'view timetables',
+            'send messages',
+            'create attendance',
+            'view attendances',
+            'inscriptions.view',
+            'inscriptions.create',
+            'inscriptions.edit',
+            'inscriptions.validate'
+        ]);
+
+        // Attribution des permissions à l'étudiant
+        $etudiant->givePermissionTo([
+            'view own profile',
+            'view own grades',
+            'view own timetable',
+            'view own bulletin',
+            'view own attendances',
+            'view own exams',
+            'receive own messages',
+        ]);
+
+        // Attribution des permissions à l'enseignant
+        $enseignant->givePermissionTo([
+            'view classes',
+            'view students',
+            'view matieres',
+            'create grades',
+            'view grades',
+            'view timetables',
+            'send messages',
+            'create attendance',
+            'view attendances',
+        ]);
 
         $this->command->info('Tous les rôles et permissions ESBTP ont été créés avec succès.');
     }

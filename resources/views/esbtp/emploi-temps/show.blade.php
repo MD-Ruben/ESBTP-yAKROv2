@@ -7,23 +7,23 @@
     .timetable-container {
         overflow-x: auto;
     }
-    
+
     .timetable {
         min-width: 900px;
     }
-    
+
     .timetable th, .timetable td {
         min-width: 150px;
         height: 60px;
         position: relative;
     }
-    
+
     .time-column {
         width: 80px;
         font-weight: bold;
         background-color: #f8f9fa;
     }
-    
+
     .session-cell {
         padding: 5px;
         border-radius: 4px;
@@ -34,48 +34,48 @@
         flex-direction: column;
         justify-content: center;
     }
-    
+
     .session-cours {
         background-color: #3498db;
     }
-    
+
     .session-td {
         background-color: #2ecc71;
     }
-    
+
     .session-tp {
         background-color: #9b59b6;
     }
-    
+
     .session-examen {
         background-color: #e74c3c;
     }
-    
+
     .session-autre {
         background-color: #f39c12;
     }
-    
+
     .session-info {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    
+
     .session-actions {
         position: absolute;
         top: 5px;
         right: 5px;
         display: none;
     }
-    
+
     .session-cell:hover .session-actions {
         display: block;
     }
-    
+
     .session-inactive {
         opacity: 0.6;
     }
-    
+
     .btn-add-session {
         border: 2px dashed #dee2e6;
         background-color: rgba(0,0,0,0.02);
@@ -86,41 +86,41 @@
         height: 100%;
         transition: all 0.2s;
     }
-    
+
     .btn-add-session:hover {
         background-color: rgba(0,0,0,0.05);
         color: #343a40;
     }
-    
+
     .legend-item {
         display: inline-flex;
         align-items: center;
         margin-right: 15px;
     }
-    
+
     .legend-color {
         width: 15px;
         height: 15px;
         border-radius: 3px;
         margin-right: 5px;
     }
-    
+
     .seance-list-item {
         border-left: 4px solid #3498db;
     }
-    
+
     .seance-list-item.td {
         border-left-color: #2ecc71;
     }
-    
+
     .seance-list-item.tp {
         border-left-color: #9b59b6;
     }
-    
+
     .seance-list-item.examen {
         border-left-color: #e74c3c;
     }
-    
+
     .seance-list-item.autre {
         border-left-color: #f39c12;
     }
@@ -135,11 +135,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Emploi du temps : {{ $emploiTemps->titre }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.emplois-temps.index') }}" class="btn btn-secondary me-2">
+                        <a href="{{ route('esbtp.emploi-temps.index') }}" class="btn btn-secondary me-2">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
                         <div class="btn-group">
-                            <a href="{{ route('esbtp.emplois-temps.edit', $emploiTemps->id) }}" class="btn btn-warning">
+                            <a href="{{ route('esbtp.emploi-temps.edit', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-warning">
                                 <i class="fas fa-edit me-1"></i>Modifier
                             </a>
                             <a href="{{ route('esbtp.seances-cours.create', ['emploi_temps_id' => $emploiTemps->id]) }}" class="btn btn-primary">
@@ -155,7 +155,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
@@ -172,7 +172,7 @@
                                 <p class="mb-1"><strong>Niveau :</strong> {{ $emploiTemps->classe->niveau->name }}</p>
                                 <p class="mb-1"><strong>Année universitaire :</strong> {{ $emploiTemps->annee->name }}</p>
                                 <p class="mb-1">
-                                    <strong>Période :</strong> 
+                                    <strong>Période :</strong>
                                     @if($emploiTemps->periode == 'semestre1')
                                         Semestre 1
                                     @elseif($emploiTemps->periode == 'semestre2')
@@ -191,7 +191,7 @@
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="border-start border-info ps-3">
                                 <h6 class="text-info">Statistiques des séances</h6>
@@ -213,7 +213,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <h6>Légende :</h6>
                         <div class="d-flex flex-wrap">
@@ -239,7 +239,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="timetable-container mb-4">
                         <table class="table table-bordered timetable">
                             <thead>
@@ -266,7 +266,7 @@
                                                         return $seance->jour_semaine == $day && $startHour <= $hour && $endHour > $hour;
                                                     });
                                                 @endphp
-                                                
+
                                                 @if($sessionsAtTime->count() > 0)
                                                     @foreach($sessionsAtTime as $seance)
                                                         <div class="session-cell session-{{ $seance->type_seance }} {{ $seance->is_active ? '' : 'session-inactive' }}">
@@ -330,7 +330,7 @@
                                             <i class="fas fa-door-open me-1"></i> Salle: {{ $seance->salle }}
                                         </p>
                                         <p class="card-text mb-1">
-                                            <i class="fas fa-tag me-1"></i> 
+                                            <i class="fas fa-tag me-1"></i>
                                             @if($seance->type_seance == 'cours')
                                                 Cours magistral
                                             @elseif($seance->type_seance == 'td')
@@ -368,4 +368,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

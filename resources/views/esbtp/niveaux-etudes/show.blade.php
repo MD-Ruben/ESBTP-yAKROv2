@@ -18,7 +18,7 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -26,7 +26,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card h-100">
@@ -85,7 +85,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header bg-light">
@@ -105,7 +105,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <!-- Filières associées -->
@@ -158,7 +158,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Formations associées -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light">
@@ -210,7 +210,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <!-- Matières associées -->
                             <div class="card mb-4">
@@ -255,7 +255,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Classes associées -->
                             <div class="card mb-4">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -285,7 +285,7 @@
                                                             <td>{{ $classe->formation->name ?? '-' }}</td>
                                                             <td>{{ $classe->anneeAcademique->name ?? '-' }}</td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.classes.show', $classe) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>
@@ -304,7 +304,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -331,7 +331,7 @@
             <div class="modal-body">
                 <p>Êtes-vous sûr de vouloir supprimer ce niveau d'étude ?</p>
                 <p><strong>Nom :</strong> {{ $niveauEtude->name }}</p>
-                
+
                 @if($niveauEtude->classes->count() > 0 || $niveauEtude->matieres->count() > 0)
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -359,4 +359,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

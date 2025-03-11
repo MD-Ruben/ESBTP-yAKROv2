@@ -10,7 +10,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Gestion des matières pour la classe: {{ $classe->name }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.classes.show', $classe) }}" class="btn btn-info me-2">
+                        <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-info me-2">
                             <i class="fas fa-eye me-1"></i>Voir les détails
                         </a>
                         <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
@@ -46,9 +46,9 @@
                             Gérez les matières de la classe <strong>{{ $classe->name }}</strong> en ajustant leurs coefficients et le nombre d'heures. La modification des coefficients affectera le calcul des moyennes dans les bulletins.
                         </div>
 
-                        <form action="{{ route('esbtp.classes.updateMatieres', $classe) }}" method="POST">
+                        <form action="{{ route('esbtp.classes.update-matieres', ['classe' => $classe->id]) }}" method="POST">
                             @csrf
-                            
+
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped">
                                     <thead>
@@ -57,14 +57,13 @@
                                             <th style="width: 10%">Code</th>
                                             <th style="width: 25%">Nom</th>
                                             <th style="width: 20%">Unité d'enseignement</th>
-                                            <th style="width: 10%">Coefficient</th>
-                                            <th style="width: 10%">Heures totales</th>
+                                            <th style="width: 15%">Coefficient</th>
+                                            <th style="width: 15%">Heures totales</th>
                                             <th style="width: 10%">Statut</th>
-                                            <th style="width: 10%">Formation</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse($matieres as $matiere)
+                                        @forelse($allMatieres as $matiere)
                                             @php
                                                 $selected = $classe->matieres->contains($matiere->id);
                                                 $matiereClasse = $selected ? $classe->matieres->find($matiere->id) : null;
@@ -98,15 +97,10 @@
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    @foreach($matiere->formations as $formation)
-                                                        <span class="badge bg-info">{{ $formation->code }}</span>
-                                                    @endforeach
-                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="8" class="text-center">Aucune matière disponible pour cette classe.</td>
+                                                <td colspan="7" class="text-center">Aucune matière disponible pour cette classe.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -127,9 +121,6 @@
                                                 <button type="button" class="btn btn-outline-secondary" id="deselect-all">
                                                     <i class="fas fa-square me-1"></i>Tout désélectionner
                                                 </button>
-                                                <button type="button" class="btn btn-outline-info" id="select-formations">
-                                                    <i class="fas fa-filter me-1"></i>Sélectionner par formation
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -147,30 +138,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal de sélection par formation -->
-<div class="modal fade" id="formationModal" tabindex="-1" aria-labelledby="formationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="formationModalLabel">Sélectionner par formation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="list-group">
-                    @foreach($formations as $formation)
-                        <button type="button" class="list-group-item list-group-item-action formation-item" data-formation-id="{{ $formation->id }}">
-                            {{ $formation->name }} ({{ $formation->code }})
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('scripts')
@@ -180,18 +147,18 @@
         $('.matiere-checkbox').on('change', function() {
             const row = $(this).closest('tr');
             const inputs = row.find('input:not(.matiere-checkbox)');
-            
+
             if ($(this).is(':checked')) {
                 inputs.prop('disabled', false);
             } else {
                 inputs.prop('disabled', true);
             }
         });
-        
+
         // Mettre à jour l'étiquette du statut lorsque le switch change
         $('.status-switch').on('change', function() {
             const label = $(this).siblings('label').find('.badge');
-            
+
             if ($(this).is(':checked')) {
                 label.removeClass('bg-danger').addClass('bg-success');
                 label.text('Active');
@@ -200,35 +167,15 @@
                 label.text('Inactive');
             }
         });
-        
+
         // Tout sélectionner
         $('#select-all').on('click', function() {
             $('.matiere-checkbox').prop('checked', true).trigger('change');
         });
-        
+
         // Tout désélectionner
         $('#deselect-all').on('click', function() {
             $('.matiere-checkbox').prop('checked', false).trigger('change');
-        });
-        
-        // Ouvrir le modal de sélection par formation
-        $('#select-formations').on('click', function() {
-            $('#formationModal').modal('show');
-        });
-        
-        // Sélectionner les matières par formation
-        $('.formation-item').on('click', function() {
-            const formationId = $(this).data('formation-id');
-            
-            // Désélectionner toutes les matières d'abord
-            $('.matiere-checkbox').prop('checked', false).trigger('change');
-            
-            // Sélectionner les matières de la formation choisie
-            // Remarque: Ceci nécessite que les données de formation soient disponibles côté client
-            // Vous devrez adapter cette partie en fonction de votre structure de données
-            
-            // Fermer le modal
-            $('#formationModal').modal('hide');
         });
     });
 </script>

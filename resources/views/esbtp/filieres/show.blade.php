@@ -290,7 +290,7 @@
                                                             <td>{{ $classe->formation->name ?? '-' }}</td>
                                                             <td>{{ $classe->anneeAcademique->name ?? '-' }}</td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.classes.show', $classe) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>
