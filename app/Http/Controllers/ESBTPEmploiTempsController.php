@@ -127,11 +127,27 @@ class ESBTPEmploiTempsController extends Controller
         // Sauvegarder l'emploi du temps
         $emploiTemps->save();
 
-        // Si l'emploi du temps est marqué comme courant, désactiver les autres
-        if ($emploiTemps->is_current) {
+        // Si l'emploi du temps est marqué comme actif ou courant, désactiver les autres pour cette classe
+        if ($emploiTemps->is_active || $emploiTemps->is_current) {
+            // Désactiver tous les autres emplois du temps pour cette classe
             ESBTPEmploiTemps::where('id', '!=', $emploiTemps->id)
                 ->where('classe_id', $emploiTemps->classe_id)
-                ->update(['is_current' => false]);
+                ->update([
+                    'is_active' => false,
+                    'is_current' => false
+                ]);
+
+            // S'assurer que le nouvel emploi du temps est bien actif et courant
+            $emploiTemps->is_active = true;
+            $emploiTemps->is_current = true;
+            $emploiTemps->save();
+
+            // Journaliser l'action
+            \Log::info('Nouvel emploi du temps activé et défini comme courant', [
+                'emploi_temps_id' => $emploiTemps->id,
+                'classe_id' => $emploiTemps->classe_id,
+                'user_id' => Auth::id()
+            ]);
         }
 
         return redirect()->route('esbtp.emploi-temps.show', $emploiTemps->id)
@@ -272,12 +288,37 @@ class ESBTPEmploiTempsController extends Controller
         ]);
 
         $validated['updated_by'] = Auth::id();
+        $validated['is_active'] = $request->has('is_active');
         $validated['is_current'] = $request->has('is_current');
 
+        // Vérifier si l'emploi du temps est activé ou défini comme courant
+        $isBeingActivated = $request->has('is_active') && !$emploi_temp->is_active;
+        $isBeingSetCurrent = $request->has('is_current') && !$emploi_temp->is_current;
+
+        // Mettre à jour l'emploi du temps
         $emploi_temp->update($validated);
 
-        if ($emploi_temp->is_current) {
-            ESBTPEmploiTemps::setAsCurrent($emploi_temp->id);
+        // Si l'emploi du temps est activé ou défini comme courant, désactiver les autres
+        if ($isBeingActivated || $isBeingSetCurrent) {
+            // Désactiver tous les autres emplois du temps pour cette classe
+            ESBTPEmploiTemps::where('id', '!=', $emploi_temp->id)
+                ->where('classe_id', $emploi_temp->classe_id)
+                ->update([
+                    'is_active' => false,
+                    'is_current' => false
+                ]);
+
+            // S'assurer que cet emploi du temps est bien actif et courant
+            $emploi_temp->is_active = true;
+            $emploi_temp->is_current = true;
+            $emploi_temp->save();
+
+            // Journaliser l'action
+            \Log::info('Emploi du temps activé et défini comme courant', [
+                'emploi_temps_id' => $emploi_temp->id,
+                'classe_id' => $emploi_temp->classe_id,
+                'user_id' => Auth::id()
+            ]);
         }
 
         return redirect()->route('esbtp.emploi-temps.show', ['emploi_temp' => $emploi_temp->id])
@@ -376,24 +417,37 @@ class ESBTPEmploiTempsController extends Controller
 
         // Récupérer l'emploi du temps actif pour la classe de l'étudiant
         $emploiTemps = ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
-            ->where('is_active', true)
+            ->where(function($query) {
+                $query->where('is_active', true)
+                      ->orWhere('is_current', true);
+            })
             ->orderBy('created_at', 'desc')
             ->first();
         \Log::info('Emploi du temps trouvé:', [
             'emploi_temps_id' => $emploiTemps ? $emploiTemps->id : null,
             'classe_id' => $emploiTemps ? $emploiTemps->classe_id : null,
             'is_active' => $emploiTemps ? $emploiTemps->is_active : null,
+            'is_current' => $emploiTemps ? $emploiTemps->is_current : null,
             'sql' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
-                ->where('is_active', true)
+                ->where(function($query) {
+                    $query->where('is_active', true)
+                          ->orWhere('is_current', true);
+                })
                 ->orderBy('created_at', 'desc')
                 ->toSql(),
             'bindings' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
-                ->where('is_active', true)
+                ->where(function($query) {
+                    $query->where('is_active', true)
+                          ->orWhere('is_current', true);
+                })
                 ->orderBy('created_at', 'desc')
                 ->getBindings(),
             'total_emplois_temps' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)->count(),
             'emplois_temps_actifs' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
-                ->where('is_active', true)
+                ->where(function($query) {
+                    $query->where('is_active', true)
+                          ->orWhere('is_current', true);
+                })
                 ->count()
         ]);
 
@@ -423,7 +477,7 @@ class ESBTPEmploiTempsController extends Controller
                     'heure_debut' => $seance->heure_debut,
                     'heure_fin' => $seance->heure_fin,
                     'matiere' => $seance->matiere ? $seance->matiere->name : null,
-                    'enseignant' => $seance->enseignant ? $seance->enseignant->name : null
+                    'enseignant' => $seance->enseignantName
                 ];
             })->toArray()
         ]);
@@ -555,13 +609,12 @@ class ESBTPEmploiTempsController extends Controller
 
         // Noms des jours pour l'affichage
         $joursNoms = [
-            0 => 'Lundi',
-            1 => 'Mardi',
-            2 => 'Mercredi',
-            3 => 'Jeudi',
-            4 => 'Vendredi',
-            5 => 'Samedi',
-            6 => 'Dimanche',
+            1 => 'Lundi',
+            2 => 'Mardi',
+            3 => 'Mercredi',
+            4 => 'Jeudi',
+            5 => 'Vendredi',
+            6 => 'Samedi',
         ];
 
         // Jour actuel en texte
@@ -575,5 +628,104 @@ class ESBTPEmploiTempsController extends Controller
             'jourActuelTexte',
             'dateActuelle'
         ));
+    }
+
+    /**
+     * Activate all timetables.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function activateAll()
+    {
+        // Check if user is superAdmin
+        if (!auth()->user()->hasRole('superAdmin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            // Get counts before update
+            $totalTimetables = ESBTPEmploiTemps::count();
+            $activeTimetables = ESBTPEmploiTemps::where('is_active', true)->count();
+            $currentTimetables = ESBTPEmploiTemps::where('is_current', true)->count();
+
+            // First, set all timetables to inactive and not current
+            DB::table('esbtp_emploi_temps')->update([
+                'is_active' => false,
+                'is_current' => false
+            ]);
+
+            // For each class, find the most recent timetable and set it as active and current
+            $classes = ESBTPClasse::all();
+            foreach ($classes as $classe) {
+                // Find the most recent timetable for this class
+                $mostRecentTimetable = ESBTPEmploiTemps::where('classe_id', $classe->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($mostRecentTimetable) {
+                    // Set the most recent one to active and current
+                    $mostRecentTimetable->update([
+                        'is_active' => true,
+                        'is_current' => true
+                    ]);
+                }
+            }
+
+            // Log the action
+            \Log::info('Activated most recent timetables for each class', [
+                'user_id' => auth()->id(),
+                'total_timetables' => $totalTimetables,
+                'active_timetables_before' => $activeTimetables,
+                'current_timetables_before' => $currentTimetables,
+                'active_timetables_after' => ESBTPEmploiTemps::where('is_active', true)->count(),
+                'current_timetables_after' => ESBTPEmploiTemps::where('is_current', true)->count(),
+            ]);
+
+            return redirect()->route('esbtp.emploi-temps.index')
+                ->with('success', 'Les emplois du temps les plus récents pour chaque classe ont été activés avec succès.');
+        } catch (\Exception $e) {
+            return redirect()->route('esbtp.emploi-temps.index')
+                ->with('error', 'Une erreur est survenue lors de l\'activation des emplois du temps : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Set a timetable as current.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function setCurrent($id)
+    {
+        // Check if user has permission
+        if (!auth()->user()->hasRole('superAdmin') && !auth()->user()->hasRole('secretaire')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $emploiTemps = ESBTPEmploiTemps::findOrFail($id);
+
+            // Use the model's setAsCurrent method
+            $result = ESBTPEmploiTemps::setAsCurrent($id);
+
+            if ($result) {
+                // Log the action
+                \Log::info('Set timetable as current', [
+                    'user_id' => auth()->id(),
+                    'timetable_id' => $id,
+                    'classe_id' => $emploiTemps->classe_id,
+                    'classe_name' => $emploiTemps->classe->name ?? 'Unknown',
+                ]);
+
+                return redirect()->back()
+                    ->with('success', 'L\'emploi du temps a été défini comme courant avec succès.');
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Une erreur est survenue lors de la définition de l\'emploi du temps comme courant.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+        }
     }
 }

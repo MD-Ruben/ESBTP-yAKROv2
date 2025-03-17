@@ -127,7 +127,7 @@
                             </label>
                             <div class="form-text">
                                 <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span>
-                                Un seul emploi du temps peut être actif par classe et par période. Si vous activez cet emploi du temps, les autres emplois du temps pour la même classe et la même période seront automatiquement désactivés.
+                                Un seul emploi du temps peut être actif par classe à la fois. Si vous activez cet emploi du temps, les autres emplois du temps pour la même classe seront automatiquement désactivés et celui-ci sera défini comme l'emploi du temps courant.
                             </div>
                         </div>
 

@@ -163,12 +163,17 @@ class ESBTPNoteController extends Controller
             $note = new ESBTPNote();
             $note->evaluation_id = $request->evaluation_id;
             $note->etudiant_id = $request->etudiant_id;
+            $note->matiere_id = $evaluation->matiere_id;
+            $note->classe_id = $evaluation->classe_id;
+            $note->semestre = $evaluation->periode;
+            $note->annee_universitaire = $evaluation->anneeUniversitaire ? $evaluation->anneeUniversitaire->name : 'N/A';
             $note->note = $request->has('absent') ? 0 : $request->valeur;
+            $note->type_evaluation = $evaluation->type;
             $note->is_absent = $request->has('absent');
             $note->commentaire = $request->commentaire;
             $note->created_by = Auth::id();
 
-            \Log::info('Avant sauvegarde de la note:', $note->toArray());
+            \Log::info('Avant sauvegarde de la note avec les champs obligatoires:', $note->toArray());
 
             try {
                 \Log::info('Tentative de sauvegarde de la note');
@@ -216,7 +221,7 @@ class ESBTPNoteController extends Controller
      */
     public function show(ESBTPNote $note)
     {
-        $note->load(['evaluation.matiere', 'evaluation.classe', 'etudiant', 'user']);
+        $note->load(['evaluation.matiere', 'evaluation.classe', 'etudiant', 'createdBy', 'updatedBy']);
         return view('esbtp.notes.show', compact('note'));
     }
 
@@ -310,7 +315,10 @@ class ESBTPNoteController extends Controller
             ->orderBy('nom')
             ->get();
 
-        return view('esbtp.notes.saisie-rapide', compact('evaluation', 'etudiants'));
+        // Récupérer toutes les notes de l'évaluation
+        $notes = $evaluation->notes;
+
+        return view('esbtp.notes.saisie-rapide', compact('evaluation', 'etudiants', 'notes'));
     }
 
     /**
@@ -361,13 +369,36 @@ class ESBTPNoteController extends Controller
                     $note->is_absent = $isAbsent;
                     $note->commentaire = $noteData['commentaire'] ?? null;
                     $note->updated_by = Auth::id();
+
+                    // S'assurer que tous les champs requis sont définis
+                    if (!$note->matiere_id) {
+                        $note->matiere_id = $evaluation->matiere_id;
+                    }
+                    if (!$note->classe_id) {
+                        $note->classe_id = $evaluation->classe_id;
+                    }
+                    if (!$note->semestre) {
+                        $note->semestre = $evaluation->periode;
+                    }
+                    if (!$note->annee_universitaire) {
+                        $note->annee_universitaire = $evaluation->anneeUniversitaire ? $evaluation->anneeUniversitaire->name : 'N/A';
+                    }
+                    if (!$note->type_evaluation) {
+                        $note->type_evaluation = $evaluation->type;
+                    }
+
                     $note->save();
                 } else {
                     // Création d'une nouvelle note
                     $note = new ESBTPNote();
                     $note->evaluation_id = $evaluation->id;
                     $note->etudiant_id = $etudiantId;
+                    $note->matiere_id = $evaluation->matiere_id;
+                    $note->classe_id = $evaluation->classe_id;
+                    $note->semestre = $evaluation->periode;
+                    $note->annee_universitaire = $evaluation->anneeUniversitaire ? $evaluation->anneeUniversitaire->name : 'N/A';
                     $note->note = $isAbsent ? 0 : $noteData['valeur'];
+                    $note->type_evaluation = $evaluation->type;
                     $note->is_absent = $isAbsent;
                     $note->commentaire = $noteData['commentaire'] ?? null;
                     $note->created_by = Auth::id();

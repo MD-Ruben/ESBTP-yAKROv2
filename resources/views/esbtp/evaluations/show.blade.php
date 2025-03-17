@@ -62,10 +62,10 @@
                             <h6 class="border-bottom pb-2">Classe et matière</h6>
                             <dl class="row">
                                 <dt class="col-sm-4">Classe</dt>
-                                <dd class="col-sm-8">{{ $evaluation->classe->nom }}</dd>
+                                <dd class="col-sm-8">{{ $evaluation->classe ? ($evaluation->classe->nom ?? $evaluation->classe->name ?? 'N/A') : 'N/A' }}</dd>
 
                                 <dt class="col-sm-4">Matière</dt>
-                                <dd class="col-sm-8">{{ $evaluation->matiere->nom }}</dd>
+                                <dd class="col-sm-8">{{ $evaluation->matiere ? ($evaluation->matiere->nom ?? $evaluation->matiere->name ?? 'N/A') : 'N/A' }}</dd>
 
                                 <dt class="col-sm-4">Statut</dt>
                                 <dd class="col-sm-8">
@@ -117,6 +117,22 @@
                     <div class="row mt-4">
                         <div class="col-12">
                             <h6 class="border-bottom pb-2">Notes des étudiants</h6>
+                            <div class="mb-3 d-flex align-items-center">
+                                <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-primary me-3" data-bs-toggle="tooltip" title="Accéder à l'interface de gestion des notes (saisie, modification, consultation)">
+                                    <i class="fas fa-pen-alt me-1"></i>{{ $evaluation->notes->count() > 0 ? 'Gérer les notes' : 'Saisir les notes' }}
+                                </a>
+
+                                <div class="ms-3">
+                                    <form action="{{ route('esbtp.evaluations.toggle-notes-published', $evaluation) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn {{ $evaluation->notes_published ? 'btn-success' : 'btn-secondary' }}" {{ !$evaluation->canPublishNotes() && !$evaluation->notes_published ? 'disabled' : '' }} data-bs-toggle="tooltip" title="{{ $evaluation->notes_published ? 'Les notes sont visibles par les étudiants' : 'Les notes ne sont pas visibles par les étudiants' }}">
+                                            <i class="fas {{ $evaluation->notes_published ? 'fa-eye' : 'fa-eye-slash' }} me-1"></i>
+                                            {{ $evaluation->notes_published ? 'Notes publiées' : 'Notes non publiées' }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                             @if($evaluation->notes->isNotEmpty())
                                 <div class="table-responsive">
                                     <table class="table table-striped">

@@ -9,9 +9,19 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Gestion des emplois du temps</h5>
-                    <a href="{{ route('esbtp.emploi-temps.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Ajouter un emploi du temps
-                    </a>
+                    <div>
+                        <a href="{{ route('esbtp.emploi-temps.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Ajouter un emploi du temps
+                        </a>
+                        @if(auth()->user()->hasRole('superAdmin'))
+                        <form action="{{ url('esbtp/activate-all-timetables') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success ms-2" title="Active uniquement l'emploi du temps le plus récent pour chaque classe">
+                                <i class="fas fa-check-circle me-1"></i>Activer les emplois du temps récents
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (session('success'))
@@ -63,6 +73,9 @@
                                                 <span class="badge bg-success">Actif</span>
                                             @else
                                                 <span class="badge bg-secondary">Inactif</span>
+                                            @endif
+                                            @if($emploiTemps->is_current)
+                                                <span class="badge bg-info ms-1">Courant</span>
                                             @endif
                                         </td>
                                         <td>{{ $emploiTemps->created_at->format('d/m/Y') }}</td>

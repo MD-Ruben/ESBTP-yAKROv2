@@ -418,12 +418,12 @@ class ESBTPAttendanceController extends Controller
         }
 
         $absences = ESBTPAttendance::where('etudiant_id', $etudiant->id)
-            ->where('status', 'absent')
+            ->where('statut', 'absent')
             ->orderBy('date', 'desc')
             ->get();
 
         $presences = ESBTPAttendance::where('etudiant_id', $etudiant->id)
-            ->where('status', 'present')
+            ->where('statut', 'present')
             ->orderBy('date', 'desc')
             ->get();
 

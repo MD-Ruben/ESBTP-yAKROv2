@@ -23,13 +23,18 @@ class ESBTPEvaluation extends Model
      * @var array
      */
     protected $fillable = [
+        'titre',
+        'description',
         'matiere_id',
+        'classe_id',
         'type',
         'date_evaluation',
         'coefficient',
         'bareme',
+        'duree_minutes',
         'periode',
         'annee_universitaire_id',
+        'is_published',
         'created_by',
         'updated_by'
     ];
@@ -61,6 +66,16 @@ class ESBTPEvaluation extends Model
     public function matiere()
     {
         return $this->belongsTo(ESBTPMatiere::class, 'matiere_id');
+    }
+
+    /**
+     * Relation avec la classe associée à cette évaluation.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function classe()
+    {
+        return $this->belongsTo(ESBTPClasse::class, 'classe_id');
     }
 
     /**

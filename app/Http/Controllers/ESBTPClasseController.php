@@ -256,7 +256,7 @@ class ESBTPClasseController extends Controller
     {
         // Log pour debugging
         \Log::info('API matières appelée pour la classe ID: ' . $classe->id);
-        \Log::info('Classe: ' . $classe->nom . ' (Filière: ' . ($classe->filiere->nom ?? 'N/A') . ', Niveau: ' . ($classe->niveauEtude->nom ?? 'N/A') . ')');
+        \Log::info('Classe: ' . ($classe->nom ?? $classe->name ?? 'N/A') . ' (Filière: ' . ($classe->filiere->nom ?? $classe->filiere->name ?? 'N/A') . ', Niveau: ' . ($classe->niveau->nom ?? $classe->niveau->name ?? 'N/A') . ')');
 
         // Récupérer les matières de la classe
         $matieres = $classe->matieres()->where('esbtp_matieres.is_active', true)->get();
@@ -291,6 +291,13 @@ class ESBTPClasseController extends Controller
             \Log::info('Aucune matière trouvée par filière/niveau, récupération de toutes les matières actives...');
             $matieres = \App\Models\ESBTPMatiere::where('is_active', true)->get();
             \Log::info('Toutes les matières actives trouvées: ' . $matieres->count());
+        }
+
+        // Si toujours aucune matière, récupérer toutes les matières (même inactives)
+        if ($matieres->isEmpty()) {
+            \Log::info('Aucune matière active trouvée, récupération de toutes les matières...');
+            $matieres = \App\Models\ESBTPMatiere::all();
+            \Log::info('Toutes les matières trouvées: ' . $matieres->count());
         }
 
         // Formater les matières pour l'API JavaScript

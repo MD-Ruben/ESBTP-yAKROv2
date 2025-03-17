@@ -451,3 +451,13 @@ Route::prefix('esbtp/api')->name('esbtp.api.')->middleware(['auth'])->group(func
     Route::get('get-classes', [ESBTPInscriptionController::class, 'getClasses'])->name('get-classes');
     Route::get('search-parents', [ESBTPEtudiantController::class, 'searchParents'])->name('search-parents');
 });
+
+// Route for activating all timetables
+Route::post('esbtp/activate-all-timetables', [App\Http\Controllers\ESBTPEmploiTempsController::class, 'activateAll'])
+    ->name('esbtp.emploi-temps.activate-all')
+    ->middleware(['auth', 'role:superAdmin']);
+
+// Route for setting a timetable as current
+Route::post('esbtp/emploi-temps/{id}/set-current', [App\Http\Controllers\ESBTPEmploiTempsController::class, 'setCurrent'])
+    ->name('esbtp.emploi-temps.set-current')
+    ->middleware(['auth', 'role:superAdmin,secretaire']);

@@ -232,13 +232,29 @@ class ESBTPEmploiTemps extends Model
 
     public static function setAsCurrent($id)
     {
-        self::where('classe_id', function($query) use ($id) {
-            $query->select('classe_id')
-                  ->from('esbtp_emploi_temps')
-                  ->where('id', $id);
-        })->update(['is_current' => false]);
+        // Récupérer la classe de l'emploi du temps
+        $classeId = self::where('id', $id)->value('classe_id');
 
-        return self::where('id', $id)->update(['is_current' => true]);
+        if (!$classeId) {
+            \Log::error('Impossible de définir l\'emploi du temps comme actuel: classe non trouvée', [
+                'emploi_temps_id' => $id
+            ]);
+            return false;
+        }
+
+        // Désactiver tous les autres emplois du temps pour cette classe
+        self::where('classe_id', $classeId)
+            ->where('id', '!=', $id)
+            ->update([
+                'is_current' => false,
+                'is_active' => false
+            ]);
+
+        // Activer cet emploi du temps
+        return self::where('id', $id)->update([
+            'is_current' => true,
+            'is_active' => true
+        ]);
     }
 
     /**

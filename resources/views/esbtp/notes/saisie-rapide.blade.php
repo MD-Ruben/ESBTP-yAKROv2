@@ -110,10 +110,10 @@
                     </div>
 
                     <!-- Formulaire de saisie des notes -->
-                    <form action="{{ route('esbtp.notes.store-batch') }}" method="POST" id="notesForm">
+                    <form action="/esbtp/notes/store-batch" method="POST" id="notesForm">
                         @csrf
                         <input type="hidden" name="evaluation_id" value="{{ $evaluation->id }}">
-                        
+
                         <div class="card">
                             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">Liste des étudiants ({{ $etudiants->count() }})</h6>
@@ -149,12 +149,13 @@
                                                     <td>{{ $etudiant->matricule }}</td>
                                                     <td>{{ $etudiant->nom }} {{ $etudiant->prenom }}</td>
                                                     <td>
-                                                        <input type="number" 
-                                                               class="form-control note-input @error('notes.' . $etudiant->id . '.valeur') is-invalid @enderror" 
-                                                               name="notes[{{ $etudiant->id }}][valeur]" 
+                                                        <input type="hidden" name="notes[{{ $etudiant->id }}][etudiant_id]" value="{{ $etudiant->id }}">
+                                                        <input type="number"
+                                                               class="form-control note-input @error('notes.' . $etudiant->id . '.valeur') is-invalid @enderror"
+                                                               name="notes[{{ $etudiant->id }}][valeur]"
                                                                value="{{ old('notes.' . $etudiant->id . '.valeur', $note ? $note->valeur : '') }}"
-                                                               min="0" 
-                                                               max="{{ $evaluation->bareme }}" 
+                                                               min="0"
+                                                               max="{{ $evaluation->bareme }}"
                                                                step="0.25"
                                                                {{ $note && $note->absent ? 'disabled' : '' }}>
                                                         @error('notes.' . $etudiant->id . '.valeur')
@@ -163,17 +164,17 @@
                                                     </td>
                                                     <td>
                                                         <div class="form-check">
-                                                            <input class="form-check-input absent-checkbox" 
-                                                                   type="checkbox" 
-                                                                   name="notes[{{ $etudiant->id }}][absent]" 
-                                                                   value="1" 
+                                                            <input class="form-check-input absent-checkbox"
+                                                                   type="checkbox"
+                                                                   name="notes[{{ $etudiant->id }}][absent]"
+                                                                   value="1"
                                                                    {{ old('notes.' . $etudiant->id . '.absent', $note && $note->absent ? '1' : '') ? 'checked' : '' }}>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <input type="text" 
-                                                               class="form-control" 
-                                                               name="notes[{{ $etudiant->id }}][commentaire]" 
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               name="notes[{{ $etudiant->id }}][commentaire]"
                                                                value="{{ old('notes.' . $etudiant->id . '.commentaire', $note ? $note->commentaire : '') }}"
                                                                maxlength="255">
                                                     </td>
@@ -207,7 +208,7 @@
         // Gestion des cases à cocher "Absent"
         $('.absent-checkbox').change(function() {
             const noteInput = $(this).closest('tr').find('.note-input');
-            
+
             if ($(this).is(':checked')) {
                 // Si "Absent" est coché, désactiver le champ de note et effacer sa valeur
                 noteInput.prop('disabled', true).val('');
@@ -216,7 +217,7 @@
                 noteInput.prop('disabled', false);
             }
         });
-        
+
         // Réinitialiser le formulaire
         $('#resetForm').click(function() {
             if (confirm('Voulez-vous vraiment réinitialiser le formulaire ? Toutes les modifications non enregistrées seront perdues.')) {
@@ -225,11 +226,11 @@
                 $('input[name$="[commentaire]"]').val('');
             }
         });
-        
+
         // Validation du formulaire
         $('#notesForm').submit(function() {
             let valid = true;
-            
+
             $('.note-input:not(:disabled)').each(function() {
                 const value = $(this).val();
                 if (value !== '' && (isNaN(value) || parseFloat(value) < 0 || parseFloat(value) > {{ $evaluation->bareme }})) {
@@ -239,9 +240,9 @@
                     return false;
                 }
             });
-            
+
             return valid;
         });
     });
 </script>
-@endsection 
+@endsection

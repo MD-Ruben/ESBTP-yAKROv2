@@ -236,6 +236,7 @@ class ESBTPSeanceCoursController extends Controller
             // Ajout de logs pour déboguer
             Log::info('Début de la méthode store pour séance de cours');
             Log::info('Données reçues:', $request->all());
+            Log::info('Type de séance:', ['type' => $request->input('type_seance')]);
 
             // Récupérer l'emploi du temps pour obtenir classe_id et annee_universitaire_id
             $emploiTempsId = $request->input('emploi_temps_id');
@@ -258,18 +259,46 @@ class ESBTPSeanceCoursController extends Controller
                 'annee_universitaire_id' => $emploiTemps->annee_universitaire_id
             ]);
 
+            // Déterminer le type de séance
+            $typeSeance = $request->input('type_seance');
+            $isPause = $typeSeance === 'pause';
+            $isDejeuner = $typeSeance === 'dejeuner';
+            $isBreak = $isPause || $isDejeuner;
+
+            Log::info('Type de séance détecté:', [
+                'type' => $typeSeance,
+                'isPause' => $isPause,
+                'isDejeuner' => $isDejeuner,
+                'isBreak' => $isBreak
+            ]);
+
             // Validation des données avec les champs corrects
-            $validated = $request->validate([
-                'matiere_id' => 'required|exists:esbtp_matieres,id',
-                'enseignant' => 'nullable|string', // Correction: enseignant au lieu de enseignant_id
+            $validationRules = [
                 'jour' => 'required|integer|min:1|max:7',
                 'heure_debut' => 'required|string',
                 'heure_fin' => 'required|string|after:heure_debut',
-                'salle' => 'required|string',
                 'type_seance' => 'required|string|in:cours,td,tp,examen,pause,dejeuner,autre',
                 'emploi_temps_id' => 'required|exists:esbtp_emploi_temps,id',
-                'details' => 'nullable|string', // Ajout du champ details qui est dans le formulaire
-            ]);
+                'details' => 'nullable|string',
+            ];
+
+            // Ajuster les règles de validation en fonction du type de séance
+            if ($isBreak) {
+                $validationRules['matiere_id'] = 'nullable|exists:esbtp_matieres,id';
+                $validationRules['enseignant'] = 'nullable|string';
+            } else {
+                $validationRules['matiere_id'] = 'required|exists:esbtp_matieres,id';
+                $validationRules['enseignant'] = 'nullable|string';
+            }
+
+            // Pour les pauses, la salle est optionnelle
+            if ($isPause) {
+                $validationRules['salle'] = 'nullable|string';
+            } else {
+                $validationRules['salle'] = 'required|string';
+            }
+
+            $validated = $request->validate($validationRules);
 
             Log::info('Validation réussie');
 
@@ -277,12 +306,12 @@ class ESBTPSeanceCoursController extends Controller
 
             $seanceCours = new ESBTPSeanceCours();
             $seanceCours->classe_id = $emploiTemps->classe_id; // Récupéré de l'emploi du temps
-            $seanceCours->matiere_id = $validated['matiere_id'];
-            $seanceCours->enseignant = $validated['enseignant']; // Correction: enseignant au lieu de enseignant_id
+            $seanceCours->matiere_id = $isBreak ? null : $validated['matiere_id'];
+            $seanceCours->enseignant = $isBreak ? null : $validated['enseignant'];
             $seanceCours->jour = $validated['jour'];
             $seanceCours->heure_debut = $validated['heure_debut'];
             $seanceCours->heure_fin = $validated['heure_fin'];
-            $seanceCours->salle = $validated['salle'];
+            $seanceCours->salle = $isPause ? null : $validated['salle'];
             $seanceCours->description = $validated['details'] ?? null; // Utilisation du champ details
             $seanceCours->annee_universitaire_id = $emploiTemps->annee_universitaire_id; // Récupéré de l'emploi du temps
             $seanceCours->type_seance = $validated['type_seance'];
@@ -444,29 +473,57 @@ class ESBTPSeanceCoursController extends Controller
      */
     public function update(Request $request, ESBTPSeanceCours $seancesCour)
     {
-        // Validation
-        $validated = $request->validate([
-            'matiere_id' => 'required|exists:esbtp_matieres,id',
-            'enseignant' => 'required|string|max:255',
-            'jour' => 'required|integer|min:1|max:7',
-            'heure_debut' => 'required|string',
-            'heure_fin' => 'required|string|after:heure_debut',
-            'salle' => 'required|string|max:50',
-            'is_active' => 'boolean',
-            'type_seance' => 'required|string|in:cours,td,tp,examen,pause,dejeuner,autre',
-            'description' => 'nullable|string',
-        ]);
-
         try {
+            // Déterminer le type de séance
+            $typeSeance = $request->input('type_seance');
+            $isPause = $typeSeance === 'pause';
+            $isDejeuner = $typeSeance === 'dejeuner';
+            $isBreak = $isPause || $isDejeuner;
+
+            Log::info('Mise à jour de séance - Type détecté:', [
+                'type' => $typeSeance,
+                'isPause' => $isPause,
+                'isDejeuner' => $isDejeuner,
+                'isBreak' => $isBreak
+            ]);
+
+            // Validation avec règles dynamiques
+            $validationRules = [
+                'jour' => 'required|integer|min:1|max:7',
+                'heure_debut' => 'required|string',
+                'heure_fin' => 'required|string|after:heure_debut',
+                'type_seance' => 'required|string|in:cours,td,tp,examen,pause,dejeuner,autre',
+                'description' => 'nullable|string',
+                'is_active' => 'boolean',
+            ];
+
+            // Ajuster les règles de validation en fonction du type de séance
+            if ($isBreak) {
+                $validationRules['matiere_id'] = 'nullable|exists:esbtp_matieres,id';
+                $validationRules['enseignant'] = 'nullable|string|max:255';
+            } else {
+                $validationRules['matiere_id'] = 'required|exists:esbtp_matieres,id';
+                $validationRules['enseignant'] = 'nullable|string|max:255';
+            }
+
+            // Pour les pauses, la salle est optionnelle
+            if ($isPause) {
+                $validationRules['salle'] = 'nullable|string|max:50';
+            } else {
+                $validationRules['salle'] = 'required|string|max:50';
+            }
+
+            $validated = $request->validate($validationRules);
+
             DB::beginTransaction();
 
             // Mise à jour des champs
-            $seancesCour->matiere_id = $validated['matiere_id'];
-            $seancesCour->enseignant = $validated['enseignant'];
+            $seancesCour->matiere_id = $isBreak ? null : $validated['matiere_id'];
+            $seancesCour->enseignant = $isBreak ? null : $validated['enseignant'];
             $seancesCour->jour = $validated['jour'];
             $seancesCour->heure_debut = $validated['heure_debut'];
             $seancesCour->heure_fin = $validated['heure_fin'];
-            $seancesCour->salle = $validated['salle'];
+            $seancesCour->salle = $isPause ? null : $validated['salle'];
             $seancesCour->is_active = $request->has('is_active');
             $seancesCour->type_seance = $validated['type_seance'];
             $seancesCour->description = $validated['description'] ?? null;

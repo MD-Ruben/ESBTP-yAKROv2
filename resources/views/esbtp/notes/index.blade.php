@@ -92,8 +92,8 @@
                                 @forelse($notes as $note)
                                     <tr>
                                         <td>{{ $note->etudiant->nom }} {{ $note->etudiant->prenoms }}</td>
-                                        <td>{{ $note->evaluation->classe->name }}</td>
-                                        <td>{{ $note->evaluation->matiere->name }}</td>
+                                        <td>{{ $note->evaluation->classe ? $note->evaluation->classe->name : 'N/A' }}</td>
+                                        <td>{{ $note->evaluation->matiere ? $note->evaluation->matiere->name : 'N/A' }}</td>
                                         <td>{{ $note->evaluation->titre }}</td>
                                         <td>
                                             @if($note->is_absent)
@@ -130,6 +130,13 @@
         </div>
     </div>
 </div>
+
+<!-- Formulaire de suppression caché -->
+<form id="delete-form" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 @endsection
 
 @section('js')
@@ -144,5 +151,13 @@
             "order": [[ 5, "desc" ]]
         });
     });
+
+    function confirmDelete(noteId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.')) {
+            var form = document.getElementById('delete-form');
+            form.action = "/esbtp/notes/" + noteId;
+            form.submit();
+        }
+    }
 </script>
 @endsection

@@ -37,5 +37,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\CleanupInstallation::class,
+        Commands\ActivateAllTimetables::class,
+        Commands\FixTimetablesCommand::class,
     ];
 }

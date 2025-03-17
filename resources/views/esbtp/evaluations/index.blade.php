@@ -48,8 +48,8 @@
                                         <td>{{ $evaluation->titre }}</td>
                                         <td>{{ ucfirst($evaluation->type) }}</td>
                                         <td>{{ $evaluation->date_evaluation->format('d/m/Y') }}</td>
-                                        <td>{{ $evaluation->classe->nom }}</td>
-                                        <td>{{ $evaluation->matiere->nom }}</td>
+                                        <td>{{ $evaluation->classe ? ($evaluation->classe->nom ?? $evaluation->classe->name ?? 'N/A') : 'N/A' }}</td>
+                                        <td>{{ $evaluation->matiere ? ($evaluation->matiere->nom ?? $evaluation->matiere->name ?? 'N/A') : 'N/A' }}</td>
                                         <td>
                                             <form action="{{ route('esbtp.evaluations.update-status', $evaluation) }}" method="POST" class="d-inline status-form">
                                                 @csrf
@@ -77,10 +77,13 @@
                                             <form action="{{ route('esbtp.evaluations.toggle-notes-published', $evaluation) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm {{ $evaluation->notes_published ? 'btn-success' : 'btn-secondary' }}" {{ !$evaluation->canPublishNotes() && !$evaluation->notes_published ? 'disabled' : '' }}>
+                                                <button type="submit" class="btn btn-sm {{ $evaluation->notes_published ? 'btn-success' : 'btn-secondary' }}" {{ !$evaluation->canPublishNotes() && !$evaluation->notes_published ? 'disabled' : '' }} data-bs-toggle="tooltip" title="{{ $evaluation->notes_published ? 'Les notes sont visibles par les étudiants' : 'Les notes ne sont pas visibles par les étudiants' }}">
                                                     {{ $evaluation->notes_published ? 'Notes publiées' : 'Notes non publiées' }}
                                                 </button>
                                             </form>
+                                            <a href="{{ route('esbtp.notes.saisie-rapide', $evaluation) }}" class="btn btn-primary btn-sm ms-1" data-bs-toggle="tooltip" title="Accéder à l'interface de gestion des notes (saisie, modification, consultation)">
+                                                <i class="fas fa-pen-alt me-1"></i>{{ $evaluation->notes->count() > 0 ? 'Gérer les notes (' . $evaluation->notes->count() . ')' : 'Saisir les notes' }}
+                                            </a>
                                         </td>
                                         <td>
                                             <a href="{{ route('esbtp.evaluations.show', $evaluation) }}" class="btn btn-info btn-sm">
@@ -124,6 +127,9 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        // Initialiser les tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
         $('.select2').select2({
             theme: 'bootstrap-5'
         });

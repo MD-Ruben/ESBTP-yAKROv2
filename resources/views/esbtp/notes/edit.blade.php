@@ -49,11 +49,11 @@
                                             </tr>
                                             <tr>
                                                 <th>Classe :</th>
-                                                <td>{{ $note->evaluation->classe->name }}</td>
+                                                <td>{{ $note->evaluation->classe ? $note->evaluation->classe->name : 'N/A' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Matière :</th>
-                                                <td>{{ $note->evaluation->matiere->name }}</td>
+                                                <td>{{ $note->evaluation->matiere ? $note->evaluation->matiere->name : 'N/A' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Barème :</th>
@@ -86,7 +86,7 @@
                                             </tr>
                                             <tr>
                                                 <th>Classe :</th>
-                                                <td>{{ $note->etudiant->classe->name }}</td>
+                                                <td>{{ $note->etudiant->classe ? $note->etudiant->classe->name : 'N/A' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Statut :</th>

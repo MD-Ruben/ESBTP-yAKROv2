@@ -246,8 +246,40 @@
                                     <strong>Statut :</strong>
                                     @if(isset($emploiTemps->is_active) && $emploiTemps->is_active)
                                         <span class="badge bg-success">Actif</span>
+                                        @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
+                                        <form action="{{ route('esbtp.emploi-temps.update', ['emploi_temp' => $emploiTemps->id]) }}" method="POST" class="d-inline ms-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="is_active" value="0">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Êtes-vous sûr de vouloir désactiver cet emploi du temps ?')">
+                                                <i class="fas fa-toggle-off me-1"></i>Désactiver
+                                            </button>
+                                        </form>
+                                        @endif
                                     @else
                                         <span class="badge bg-secondary">Inactif</span>
+                                        @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
+                                        <form action="{{ route('esbtp.emploi-temps.update', ['emploi_temp' => $emploiTemps->id]) }}" method="POST" class="d-inline ms-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="is_active" value="1">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Êtes-vous sûr de vouloir activer cet emploi du temps ? Cela désactivera tous les autres emplois du temps pour cette classe.')">
+                                                <i class="fas fa-toggle-on me-1"></i>Activer
+                                            </button>
+                                        </form>
+                                        @endif
+                                    @endif
+                                    @if(isset($emploiTemps->is_current) && $emploiTemps->is_current)
+                                        <span class="badge bg-info ms-1">Courant</span>
+                                    @else
+                                        @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
+                                        <form action="{{ route('esbtp.emploi-temps.set-current', ['id' => $emploiTemps->id]) }}" method="POST" class="d-inline ms-2">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-info" onclick="return confirm('Êtes-vous sûr de vouloir définir cet emploi du temps comme courant ? Cela désactivera tous les autres emplois du temps pour cette classe.')">
+                                                <i class="fas fa-calendar-check me-1"></i>Définir comme courant
+                                            </button>
+                                        </form>
+                                        @endif
                                     @endif
                                 </p>
                             </div>
@@ -328,45 +360,111 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(isset($timeSlots) && is_array($timeSlots))
-                                @foreach($timeSlots as $timeSlot)
+                                @php
+                                // Définir les créneaux horaires
+                                $timeSlots = isset($timeSlots) && is_array($timeSlots) ? $timeSlots : [];
+
+                                // Créer une grille pour suivre les cellules occupées par des rowspans
+                                $occupiedCells = [];
+                                foreach ($days as $day) {
+                                    foreach ($timeSlots as $slotIndex => $slot) {
+                                        $occupiedCells[$day][$slotIndex] = false;
+                                    }
+                                }
+
+                                // Pré-traiter les séances pour déterminer les rowspans
+                                $seancesWithRowspans = [];
+                                if (isset($emploiTemps) && $emploiTemps->seances) {
+                                    foreach ($emploiTemps->seances as $seance) {
+                                        $jour = $seance->jour;
+                                        $heureDebut = $seance->heure_debut->format('H:i');
+                                        $heureFin = $seance->heure_fin->format('H:i');
+
+                                        // Trouver l'index du créneau de début
+                                        $startSlotIndex = array_search($heureDebut, $timeSlots);
+                                        if ($startSlotIndex === false) continue;
+
+                                        // Calculer combien de créneaux cette séance occupe
+                                        $endSlotIndex = null;
+                                        foreach ($timeSlots as $index => $slot) {
+                                            // Check if this is the last slot
+                                            $nextSlotIndex = $index + 1;
+                                            $nextSlot = isset($timeSlots[$nextSlotIndex]) ? $timeSlots[$nextSlotIndex] : null;
+
+                                            // If this is the last slot or the end time is before the next slot starts
+                                            if ($nextSlot === null || $heureFin <= $nextSlot) {
+                                                if ($index >= $startSlotIndex) {
+                                                    $endSlotIndex = $index;
+                                                    break; // Found the ending slot, no need to continue
+                                                }
+                                            }
+                                        }
+
+                                        if ($endSlotIndex === null) $endSlotIndex = $startSlotIndex;
+
+                                        // Calculer le rowspan
+                                        $rowspan = $endSlotIndex - $startSlotIndex + 1;
+                                        if ($rowspan < 1) $rowspan = 1;
+
+                                        // Stocker les informations
+                                        $seancesWithRowspans[] = [
+                                            'seance' => $seance,
+                                            'jour' => $jour,
+                                            'startSlotIndex' => $startSlotIndex,
+                                            'endSlotIndex' => $endSlotIndex,
+                                            'rowspan' => $rowspan
+                                        ];
+
+                                        // Marquer les cellules comme occupées
+                                        for ($i = $startSlotIndex; $i <= $endSlotIndex; $i++) {
+                                            $occupiedCells[$jour][$i] = true;
+                                        }
+                                    }
+                                }
+                                @endphp
+
+                                @foreach($timeSlots as $slotIndex => $timeSlot)
                                 <tr>
                                     <td class="text-center time-column">{{ $timeSlot }}</td>
-                                    @if(isset($days) && is_array($days))
                                     @foreach($days as $day)
-                                        <td>
-                                            @php
-                                                $seance = null;
-                                                if(isset($emploiTemps) && $emploiTemps->seances) {
-                                                    $seance = $emploiTemps->seances
-                                                        ->where('jour', $day)
-                                                        ->filter(function($item) use ($timeSlot) {
-                                                            return $item->heure_debut->format('H:i') == $timeSlot;
-                                                        })
-                                                        ->first();
-                                                }
-                                            @endphp
+                                        @php
+                                        // Vérifier si cette cellule est occupée par un rowspan d'une ligne précédente
+                                        $cellOccupied = $occupiedCells[$day][$slotIndex];
 
-                                            @if($seance)
-                                                <div class="session-cell session-{{ $seance->type_seance }} {{ $seance->is_active ? '' : 'session-inactive' }}"
+                                        // Trouver la séance à afficher dans cette cellule (s'il y en a une)
+                                        $seanceToDisplay = null;
+                                        $rowspan = 1;
+
+                                        foreach ($seancesWithRowspans as $seanceData) {
+                                            if ($seanceData['jour'] == $day && $seanceData['startSlotIndex'] == $slotIndex) {
+                                                $seanceToDisplay = $seanceData['seance'];
+                                                $rowspan = $seanceData['rowspan'];
+                                                break;
+                                            }
+                                        }
+                                        @endphp
+
+                                        @if($seanceToDisplay && $cellOccupied)
+                                            <td class="align-middle" rowspan="{{ $rowspan }}">
+                                                <div class="session-cell session-{{ $seanceToDisplay->type_seance }} {{ $seanceToDisplay->is_active ? '' : 'session-inactive' }}"
                                                      data-bs-toggle="tooltip"
                                                      data-bs-placement="top"
-                                                     title="{{ is_object($seance->matiere) ? $seance->matiere->name : 'Matière non définie' }} | {{ $seance->enseignantName }} | {{ $seance->salle ?? 'Salle non définie' }} | {{ $seance->heure_debut->format('H:i') }} - {{ $seance->heure_fin->format('H:i') }}">
+                                                     title="{{ is_object($seanceToDisplay->matiere) ? $seanceToDisplay->matiere->name : 'Matière non définie' }} | {{ $seanceToDisplay->enseignantName }} | {{ $seanceToDisplay->salle ?? 'Salle non définie' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}">
                                                     <div class="session-info session-matiere">
-                                                        {{ is_object($seance->matiere) ? $seance->matiere->name : 'Matière non définie' }}
+                                                        {{ is_object($seanceToDisplay->matiere) ? $seanceToDisplay->matiere->name : 'Matière non définie' }}
                                                     </div>
                                                     <div class="session-info session-enseignant">
-                                                        {{ $seance->enseignantName }}
+                                                        {{ $seanceToDisplay->enseignantName }}
                                                     </div>
                                                     <div class="session-info session-details">
-                                                        {{ $seance->salle ?? 'Salle non définie' }} | {{ $seance->heure_debut->format('H:i') }} - {{ $seance->heure_fin->format('H:i') }}
+                                                        {{ $seanceToDisplay->salle ?? 'Salle non définie' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
                                                     </div>
                                                     <div class="session-actions">
                                                         <div class="btn-group btn-group-sm">
-                                                            <a href="{{ route('esbtp.seances-cours.edit', $seance->id) }}" class="btn btn-sm btn-light">
+                                                            <a href="{{ route('esbtp.seances-cours.edit', $seanceToDisplay->id) }}" class="btn btn-sm btn-light">
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
-                                                            <form action="{{ route('esbtp.seances-cours.destroy', $seance->id) }}" method="POST" class="d-inline">
+                                                            <form action="{{ route('esbtp.seances-cours.destroy', $seanceToDisplay->id) }}" method="POST" class="d-inline">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn btn-sm btn-light" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')">
@@ -376,21 +474,17 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            @else
+                                            </td>
+                                        @elseif(!$cellOccupied)
+                                            <td>
                                                 <a href="{{ route('esbtp.seances-cours.create', ['emploi_temps_id' => $emploiTemps->id ?? 0, 'jour' => $day, 'heure_debut' => $timeSlot]) }}" class="btn-add-session">
                                                     <i class="fas fa-plus"></i>
                                                 </a>
-                                            @endif
-                                        </td>
+                                            </td>
+                                        @endif
                                     @endforeach
-                                    @endif
                                 </tr>
                                 @endforeach
-                                @else
-                                <tr>
-                                    <td colspan="7" class="text-center">Aucun horaire disponible</td>
-                                </tr>
-                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -450,28 +544,6 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-
-        // Ajouter une classe pour les séances qui durent plus d'une heure
-        document.querySelectorAll('.session-cell').forEach(function(cell) {
-            var timeText = cell.querySelector('.session-details').textContent;
-            var times = timeText.split('|')[1].trim().split(' - ');
-            var startTime = times[0];
-            var endTime = times[1];
-
-            // Convertir en minutes depuis minuit
-            var startMinutes = convertTimeToMinutes(startTime);
-            var endMinutes = convertTimeToMinutes(endTime);
-
-            // Si la durée est supérieure à 60 minutes, ajouter une classe
-            if (endMinutes - startMinutes > 60) {
-                cell.classList.add('session-long');
-            }
-        });
-
-        function convertTimeToMinutes(timeString) {
-            var parts = timeString.split(':');
-            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-        }
     });
 </script>
 @endsection

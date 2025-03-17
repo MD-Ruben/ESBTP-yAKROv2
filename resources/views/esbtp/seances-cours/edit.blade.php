@@ -62,35 +62,32 @@
                         @csrf
                         @method('PUT')
 
+                        <!-- Type de séance - Moved to the beginning -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="matiere_id" class="form-label">Matière *</label>
-                                    <select class="form-select @error('matiere_id') is-invalid @enderror" id="matiere_id" name="matiere_id" required>
-                                        <option value="">Sélectionner une matière</option>
-                                        @foreach($matieres as $matiere)
-                                            <option value="{{ $matiere->id }}" {{ (old('matiere_id', $seancesCour->matiere_id) == $matiere->id) ? 'selected' : '' }}>
-                                                {{ $matiere->code }} - {{ $matiere->name }}
-                                            </option>
-                                        @endforeach
+                                    <label for="type_seance" class="form-label fw-bold">Type de séance *</label>
+                                    <select class="form-select form-select-lg @error('type_seance') is-invalid @enderror" id="type_seance" name="type_seance" required>
+                                        <option value="">Sélectionner un type de séance</option>
+                                        <option value="cours" {{ (old('type_seance', $seancesCour->type_seance) == 'cours') ? 'selected' : '' }}>Cours magistral</option>
+                                        <option value="td" {{ (old('type_seance', $seancesCour->type_seance) == 'td') ? 'selected' : '' }}>Travaux dirigés</option>
+                                        <option value="tp" {{ (old('type_seance', $seancesCour->type_seance) == 'tp') ? 'selected' : '' }}>Travaux pratiques</option>
+                                        <option value="examen" {{ (old('type_seance', $seancesCour->type_seance) == 'examen') ? 'selected' : '' }}>Examen</option>
+                                        <option value="pause" {{ (old('type_seance', $seancesCour->type_seance) == 'pause') ? 'selected' : '' }}>Récréation</option>
+                                        <option value="dejeuner" {{ (old('type_seance', $seancesCour->type_seance) == 'dejeuner') ? 'selected' : '' }}>Pause déjeuner</option>
+                                        <option value="autre" {{ (old('type_seance', $seancesCour->type_seance) == 'autre') ? 'selected' : '' }}>Autre</option>
                                     </select>
-                                    @error('matiere_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="enseignant" class="form-label">Enseignant *</label>
-                                    <input type="text" class="form-control @error('enseignant') is-invalid @enderror" id="enseignant" name="enseignant" value="{{ old('enseignant', $seancesCour->enseignant) }}" required placeholder="Nom de l'enseignant">
-                                    @error('enseignant')
+                                    @error('type_seance')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Info message area for session type -->
+                        <div id="session-type-info" class="mb-3" style="display: none;"></div>
+
+                        <!-- Day and time information - Always visible -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -131,26 +128,39 @@
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-4">
+                        <!-- Subject and teacher - Hidden for breaks -->
+                        <div class="row mb-3" id="subject-teacher-row">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="type_seance" class="form-label">Type de séance *</label>
-                                    <select class="form-select @error('type_seance') is-invalid @enderror" id="type_seance" name="type_seance" required>
-                                        <option value="cours" {{ (old('type_seance', $seancesCour->type_seance) == 'cours') ? 'selected' : '' }}>Cours magistral</option>
-                                        <option value="td" {{ (old('type_seance', $seancesCour->type_seance) == 'td') ? 'selected' : '' }}>Travaux dirigés</option>
-                                        <option value="tp" {{ (old('type_seance', $seancesCour->type_seance) == 'tp') ? 'selected' : '' }}>Travaux pratiques</option>
-                                        <option value="examen" {{ (old('type_seance', $seancesCour->type_seance) == 'examen') ? 'selected' : '' }}>Examen</option>
-                                        <option value="pause" {{ (old('type_seance', $seancesCour->type_seance) == 'pause') ? 'selected' : '' }}>Récréation</option>
-                                        <option value="dejeuner" {{ (old('type_seance', $seancesCour->type_seance) == 'dejeuner') ? 'selected' : '' }}>Pause déjeuner</option>
-                                        <option value="autre" {{ (old('type_seance', $seancesCour->type_seance) == 'autre') ? 'selected' : '' }}>Autre</option>
+                                    <label for="matiere_id" class="form-label">Matière *</label>
+                                    <select class="form-select @error('matiere_id') is-invalid @enderror" id="matiere_id" name="matiere_id" required>
+                                        <option value="">Sélectionner une matière</option>
+                                        @foreach($matieres as $matiere)
+                                            <option value="{{ $matiere->id }}" {{ (old('matiere_id', $seancesCour->matiere_id) == $matiere->id) ? 'selected' : '' }}>
+                                                {{ $matiere->code }} - {{ $matiere->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
-                                    @error('type_seance')
+                                    @error('matiere_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="enseignant" class="form-label">Enseignant</label>
+                                    <input type="text" class="form-control @error('enseignant') is-invalid @enderror" id="enseignant" name="enseignant" value="{{ old('enseignant', $seancesCour->enseignant) }}" placeholder="Nom de l'enseignant">
+                                    @error('enseignant')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Classroom and active status - Classroom hidden for recreation -->
+                        <div class="row mb-3">
+                            <div class="col-md-6" id="classroom-col">
                                 <div class="form-group">
                                     <label for="salle" class="form-label">Salle *</label>
                                     <input type="text" class="form-control @error('salle') is-invalid @enderror" id="salle" name="salle" value="{{ old('salle', $seancesCour->salle) }}" required>
@@ -160,7 +170,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ (old('is_active', $seancesCour->is_active) == 1) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="is_active">
@@ -237,6 +247,8 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        console.log('Document ready - edit form');
+
         // Amélioration des listes déroulantes avec Select2
         $('#matiere_id').select2({
             theme: 'bootstrap-5',
@@ -263,6 +275,101 @@
                 alert("L'heure de début doit être antérieure à l'heure de fin.");
                 $(this).val('{{ $seancesCour->heure_debut }}');
             }
+        });
+
+        // Function to toggle fields based on session type
+        function toggleFieldsBySessionType() {
+            console.log('Toggle function called');
+            const sessionType = $('#type_seance').val();
+            console.log('Session type:', sessionType);
+
+            // If no session type is selected, show all fields
+            if (!sessionType) {
+                $('#subject-teacher-row').show();
+                $('#classroom-col').show();
+                $('#session-type-info').hide();
+                $('#matiere_id').prop('required', true);
+                $('#salle').prop('required', true);
+                return;
+            }
+
+            const isBreak = sessionType === 'pause' || sessionType === 'dejeuner';
+            console.log('Is break:', isBreak);
+
+            // Info message area
+            const $infoMessage = $('#session-type-info');
+
+            // Toggle visibility with animation
+            if (isBreak) {
+                console.log('Hiding fields for break');
+                $('#subject-teacher-row').slideUp(300);
+
+                // Make hidden fields not required
+                $('#matiere_id').prop('required', false);
+                $('#enseignant').prop('required', false);
+
+                // For recreation, hide classroom too, but keep it for lunch break
+                if (sessionType === 'pause') {
+                    console.log('Hiding classroom for recreation');
+                    $('#classroom-col').slideUp(300);
+                    $('#salle').prop('required', false);
+
+                    // Update info message
+                    $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Récréation :</strong> Seuls le jour et les horaires sont requis.</div>').slideDown(300);
+                } else {
+                    console.log('Showing classroom for lunch break');
+                    $('#classroom-col').slideDown(300);
+                    $('#salle').prop('required', true);
+
+                    // Update info message
+                    $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Pause déjeuner :</strong> La salle est requise mais pas la matière ni l\'enseignant.</div>').slideDown(300);
+                }
+            } else {
+                console.log('Showing all fields');
+                // Show all fields and make them required again
+                $('#subject-teacher-row').slideDown(300);
+                $('#classroom-col').slideDown(300);
+
+                $('#matiere_id').prop('required', true);
+                $('#enseignant').prop('required', false); // Keep enseignant optional
+                $('#salle').prop('required', true);
+
+                // Update info message based on session type
+                let infoText = '';
+                switch(sessionType) {
+                    case 'cours':
+                        infoText = '<strong>Cours magistral :</strong> Tous les champs sont disponibles.';
+                        break;
+                    case 'td':
+                        infoText = '<strong>Travaux dirigés :</strong> Tous les champs sont disponibles.';
+                        break;
+                    case 'tp':
+                        infoText = '<strong>Travaux pratiques :</strong> Tous les champs sont disponibles.';
+                        break;
+                    case 'examen':
+                        infoText = '<strong>Examen :</strong> Tous les champs sont disponibles.';
+                        break;
+                    case 'autre':
+                        infoText = '<strong>Autre type de séance :</strong> Tous les champs sont disponibles.';
+                        break;
+                }
+
+                if (infoText) {
+                    $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i>' + infoText + '</div>').slideDown(300);
+                } else {
+                    $infoMessage.slideUp(300);
+                }
+            }
+        }
+
+        // Call the function on page load
+        console.log('Page loaded, calling toggle function');
+        toggleFieldsBySessionType();
+
+        // Bind the change event directly
+        $('#type_seance').on('change', function() {
+            console.log('Dropdown changed to: ' + $(this).val());
+            toggleFieldsBySessionType();
         });
 
         // Afficher les informations de débogage dans la console

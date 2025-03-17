@@ -25,10 +25,18 @@ class ESBTPNote extends Model
     protected $fillable = [
         'evaluation_id',
         'etudiant_id',
+        'matiere_id',
+        'classe_id',
+        'semestre',
+        'annee_universitaire',
+        'note',
+        'type_evaluation',
         'valeur',
         'observation',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'is_absent',
+        'commentaire'
     ];
 
     /**
@@ -81,6 +89,26 @@ class ESBTPNote extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Relation avec la matière associée à cette note.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function matiere()
+    {
+        return $this->belongsTo(ESBTPMatiere::class, 'matiere_id');
+    }
+
+    /**
+     * Relation avec la classe associée à cette note.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function classe()
+    {
+        return $this->belongsTo(ESBTPClasse::class, 'classe_id');
     }
 
     /**

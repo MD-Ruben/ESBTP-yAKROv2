@@ -125,8 +125,8 @@ class ESBTPEvaluationController extends Controller
      */
     public function store(Request $request)
     {
-        // Log the incoming request data for debugging
-        \Log::info('Données du formulaire d\'évaluation:', $request->all());
+        \Log::info('Début de la méthode store');
+        \Log::info('Données reçues:', $request->all());
 
         // Log l'état de la classe ESBTPEvaluation
         \Log::info('Attributs attendus dans ESBTPEvaluation:', [
@@ -167,6 +167,16 @@ class ESBTPEvaluationController extends Controller
         }
 
         try {
+            // Récupérer l'année universitaire active
+            $anneeUniversitaire = ESBTPAnneeUniversitaire::where('is_active', true)->first();
+
+            if (!$anneeUniversitaire) {
+                \Log::error('Aucune année universitaire active trouvée');
+                return redirect()->back()
+                    ->with('error', 'Aucune année universitaire active n\'a été trouvée. Veuillez en créer une avant d\'ajouter une évaluation.')
+                    ->withInput();
+            }
+
             $evaluation = new ESBTPEvaluation();
             $evaluation->titre = $request->titre;
             $evaluation->description = $request->description;
@@ -180,6 +190,10 @@ class ESBTPEvaluationController extends Controller
             $evaluation->created_by = \Auth::id();
             $evaluation->is_published = $request->has('is_published') ? 1 : 0;
 
+            // Ajouter les valeurs par défaut pour les champs manquants
+            $evaluation->periode = $request->periode ?? 'semestre1'; // Valeur par défaut pour periode
+            $evaluation->annee_universitaire_id = $request->annee_universitaire_id ?? $anneeUniversitaire->id;
+
             \Log::info('Tentative de sauvegarde de l\'évaluation:', [
                 'titre' => $evaluation->titre,
                 'matiere_id' => $evaluation->matiere_id,
@@ -187,7 +201,20 @@ class ESBTPEvaluationController extends Controller
                 'date_evaluation' => $evaluation->date_evaluation,
                 'created_by' => $evaluation->created_by,
                 'duree_minutes' => $evaluation->duree_minutes,
-                'is_published' => $evaluation->is_published
+                'is_published' => $evaluation->is_published,
+                'periode' => $evaluation->periode,
+                'annee_universitaire_id' => $evaluation->annee_universitaire_id
+            ]);
+
+            // Vérifier que la classe et la matière existent
+            $classe = ESBTPClasse::find($evaluation->classe_id);
+            $matiere = ESBTPMatiere::find($evaluation->matiere_id);
+
+            \Log::info('Vérification de la classe et de la matière:', [
+                'classe_exists' => $classe ? 'oui' : 'non',
+                'classe_nom' => $classe ? ($classe->nom ?? $classe->name ?? 'N/A') : 'N/A',
+                'matiere_exists' => $matiere ? 'oui' : 'non',
+                'matiere_nom' => $matiere ? ($matiere->nom ?? $matiere->name ?? 'N/A') : 'N/A'
             ]);
 
             // Log aussi les attributs du modèle avant sauvegarde
@@ -207,6 +234,7 @@ class ESBTPEvaluationController extends Controller
                 ->with('error', 'Une erreur est survenue lors de la création de l\'évaluation: ' . $e->getMessage())
                 ->withInput();
         }
+        \Log::info('Fin de la méthode store');
     }
 
     /**
