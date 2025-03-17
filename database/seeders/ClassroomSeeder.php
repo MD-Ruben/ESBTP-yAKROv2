@@ -18,7 +18,7 @@ class ClassroomSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Création des salles de classe
         // Les salles sont comme des conteneurs
         // Chacune peut accueillir différents types d'activités pédagogiques
@@ -52,7 +52,7 @@ class ClassroomSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Salles de TD
             [
                 'code' => 'TD-101',
@@ -96,7 +96,7 @@ class ClassroomSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Laboratoires informatiques
             [
                 'code' => 'LAB-INFO-1',
@@ -140,7 +140,7 @@ class ClassroomSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Laboratoires spécialisés
             [
                 'code' => 'LAB-ELEC',
@@ -178,4 +178,4 @@ class ClassroomSeeder extends Seeder
 
         $this->command->info('Salles de classe créées avec succès!');
     }
-} 
+}

@@ -53,14 +53,24 @@
                                             </tr>
                                             <tr>
                                                 <th>Période</th>
-                                                <td>{{ $bulletin->periode->nom }} ({{ $bulletin->periode->annee_scolaire }})</td>
+                                                <td>
+                                                    @if($bulletin->periode == 'semestre1')
+                                                        Premier Semestre
+                                                    @elseif($bulletin->periode == 'semestre2')
+                                                        Deuxième Semestre
+                                                    @elseif($bulletin->periode == 'annuel')
+                                                        Annuel
+                                                    @else
+                                                        {{ $bulletin->periode }}
+                                                    @endif
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Informations du bulletin -->
                         <div class="col-md-6">
                             <div class="card mb-4">
@@ -71,13 +81,13 @@
                                     <form action="{{ route('esbtp.bulletins.update-general', $bulletin) }}" method="POST">
                                         @csrf
                                         @method('PUT')
-                                        
+
                                         <div class="mb-3">
                                             <label for="moyenne_generale" class="form-label">Moyenne générale</label>
                                             <div class="input-group">
-                                                <input type="number" class="form-control @error('moyenne_generale') is-invalid @enderror" 
-                                                       id="moyenne_generale" name="moyenne_generale" 
-                                                       value="{{ old('moyenne_generale', $bulletin->moyenne_generale) }}" 
+                                                <input type="number" class="form-control @error('moyenne_generale') is-invalid @enderror"
+                                                       id="moyenne_generale" name="moyenne_generale"
+                                                       value="{{ old('moyenne_generale', $bulletin->moyenne_generale) }}"
                                                        step="0.01" min="0" max="20">
                                                 <span class="input-group-text">/20</span>
                                                 @error('moyenne_generale')
@@ -86,13 +96,13 @@
                                             </div>
                                             <small class="form-text text-muted">Laissez vide pour un calcul automatique.</small>
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <label for="rang" class="form-label">Rang</label>
                                             <div class="input-group">
-                                                <input type="number" class="form-control @error('rang') is-invalid @enderror" 
-                                                       id="rang" name="rang" 
-                                                       value="{{ old('rang', $bulletin->rang) }}" 
+                                                <input type="number" class="form-control @error('rang') is-invalid @enderror"
+                                                       id="rang" name="rang"
+                                                       value="{{ old('rang', $bulletin->rang) }}"
                                                        min="1" max="{{ $bulletin->total_etudiants }}">
                                                 <span class="input-group-text">/ {{ $bulletin->total_etudiants }}</span>
                                                 @error('rang')
@@ -101,16 +111,16 @@
                                             </div>
                                             <small class="form-text text-muted">Laissez vide pour un classement automatique.</small>
                                         </div>
-                                        
+
                                         <div class="mb-3">
                                             <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" 
+                                                <input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1"
                                                        {{ old('is_published', $bulletin->is_published) ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="is_published">Publier le bulletin</label>
                                                 <small class="form-text text-muted d-block">Un bulletin publié est visible par l'étudiant et ses parents.</small>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="d-grid">
                                             <button type="submit" class="btn btn-primary">
                                                 <i class="fas fa-save me-1"></i>Mettre à jour les informations générales
@@ -121,7 +131,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Assiduité et appréciation -->
                     <div class="card mb-4">
                         <div class="card-header bg-info text-white">
@@ -131,52 +141,52 @@
                             <form action="{{ route('esbtp.bulletins.update-appreciation', $bulletin) }}" method="POST">
                                 @csrf
                                 @method('PUT')
-                                
+
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="absences_justifiees" class="form-label">Absences justifiées (heures)</label>
-                                        <input type="number" class="form-control @error('absences_justifiees') is-invalid @enderror" 
-                                                id="absences_justifiees" name="absences_justifiees" 
-                                                value="{{ old('absences_justifiees', $bulletin->absences_justifiees) }}" 
+                                        <input type="number" class="form-control @error('absences_justifiees') is-invalid @enderror"
+                                                id="absences_justifiees" name="absences_justifiees"
+                                                value="{{ old('absences_justifiees', $bulletin->absences_justifiees) }}"
                                                 min="0">
                                         @error('absences_justifiees')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="absences_non_justifiees" class="form-label">Absences non justifiées (heures)</label>
-                                        <input type="number" class="form-control @error('absences_non_justifiees') is-invalid @enderror" 
-                                                id="absences_non_justifiees" name="absences_non_justifiees" 
-                                                value="{{ old('absences_non_justifiees', $bulletin->absences_non_justifiees) }}" 
+                                        <input type="number" class="form-control @error('absences_non_justifiees') is-invalid @enderror"
+                                                id="absences_non_justifiees" name="absences_non_justifiees"
+                                                value="{{ old('absences_non_justifiees', $bulletin->absences_non_justifiees) }}"
                                                 min="0">
                                         @error('absences_non_justifiees')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-3">
                                         <label for="retards" class="form-label">Nombre de retards</label>
-                                        <input type="number" class="form-control @error('retards') is-invalid @enderror" 
-                                                id="retards" name="retards" 
-                                                value="{{ old('retards', $bulletin->retards) }}" 
+                                        <input type="number" class="form-control @error('retards') is-invalid @enderror"
+                                                id="retards" name="retards"
+                                                value="{{ old('retards', $bulletin->retards) }}"
                                                 min="0">
                                         @error('retards')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="appreciation_generale" class="form-label">Appréciation générale</label>
-                                    <textarea class="form-control @error('appreciation_generale') is-invalid @enderror" 
-                                              id="appreciation_generale" name="appreciation_generale" 
+                                    <textarea class="form-control @error('appreciation_generale') is-invalid @enderror"
+                                              id="appreciation_generale" name="appreciation_generale"
                                               rows="3">{{ old('appreciation_generale', $bulletin->appreciation_generale) }}</textarea>
                                     @error('appreciation_generale')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-info text-white">
                                         <i class="fas fa-save me-1"></i>Mettre à jour l'assiduité et l'appréciation
@@ -185,7 +195,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                     <!-- Résultats par matière -->
                     <div class="card mb-4">
                         <div class="card-header bg-success text-white">
@@ -195,7 +205,7 @@
                             <form action="{{ route('esbtp.bulletins.update-details', $bulletin) }}" method="POST">
                                 @csrf
                                 @method('PUT')
-                                
+
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-striped">
                                         <thead class="table-light">
@@ -218,24 +228,24 @@
                                                     <td>{{ $detail->matiere->code }}</td>
                                                     <td>{{ $detail->matiere->name }}</td>
                                                     <td>
-                                                        <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.coefficient') is-invalid @enderror" 
-                                                               name="details[{{ $detail->id }}][coefficient]" 
-                                                               value="{{ old('details.' . $detail->id . '.coefficient', $detail->coefficient) }}" 
+                                                        <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.coefficient') is-invalid @enderror"
+                                                               name="details[{{ $detail->id }}][coefficient]"
+                                                               value="{{ old('details.' . $detail->id . '.coefficient', $detail->coefficient) }}"
                                                                step="0.1" min="0.1" max="20">
                                                     </td>
                                                     <td>
                                                         <div class="input-group input-group-sm">
-                                                            <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.moyenne') is-invalid @enderror" 
-                                                                   name="details[{{ $detail->id }}][moyenne]" 
-                                                                   value="{{ old('details.' . $detail->id . '.moyenne', $detail->moyenne) }}" 
+                                                            <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.moyenne') is-invalid @enderror"
+                                                                   name="details[{{ $detail->id }}][moyenne]"
+                                                                   value="{{ old('details.' . $detail->id . '.moyenne', $detail->moyenne) }}"
                                                                    step="0.01" min="0" max="20">
                                                             <span class="input-group-text">/20</span>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <input type="text" class="form-control form-control-sm @error('details.' . $detail->id . '.appreciation') is-invalid @enderror" 
-                                                               name="details[{{ $detail->id }}][appreciation]" 
-                                                               value="{{ old('details.' . $detail->id . '.appreciation', $detail->appreciation) }}" 
+                                                        <input type="text" class="form-control form-control-sm @error('details.' . $detail->id . '.appreciation') is-invalid @enderror"
+                                                               name="details[{{ $detail->id }}][appreciation]"
+                                                               value="{{ old('details.' . $detail->id . '.appreciation', $detail->appreciation) }}"
                                                                maxlength="255">
                                                     </td>
                                                 </tr>
@@ -247,7 +257,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                
+
                                 <div class="d-flex justify-content-end mt-3">
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-save me-1"></i>Mettre à jour les résultats par matière
@@ -256,7 +266,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                     <!-- Action supplémentaires -->
                     <div class="row">
                         <div class="col-md-6">
@@ -326,4 +336,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

@@ -78,7 +78,7 @@
                                     <h5 class="card-title mb-0">Générer des bulletins</h5>
                                 </div>
                                 <div class="card-body">
-                                    <form action="{{ route('esbtp.bulletins.generate') }}" method="POST">
+                                    <form action="{{ route('esbtp.bulletins.generer-classe') }}" method="POST">
                                         @csrf
                                         <div class="mb-3">
                                             <label for="gen_annee_universitaire_id" class="form-label">Année Universitaire</label>
@@ -141,4 +141,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

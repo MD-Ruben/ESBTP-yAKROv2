@@ -14,14 +14,12 @@ return new class extends Migration
         Schema::create('esbtp_absences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('etudiant_id')->constrained('esbtp_etudiants');
-            $table->foreignId('cours_id')->nullable()->constrained('esbtp_cours');
+            $table->foreignId('matiere_id')->constrained('esbtp_matieres');
             $table->date('date');
-            $table->time('heure_debut')->nullable();
-            $table->time('heure_fin')->nullable();
-            $table->boolean('justifie')->default(false);
-            $table->string('motif')->nullable();
-            $table->string('document_justificatif')->nullable();
-            $table->text('commentaire')->nullable();
+            $table->decimal('hours', 5, 2)->default(1.00);
+            $table->boolean('justified')->default(false);
+            $table->text('justification_text')->nullable();
+            $table->timestamp('justification_date')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
@@ -36,4 +34,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('esbtp_absences');
     }
-}; 
+};

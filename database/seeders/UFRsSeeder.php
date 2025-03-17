@@ -18,7 +18,7 @@ class UFRsSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Création des UFRs
         // Les UFRs sont comme les grandes branches d'un arbre universitaire
         // Chaque UFR regroupe des formations dans un domaine spécifique
@@ -87,4 +87,4 @@ class UFRsSeeder extends Seeder
 
         $this->command->info('UFRs créées avec succès!');
     }
-} 
+}

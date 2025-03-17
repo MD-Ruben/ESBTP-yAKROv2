@@ -21,7 +21,12 @@ class ESBTPNoteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ESBTPNote::with(['evaluation', 'evaluation.matiere', 'evaluation.classe', 'etudiant', 'createdBy']);
+        $query = ESBTPNote::with([
+            'evaluation.matiere',
+            'evaluation.classe',
+            'etudiant.inscriptions',
+            'createdBy'
+        ]);
 
         // Filtres
         if ($request->has('evaluation_id') && $request->evaluation_id) {
@@ -320,9 +325,13 @@ class ESBTPNoteController extends Controller
             'evaluation_id' => 'required|exists:esbtp_evaluations,id',
             'notes' => 'required|array',
             'notes.*.etudiant_id' => 'required|exists:esbtp_etudiants,id',
-            'notes.*.valeur' => 'nullable|numeric|min:0',
+            'notes.*.valeur' => 'required_without:notes.*.absent|nullable|numeric|min:0',
             'notes.*.commentaire' => 'nullable|string',
             'notes.*.absent' => 'nullable|boolean',
+        ], [
+            'notes.*.valeur.required_without' => 'La valeur de la note est obligatoire si l\'étudiant n\'est pas absent',
+            'notes.*.valeur.numeric' => 'La valeur doit être un nombre',
+            'notes.*.valeur.min' => 'La valeur doit être positive',
         ]);
 
         $evaluation = ESBTPEvaluation::findOrFail($request->evaluation_id);

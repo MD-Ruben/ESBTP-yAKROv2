@@ -20,7 +20,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
-                    
+
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
@@ -66,11 +66,11 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="enseignant_id" class="form-label">Enseignant</label>
-                                    <select class="form-select select2" id="enseignant_id" name="enseignant_id">
+                                    <label for="enseignant" class="form-label">Enseignant</label>
+                                    <select class="form-select select2" id="enseignant" name="enseignant">
                                         <option value="">Tous les enseignants</option>
                                         @foreach($enseignants as $enseignant)
-                                            <option value="{{ $enseignant->id }}" {{ request('enseignant_id') == $enseignant->id ? 'selected' : '' }}>
+                                            <option value="{{ $enseignant->name }}" {{ request('enseignant') == $enseignant->name ? 'selected' : '' }}>
                                                 {{ $enseignant->name }}
                                             </option>
                                         @endforeach
@@ -104,17 +104,17 @@
                                 @php
                                     $jours = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                                 @endphp
-                                
+
                                 @forelse($seancesCours as $seance)
                                     <tr @if(!$seance->is_active) class="table-secondary" @endif>
-                                        <td>{{ $jours[$seance->jour_semaine] ?? 'Inconnu' }}</td>
+                                        <td>{{ $jours[$seance->jour] ?? 'Inconnu' }}</td>
                                         <td>{{ $seance->heure_debut }} - {{ $seance->heure_fin }}</td>
                                         <td>{{ $seance->emploiTemps->classe->name }}</td>
                                         <td>{{ $seance->matiere->name }}</td>
-                                        <td>{{ $seance->enseignant->name }}</td>
+                                        <td>{{ $seance->enseignant }}</td>
                                         <td>{{ $seance->salle }}</td>
                                         <td>
-                                            <span class="badge 
+                                            <span class="badge
                                                 @if($seance->type_seance == 'cours') bg-primary
                                                 @elseif($seance->type_seance == 'td') bg-success
                                                 @elseif($seance->type_seance == 'tp') bg-purple
@@ -148,7 +148,7 @@
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
-                                            
+
                                             <!-- Modal de confirmation de suppression -->
                                             <div class="modal fade" id="deleteModal{{ $seance->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $seance->id }}" aria-hidden="true">
                                                 <div class="modal-dialog">
@@ -159,7 +159,7 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <p>Êtes-vous sûr de vouloir supprimer cette séance de cours ?</p>
-                                                            <p class="fw-bold">{{ $jours[$seance->jour_semaine] }} de {{ $seance->heure_debut }} à {{ $seance->heure_fin }} - {{ $seance->matiere->name }}</p>
+                                                            <p class="fw-bold">{{ $jours[$seance->jour] }} de {{ $seance->heure_debut }} à {{ $seance->heure_fin }} - {{ $seance->matiere->name }}</p>
                                                             <p class="fw-bold">Classe: {{ $seance->emploiTemps->classe->name }}</p>
                                                             <p class="text-danger">
                                                                 <i class="fas fa-exclamation-triangle me-1"></i>
@@ -187,7 +187,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-3">
                         {{ $seancesCours->links() }}
                     </div>
@@ -195,7 +195,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col-md-6">
             <div class="card">
@@ -262,7 +262,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-info text-white">
@@ -279,7 +279,7 @@
                                 @foreach($conflits as $conflit)
                                     <li class="list-group-item list-group-item-warning">
                                         <strong>{{ $jours[$conflit['jour']] }} - {{ $conflit['heure_debut'] }} à {{ $conflit['heure_fin'] }}</strong><br>
-                                        <span class="text-danger">{{ $conflit['type'] }}</span> : 
+                                        <span class="text-danger">{{ $conflit['type'] }}</span> :
                                         @if($conflit['type'] == 'Enseignant')
                                             {{ $conflit['nom'] }} a plusieurs cours en même temps
                                         @elseif($conflit['type'] == 'Salle')
@@ -330,7 +330,7 @@
             "paging": false,
             "info": false
         });
-        
+
         // Amélioration des listes déroulantes avec Select2
         $('.select2').select2({
             theme: 'bootstrap-5',
@@ -338,4 +338,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

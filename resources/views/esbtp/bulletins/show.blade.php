@@ -10,7 +10,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Bulletin de {{ $bulletin->etudiant->nom }} {{ $bulletin->etudiant->prenom }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.bulletins.print', $bulletin) }}" class="btn btn-secondary me-2" target="_blank">
+                        <a href="{{ route('esbtp.bulletins.pdf', $bulletin) }}" class="btn btn-secondary me-2" target="_blank">
                             <i class="fas fa-print me-1"></i>Imprimer
                         </a>
                         <a href="{{ route('esbtp.bulletins.edit', $bulletin) }}" class="btn btn-warning me-2">
@@ -72,7 +72,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Informations sur le bulletin -->
                         <div class="col-md-6">
                             <div class="card">
@@ -84,7 +84,17 @@
                                         <tbody>
                                             <tr>
                                                 <th width="35%">Période</th>
-                                                <td>{{ $bulletin->periode->nom }}</td>
+                                                <td>
+                                                    @if($bulletin->periode == 'semestre1')
+                                                        Premier Semestre
+                                                    @elseif($bulletin->periode == 'semestre2')
+                                                        Deuxième Semestre
+                                                    @elseif($bulletin->periode == 'annuel')
+                                                        Annuel
+                                                    @else
+                                                        {{ $bulletin->periode }}
+                                                    @endif
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Année scolaire</th>
@@ -150,7 +160,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Résultats par matière -->
                     <div class="card mb-4">
                         <div class="card-header bg-info text-white">
@@ -215,7 +225,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Commentaires et observations -->
                     <div class="row">
                         <div class="col-md-6">
@@ -256,12 +266,101 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Signatures du bulletin -->
+                    <div class="card mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">Signatures du bulletin</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header {{ $bulletin->signature_directeur ? 'bg-success' : 'bg-secondary' }} text-white">
+                                            <h6 class="mb-0">Directeur</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            @if($bulletin->signature_directeur)
+                                                <div class="mb-2">
+                                                    <i class="fas fa-check-circle text-success fa-3x"></i>
+                                                </div>
+                                                <p>Signé le {{ date('d/m/Y à H:i', strtotime($bulletin->date_signature_directeur)) }}</p>
+                                            @else
+                                                <div class="mb-2">
+                                                    <i class="fas fa-times-circle text-danger fa-3x"></i>
+                                                </div>
+                                                <p>Non signé</p>
+                                                <form action="{{ route('esbtp.bulletins.signer', ['bulletin' => $bulletin, 'role' => 'directeur']) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-signature me-1"></i>Signer
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header {{ $bulletin->signature_responsable ? 'bg-success' : 'bg-secondary' }} text-white">
+                                            <h6 class="mb-0">Responsable pédagogique</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            @if($bulletin->signature_responsable)
+                                                <div class="mb-2">
+                                                    <i class="fas fa-check-circle text-success fa-3x"></i>
+                                                </div>
+                                                <p>Signé le {{ date('d/m/Y à H:i', strtotime($bulletin->date_signature_responsable)) }}</p>
+                                            @else
+                                                <div class="mb-2">
+                                                    <i class="fas fa-times-circle text-danger fa-3x"></i>
+                                                </div>
+                                                <p>Non signé</p>
+                                                <form action="{{ route('esbtp.bulletins.signer', ['bulletin' => $bulletin, 'role' => 'responsable']) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-signature me-1"></i>Signer
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header {{ $bulletin->signature_parent ? 'bg-success' : 'bg-secondary' }} text-white">
+                                            <h6 class="mb-0">Parent/Tuteur</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            @if($bulletin->signature_parent)
+                                                <div class="mb-2">
+                                                    <i class="fas fa-check-circle text-success fa-3x"></i>
+                                                </div>
+                                                <p>Signé le {{ date('d/m/Y à H:i', strtotime($bulletin->date_signature_parent)) }}</p>
+                                            @else
+                                                <div class="mb-2">
+                                                    <i class="fas fa-times-circle text-danger fa-3x"></i>
+                                                </div>
+                                                <p>Non signé</p>
+                                                <form action="{{ route('esbtp.bulletins.signer', ['bulletin' => $bulletin, 'role' => 'parent']) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-signature me-1"></i>Signer
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end mt-4">
                         <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="fas fa-trash me-1"></i>Supprimer ce bulletin
                         </button>
-                        
+
                         <form action="{{ route('esbtp.bulletins.toggle-publication', $bulletin) }}" method="POST">
                             @csrf
                             @method('PUT')
@@ -308,4 +407,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

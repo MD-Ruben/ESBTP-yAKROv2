@@ -101,10 +101,10 @@ class ESBTPAbsence extends Model
         if (!$this->heure_debut || !$this->heure_fin) {
             return 0;
         }
-        
+
         $debut = $this->heure_debut;
         $fin = $this->heure_fin;
-        
+
         return round($fin->diffInMinutes($debut) / 60, 2);
     }
 
@@ -128,7 +128,22 @@ class ESBTPAbsence extends Model
         if ($this->justifie) {
             return 'Justifiée';
         }
-        
+
         return 'Non justifiée';
     }
-} 
+
+    /**
+     * Accès à la matière via la relation avec le cours
+     * Cette méthode est ajoutée pour résoudre l'erreur dans la génération du PDF
+     */
+    public function matiere()
+    {
+        // Vérifier si la relation cours existe et est chargée
+        if (!$this->cours) {
+            return null;
+        }
+
+        // Retourner la relation matiere du cours
+        return $this->cours->matiere;
+    }
+}

@@ -25,9 +25,8 @@ class ESBTPNote extends Model
     protected $fillable = [
         'evaluation_id',
         'etudiant_id',
-        'note',
-        'commentaire',
-        'is_absent',
+        'valeur',
+        'observation',
         'created_by',
         'updated_by'
     ];
@@ -38,8 +37,7 @@ class ESBTPNote extends Model
      * @var array
      */
     protected $casts = [
-        'note' => 'float',
-        'is_absent' => 'boolean',
+        'valeur' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -95,12 +93,12 @@ class ESBTPNote extends Model
         if ($this->is_absent) {
             return 0;
         }
-        
+
         if ($this->evaluation && $this->evaluation->bareme > 0) {
-            return round(($this->note / $this->evaluation->bareme) * 20, 2);
+            return round(($this->valeur / $this->evaluation->bareme) * 20, 2);
         }
-        
-        return $this->note;
+
+        return $this->valeur;
     }
 
     /**
@@ -113,8 +111,8 @@ class ESBTPNote extends Model
         if ($this->evaluation) {
             return round($this->note_vingt * $this->evaluation->coefficient, 2);
         }
-        
-        return $this->note;
+
+        return $this->valeur;
     }
 
     /**
@@ -125,11 +123,11 @@ class ESBTPNote extends Model
     public function getMentionAttribute()
     {
         $note = $this->note_vingt;
-        
+
         if ($this->is_absent) {
             return 'Absent';
         }
-        
+
         if ($note >= 16) {
             return 'Très Bien';
         } elseif ($note >= 14) {
@@ -142,4 +140,4 @@ class ESBTPNote extends Model
             return 'Insuffisant';
         }
     }
-} 
+}

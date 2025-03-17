@@ -28,9 +28,9 @@ class UsersTableSeeder extends Seeder
             'is_active' => true,
             'phone' => '1234567890',
         ]);
-        
+
         $this->command->info('Super Admin créé avec succès!');
-        
+
         // Création d'un administrateur
         // Comme un ministre qui gère les affaires quotidiennes
         $admin = User::create([
@@ -41,9 +41,9 @@ class UsersTableSeeder extends Seeder
             'is_active' => true,
             'phone' => '2345678901',
         ]);
-        
+
         $this->command->info('Admin créé avec succès!');
-        
+
         // Création d'un enseignant
         // Comme un sage qui partage son savoir
         $teacher = User::create([
@@ -54,7 +54,7 @@ class UsersTableSeeder extends Seeder
             'is_active' => true,
             'phone' => '3456789012',
         ]);
-        
+
         // Création du profil enseignant associé
         Teacher::create([
             'user_id' => $teacher->id,
@@ -66,9 +66,9 @@ class UsersTableSeeder extends Seeder
             'gender' => 'Homme',
             'date_of_birth' => '1980-01-01',
         ]);
-        
+
         $this->command->info('Enseignant créé avec succès!');
-        
+
         // Création d'un parent
         // Comme un gardien qui veille sur ses enfants
         $parent = User::create([
@@ -79,7 +79,7 @@ class UsersTableSeeder extends Seeder
             'is_active' => true,
             'phone' => '4567890123',
         ]);
-        
+
         // Création du profil parent associé
         Guardian::create([
             'user_id' => $parent->id,
@@ -87,9 +87,9 @@ class UsersTableSeeder extends Seeder
             'address' => '456 Avenue des Familles',
             'relationship' => 'Père',
         ]);
-        
+
         $this->command->info('Parent créé avec succès!');
-        
+
         // Création d'un étudiant
         // Comme un apprenti qui absorbe les connaissances
         $student = User::create([
@@ -100,7 +100,7 @@ class UsersTableSeeder extends Seeder
             'is_active' => true,
             'phone' => '5678901234',
         ]);
-        
+
         // Création du profil étudiant associé
         Student::create([
             'user_id' => $student->id,
@@ -114,9 +114,9 @@ class UsersTableSeeder extends Seeder
             'address' => '789 Boulevard des Étudiants',
             'admission_date' => now(),
         ]);
-        
+
         $this->command->info('Étudiant créé avec succès!');
-        
+
         $this->command->info('Tous les utilisateurs ont été créés avec succès!');
     }
-} 
+}

@@ -24,46 +24,46 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Modifier la présence de {{ $attendance->etudiant->nom_complet }}</h4>
-                    
+
                     <form action="{{ route('esbtp.attendances.update', $attendance) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Étudiant</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" value="{{ $attendance->etudiant->nom_complet }}" disabled>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Classe</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" value="{{ $attendance->seanceCours->emploiTemps->classe->name }}" disabled>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Matière</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" value="{{ $attendance->seanceCours->matiere->nom }}" disabled>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Séance</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="{{ $attendance->seanceCours->jour_semaine_texte }} - {{ $attendance->seanceCours->plage_horaire }}" disabled>
+                                <input type="text" class="form-control" value="{{ $attendance->seanceCours->jour }} - {{ $attendance->seanceCours->plage_horaire }}" disabled>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Date</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" value="{{ $attendance->date->format('d/m/Y') }}" disabled>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Statut</label>
                             <div class="col-sm-9">
@@ -88,7 +88,7 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <div class="form-group row mb-3">
                             <label for="commentaire" class="col-sm-3 col-form-label">Commentaire</label>
                             <div class="col-sm-9">
@@ -98,7 +98,7 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <div class="mt-4">
                             <button type="submit" class="btn btn-gradient-primary">
                                 <i class="mdi mdi-content-save"></i> Enregistrer les modifications
@@ -109,12 +109,12 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Informations sur l'étudiant</h4>
-                    
+
                     <div class="text-center mb-4">
                         @if($attendance->etudiant->photo)
                             <img src="{{ asset('storage/' . $attendance->etudiant->photo) }}" alt="Photo de l'étudiant" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
@@ -122,7 +122,7 @@
                             <img src="{{ asset('assets/images/avatar.jpg') }}" alt="Photo par défaut" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
                         @endif
                     </div>
-                    
+
                     <ul class="list-group">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Matricule</span>
@@ -142,4 +142,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

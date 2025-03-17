@@ -23,18 +23,13 @@ class ESBTPEvaluation extends Model
      * @var array
      */
     protected $fillable = [
-        'titre',
+        'matiere_id',
         'type',
         'date_evaluation',
-        'description',
-        'classe_id',
-        'matiere_id',
         'coefficient',
         'bareme',
-        'duree_minutes',
-        'is_published',
-        'notes_published',
-        'status',
+        'periode',
+        'annee_universitaire_id',
         'created_by',
         'updated_by'
     ];
@@ -45,12 +40,7 @@ class ESBTPEvaluation extends Model
      * @var array
      */
     protected $casts = [
-        'date_evaluation' => 'date',
-        'is_published' => 'boolean',
-        'notes_published' => 'boolean',
-        'coefficient' => 'float',
-        'bareme' => 'float',
-        'duree_minutes' => 'integer'
+        'date_evaluation' => 'date'
     ];
 
     const STATUS_DRAFT = 'draft';
@@ -64,16 +54,6 @@ class ESBTPEvaluation extends Model
     const TYPE_RATTRAPAGE = 'rattrapage';
 
     /**
-     * Relation avec la classe associée à cette évaluation.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function classe()
-    {
-        return $this->belongsTo(ESBTPClasse::class, 'classe_id');
-    }
-
-    /**
      * Relation avec la matière associée à cette évaluation.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -81,6 +61,16 @@ class ESBTPEvaluation extends Model
     public function matiere()
     {
         return $this->belongsTo(ESBTPMatiere::class, 'matiere_id');
+    }
+
+    /**
+     * Relation avec l'année universitaire associée à cette évaluation.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function anneeUniversitaire()
+    {
+        return $this->belongsTo(ESBTPAnneeUniversitaire::class, 'annee_universitaire_id');
     }
 
     /**

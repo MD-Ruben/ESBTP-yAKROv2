@@ -24,7 +24,47 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Marquer les présences</h4>
-                    
+
+                    @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(isset($messageErreur))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ $messageErreur }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <!-- Informations de débogage (visible uniquement en développement) -->
+                    @if(config('app.debug') && isset($debug))
+                        <div class="alert alert-secondary mb-4">
+                            <h5><i class="fas fa-bug me-2"></i>Informations de débogage :</h5>
+                            <pre>{{ json_encode($debug, JSON_PRETTY_PRINT) }}</pre>
+                        </div>
+                    @endif
+
+                    <!-- Guide d'utilisation -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Comment marquer les présences :</h5>
+                        <ol class="mb-0">
+                            <li>Sélectionnez une classe dans la liste déroulante</li>
+                            <li>Choisissez une séance de cours parmi celles disponibles pour cette classe</li>
+                            <li>La date sera automatiquement calculée en fonction de la séance choisie</li>
+                            <li>Marquez les présences pour chaque étudiant et enregistrez</li>
+                        </ol>
+                    </div>
+
                     <!-- Sélection de la classe et de la séance -->
                     <div class="mb-4">
                         <form id="selectionForm" method="GET" action="{{ route('esbtp.attendances.create') }}" class="row g-3">
@@ -38,38 +78,60 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Sélectionnez d'abord une classe pour voir les séances disponibles.
+                                </small>
                             </div>
-                            
-                            @if(request()->filled('classe_id'))
+
+                            @if(isset($classeSelectionnee) && $classeSelectionnee)
                                 <div class="col-md-4">
                                     <label for="seance_id" class="form-label">Séance de cours</label>
                                     <select name="seance_id" id="seance_id" class="form-control" required onchange="this.form.submit()">
                                         <option value="">Sélectionner une séance</option>
                                         @foreach($seances as $seance)
-                                            <option value="{{ $seance->id }}" {{ request('seance_id') == $seance->id ? 'selected' : '' }}>
-                                                {{ $seance->matiere->nom }} - {{ $seance->plage_horaire }} ({{ $seance->jour_semaine_texte }})
+                                            <option value="{{ $seance->id }}" {{ request('seance_id') == $seance->id ? 'selected' : '' }}
+                                                data-date="{{ $seance->date_calculee }}"
+                                                data-jour="{{ $seance->jour_nom }}">
+                                                {{ $seance->matiere->name ?? 'Matière inconnue' }} - {{ $seance->heure_debut->format('H:i') }} à {{ $seance->heure_fin->format('H:i') }} ({{ $seance->jour_nom }})
+                                                @if($seance->date_calculee)
+                                                    - {{ \Carbon\Carbon::parse($seance->date_calculee)->format('d/m/Y') }}
+                                                @endif
                                             </option>
                                         @endforeach
                                     </select>
+                                    @if($seances->isEmpty())
+                                        <small class="form-text text-danger">
+                                            <i class="fas fa-exclamation-circle"></i> Aucune séance disponible pour cette classe. Vérifiez que l'emploi du temps est actif.
+                                        </small>
+                                    @else
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle"></i> Sélectionnez une séance pour voir les étudiants.
+                                        </small>
+                                    @endif
                                 </div>
                             @endif
-                            
-                            @if(request()->filled('seance_id'))
+
+                            @if(request()->filled('seance_id') && isset($classeSelectionnee) && $classeSelectionnee)
                                 <div class="col-md-4">
                                     <label for="date" class="form-label">Date</label>
-                                    <input type="date" name="date" id="date" class="form-control" required value="{{ request('date', date('Y-m-d')) }}">
+                                    <input type="date" name="date" id="date" class="form-control" required value="{{ $dateSeance ?? request('date', date('Y-m-d')) }}" {{ $dateSeance ? 'readonly' : '' }}>
+                                    @if($dateSeance)
+                                        <small class="form-text text-info">
+                                            <i class="fas fa-info-circle"></i> Cette date est automatiquement calculée en fonction du jour de la séance et de la période de l'emploi du temps.
+                                        </small>
+                                    @endif
                                 </div>
                             @endif
                         </form>
                     </div>
-                    
+
                     <!-- Formulaire de saisie des présences -->
-                    @if(request()->filled('seance_id') && request()->filled('date') && $etudiants->count() > 0)
+                    @if(request()->filled('seance_id') && isset($classeSelectionnee) && $classeSelectionnee && isset($etudiants) && $etudiants->count() > 0)
                         <form action="{{ route('esbtp.attendances.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="seance_cours_id" value="{{ request('seance_id') }}">
-                            <input type="hidden" name="date" value="{{ request('date') }}">
-                            
+                            <input type="hidden" name="date" value="{{ $dateSeance ?? request('date') }}">
+
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>
@@ -109,7 +171,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            
+
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-gradient-primary">
                                     <i class="mdi mdi-content-save"></i> Enregistrer les présences
@@ -117,8 +179,8 @@
                                 <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-light">Annuler</a>
                             </div>
                         </form>
-                        
-                        <!-- Boutons pour marquer tous les étudiants -->
+
+                        <!-- Boutons pour marquer tous les étudiants avec onclick direct -->
                         <div class="mt-4">
                             <button type="button" class="btn btn-success btn-sm" onclick="marquerTous('present')">
                                 <i class="mdi mdi-check-all"></i> Tous présents
@@ -127,9 +189,21 @@
                                 <i class="mdi mdi-close-all"></i> Tous absents
                             </button>
                         </div>
-                    @elseif(request()->filled('seance_id') && request()->filled('date') && $etudiants->count() == 0)
+                    @elseif(request()->filled('seance_id') && isset($classeSelectionnee) && $classeSelectionnee && isset($etudiants) && $etudiants->count() == 0)
                         <div class="alert alert-warning">
                             <i class="mdi mdi-alert-circle"></i> Aucun étudiant n'est inscrit dans cette classe.
+                        </div>
+                    @elseif(request()->filled('seance_id') && isset($classeSelectionnee) && $classeSelectionnee && !isset($messageErreur))
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline"></i> Veuillez vérifier que la classe sélectionnée a des étudiants inscrits et que l'emploi du temps est correctement configuré.
+                        </div>
+                    @elseif(isset($classeSelectionnee) && $classeSelectionnee && !request()->filled('seance_id') && isset($seances) && $seances->isNotEmpty())
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline"></i> Veuillez sélectionner une séance pour voir les étudiants et marquer les présences.
+                        </div>
+                    @elseif(!isset($classeSelectionnee) || !$classeSelectionnee)
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline"></i> Veuillez d'abord sélectionner une classe pour commencer.
                         </div>
                     @endif
                 </div>
@@ -142,17 +216,45 @@
 
 @section('scripts')
 <script>
+    // Fonction simple pour marquer tous les étudiants avec un statut spécifique
     function marquerTous(statut) {
-        document.querySelectorAll('input[type="radio"][value="' + statut + '"]').forEach(function(radio) {
-            radio.checked = true;
-        });
+        console.log('Marquer tous comme ' + statut);
+
+        // Sélectionner tous les boutons radio pour chaque étudiant avec la valeur spécifiée
+        var radios = document.querySelectorAll('input[type="radio"][value="' + statut + '"]');
+        console.log('Nombre de boutons radio trouvés: ' + radios.length);
+
+        // Marquer chaque bouton radio comme coché
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].checked = true;
+        }
     }
-    
+
+    // Soumettre automatiquement le formulaire quand la date change
     document.addEventListener('DOMContentLoaded', function() {
-        // Soumettre automatiquement le formulaire quand la date change
-        document.getElementById('date')?.addEventListener('change', function() {
-            document.getElementById('selectionForm').submit();
-        });
+        var dateInput = document.getElementById('date');
+        if (dateInput) {
+            dateInput.addEventListener('change', function() {
+                document.getElementById('selectionForm').submit();
+            });
+        }
+
+        // Mettre à jour la date quand la séance change
+        var seanceSelect = document.getElementById('seance_id');
+        if (seanceSelect) {
+            seanceSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const dateCalculee = selectedOption.getAttribute('data-date');
+
+                if (dateCalculee) {
+                    const dateInput = document.getElementById('date');
+                    if (dateInput) {
+                        dateInput.value = dateCalculee;
+                        dateInput.setAttribute('readonly', 'readonly');
+                    }
+                }
+            });
+        }
     });
 </script>
-@endsection 
+@endsection

@@ -21,11 +21,11 @@ class ESBTPPaiementController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view-paiements', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-paiements', ['only' => ['create', 'store']]);
-        $this->middleware('permission:edit-paiements', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:delete-paiements', ['only' => ['destroy']]);
-        $this->middleware('permission:validate-paiements', ['only' => ['valider', 'rejeter']]);
+        $this->middleware('permission:paiements.view', ['only' => ['index', 'show', 'paiementsEtudiant']]);
+        $this->middleware('permission:paiements.create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:paiements.edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:paiements.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:paiements.validate', ['only' => ['valider', 'rejeter', 'genererRecu']]);
     }
 
     /**
@@ -45,11 +45,11 @@ class ESBTPPaiementController extends Controller
 
         // Récupérer les années universitaires pour le filtre
         $annees = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
-        
+
         // Construire la requête
         $query = ESBTPPaiement::with(['etudiant.user', 'inscription.anneeUniversitaire', 'validatedBy'])
             ->orderBy('created_at', 'desc');
-        
+
         // Appliquer les filtres
         if ($search) {
             $query->whereHas('etudiant', function ($q) use ($search) {
@@ -62,19 +62,19 @@ class ESBTPPaiementController extends Controller
             ->orWhere('numero_recu', 'like', "%{$search}%")
             ->orWhere('reference_paiement', 'like', "%{$search}%");
         }
-        
+
         if ($status) {
             $query->where('status', $status);
         }
-        
+
         if ($dateDebut) {
             $query->whereDate('date_paiement', '>=', $dateDebut);
         }
-        
+
         if ($dateFin) {
             $query->whereDate('date_paiement', '<=', $dateFin);
         }
-        
+
         if ($anneeId) {
             $query->whereHas('inscription', function ($q) use ($anneeId) {
                 $q->where('annee_universitaire_id', $anneeId);
@@ -83,10 +83,10 @@ class ESBTPPaiementController extends Controller
             // Par défaut, afficher les paiements de l'année en cours
             $query->anneeEnCours();
         }
-        
+
         // Paginer les résultats
         $paiements = $query->paginate(15);
-        
+
         // Statistiques des paiements
         $stats = [
             'total' => $query->count(),
@@ -96,7 +96,7 @@ class ESBTPPaiementController extends Controller
             'en_attente' => $query->where('status', 'en_attente')->count(),
             'montant_en_attente' => $query->where('status', 'en_attente')->sum('montant'),
         ];
-        
+
         return view('esbtp.paiements.index', compact('paiements', 'annees', 'stats'));
     }
 
@@ -110,35 +110,35 @@ class ESBTPPaiementController extends Controller
     {
         $etudiantId = $request->input('etudiant_id');
         $inscriptionId = $request->input('inscription_id');
-        
+
         $etudiant = null;
         $inscription = null;
-        
+
         // Si un étudiant est spécifié, récupérer ses informations
         if ($etudiantId) {
             $etudiant = ESBTPEtudiant::with(['user', 'inscriptions.anneeUniversitaire', 'inscriptions.filiere', 'inscriptions.niveauEtude'])
                 ->findOrFail($etudiantId);
-                
+
             // Si aucune inscription n'est spécifiée, prendre la plus récente
             if (!$inscriptionId && $etudiant->inscriptions->count() > 0) {
                 $inscription = $etudiant->inscriptions->sortByDesc('created_at')->first();
             }
         }
-        
+
         // Si une inscription est spécifiée, la récupérer
         if ($inscriptionId) {
             $inscription = ESBTPInscription::with(['etudiant.user', 'anneeUniversitaire', 'filiere', 'niveauEtude'])
                 ->findOrFail($inscriptionId);
-            
+
             // Si aucun étudiant n'est spécifié, prendre celui de l'inscription
             if (!$etudiant) {
                 $etudiant = $inscription->etudiant;
             }
         }
-        
+
         // Récupérer l'année universitaire en cours
         $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
-        
+
         return view('esbtp.paiements.create', compact('etudiant', 'inscription', 'anneeEnCours'));
     }
 
@@ -162,35 +162,35 @@ class ESBTPPaiementController extends Controller
             'motif' => 'required|string',
             'commentaire' => 'nullable|string',
         ]);
-        
+
         // Vérifier que l'étudiant correspond à l'inscription
         $inscription = ESBTPInscription::findOrFail($validated['inscription_id']);
         if ($inscription->etudiant_id != $validated['etudiant_id']) {
             return redirect()->back()->withErrors(['etudiant_id' => 'L\'étudiant ne correspond pas à l\'inscription sélectionnée.'])->withInput();
         }
-        
+
         try {
             DB::beginTransaction();
-            
+
             // Générer un numéro de reçu
             $numeroRecu = ESBTPPaiement::genererNumeroRecu();
-            
+
             // Créer le paiement
             $paiement = new ESBTPPaiement($validated);
             $paiement->numero_recu = $numeroRecu;
             $paiement->status = 'en_attente';
             $paiement->created_by = Auth::id();
             $paiement->save();
-            
+
             DB::commit();
-            
+
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('success', 'Paiement enregistré avec succès. Numéro de reçu : ' . $numeroRecu);
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de l\'enregistrement du paiement : ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withErrors(['error' => 'Une erreur est survenue lors de l\'enregistrement du paiement.'])
                 ->withInput();
@@ -206,15 +206,15 @@ class ESBTPPaiementController extends Controller
     public function show($id)
     {
         $paiement = ESBTPPaiement::with([
-            'etudiant.user', 
-            'inscription.anneeUniversitaire', 
-            'inscription.filiere', 
+            'etudiant.user',
+            'inscription.anneeUniversitaire',
+            'inscription.filiere',
             'inscription.niveauEtude',
             'validatedBy',
             'createdBy',
             'updatedBy'
         ])->findOrFail($id);
-        
+
         return view('esbtp.paiements.show', compact('paiement'));
     }
 
@@ -227,18 +227,18 @@ class ESBTPPaiementController extends Controller
     public function edit($id)
     {
         $paiement = ESBTPPaiement::with([
-            'etudiant.user', 
-            'inscription.anneeUniversitaire', 
-            'inscription.filiere', 
+            'etudiant.user',
+            'inscription.anneeUniversitaire',
+            'inscription.filiere',
             'inscription.niveauEtude'
         ])->findOrFail($id);
-        
+
         // Vérifier si le paiement peut être modifié
         if ($paiement->status === 'validé') {
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('error', 'Ce paiement a déjà été validé et ne peut plus être modifié.');
         }
-        
+
         return view('esbtp.paiements.edit', compact('paiement'));
     }
 
@@ -252,13 +252,13 @@ class ESBTPPaiementController extends Controller
     public function update(Request $request, $id)
     {
         $paiement = ESBTPPaiement::findOrFail($id);
-        
+
         // Vérifier si le paiement peut être modifié
         if ($paiement->status === 'validé') {
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('error', 'Ce paiement a déjà été validé et ne peut plus être modifié.');
         }
-        
+
         // Valider les données du formulaire
         $validated = $request->validate([
             'montant' => 'required|numeric|min:0',
@@ -269,24 +269,24 @@ class ESBTPPaiementController extends Controller
             'motif' => 'required|string',
             'commentaire' => 'nullable|string',
         ]);
-        
+
         try {
             DB::beginTransaction();
-            
+
             // Mettre à jour le paiement
             $paiement->fill($validated);
             $paiement->updated_by = Auth::id();
             $paiement->save();
-            
+
             DB::commit();
-            
+
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('success', 'Paiement mis à jour avec succès.');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la mise à jour du paiement : ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour du paiement.'])
                 ->withInput();
@@ -302,32 +302,32 @@ class ESBTPPaiementController extends Controller
     public function valider($id)
     {
         $paiement = ESBTPPaiement::findOrFail($id);
-        
+
         // Vérifier si le paiement peut être validé
         if ($paiement->status === 'validé') {
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('info', 'Ce paiement a déjà été validé.');
         }
-        
+
         try {
             DB::beginTransaction();
-            
+
             // Mettre à jour le statut du paiement
             $paiement->status = 'validé';
             $paiement->date_validation = Carbon::now();
             $paiement->validated_by = Auth::id();
             $paiement->updated_by = Auth::id();
             $paiement->save();
-            
+
             DB::commit();
-            
+
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('success', 'Paiement validé avec succès.');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la validation du paiement : ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withErrors(['error' => 'Une erreur est survenue lors de la validation du paiement.'])
                 ->withInput();
@@ -344,36 +344,36 @@ class ESBTPPaiementController extends Controller
     public function rejeter(Request $request, $id)
     {
         $paiement = ESBTPPaiement::findOrFail($id);
-        
+
         // Vérifier si le paiement peut être rejeté
         if ($paiement->status === 'validé') {
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('error', 'Ce paiement a déjà été validé et ne peut pas être rejeté.');
         }
-        
+
         // Valider les données du formulaire
         $validated = $request->validate([
             'commentaire' => 'required|string',
         ]);
-        
+
         try {
             DB::beginTransaction();
-            
+
             // Mettre à jour le statut du paiement
             $paiement->status = 'rejeté';
             $paiement->commentaire = $validated['commentaire'];
             $paiement->updated_by = Auth::id();
             $paiement->save();
-            
+
             DB::commit();
-            
+
             return redirect()->route('esbtp.paiements.show', $paiement->id)
                 ->with('success', 'Paiement rejeté avec succès.');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors du rejet du paiement : ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withErrors(['error' => 'Une erreur est survenue lors du rejet du paiement.'])
                 ->withInput();
@@ -389,19 +389,19 @@ class ESBTPPaiementController extends Controller
     public function genererRecu($id)
     {
         $paiement = ESBTPPaiement::with([
-            'etudiant.user', 
-            'inscription.anneeUniversitaire', 
-            'inscription.filiere', 
+            'etudiant.user',
+            'inscription.anneeUniversitaire',
+            'inscription.filiere',
             'inscription.niveauEtude',
             'validatedBy'
         ])->findOrFail($id);
-        
+
         // Générer le PDF
         $pdf = PDF::loadView('esbtp.paiements.recu', compact('paiement'));
-        
+
         // Définir le nom du fichier
         $filename = 'Recu_' . $paiement->numero_recu . '.pdf';
-        
+
         // Retourner le PDF pour téléchargement
         return $pdf->download($filename);
     }
@@ -415,15 +415,15 @@ class ESBTPPaiementController extends Controller
     public function paiementsEtudiant($etudiantId)
     {
         $etudiant = ESBTPEtudiant::with(['user', 'inscriptions.anneeUniversitaire'])->findOrFail($etudiantId);
-        
+
         $paiements = ESBTPPaiement::with(['inscription.anneeUniversitaire'])
             ->where('etudiant_id', $etudiantId)
             ->orderBy('date_paiement', 'desc')
             ->get();
-        
+
         // Calculer le total des paiements validés
         $totalValide = $paiements->where('status', 'validé')->sum('montant');
-        
+
         return view('esbtp.paiements.etudiant', compact('etudiant', 'paiements', 'totalValide'));
     }
-} 
+}

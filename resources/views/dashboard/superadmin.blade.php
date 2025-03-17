@@ -22,7 +22,7 @@
                             <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                    <a href="{{ route('esbtp.etudiants-inscriptions.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
                 </div>
             </div>
         </div>

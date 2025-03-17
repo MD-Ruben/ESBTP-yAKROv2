@@ -19,11 +19,11 @@ class StudentSeeder extends Seeder
     {
         // Trouver l'utilisateur étudiant
         $studentUser = User::where('email', 'student@smartschool.com')->first();
-        
+
         if ($studentUser) {
             // Vérifier si l'étudiant existe déjà
             $existingStudent = Student::where('user_id', $studentUser->id)->first();
-            
+
             if (!$existingStudent) {
                 // Créer un enregistrement étudiant
                 Student::create([
@@ -48,7 +48,7 @@ class StudentSeeder extends Seeder
                     'height' => '175',
                     'weight' => '70',
                 ]);
-                
+
                 $this->command->info('Student record created successfully.');
             } else {
                 $this->command->info('Student record already exists.');
@@ -57,4 +57,4 @@ class StudentSeeder extends Seeder
             $this->command->error('Student user not found.');
         }
     }
-} 
+}

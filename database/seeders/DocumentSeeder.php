@@ -19,7 +19,7 @@ class DocumentSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer quelques éléments constitutifs
         $ecAlgoCM = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-CM')->first();
         $ecAlgoTD = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-TD')->first();
@@ -28,7 +28,7 @@ class DocumentSeeder extends Seeder
         $ecMathTD = ElementConstitutif::where('code', 'INFO-L1-S1-MATH-TD')->first();
         $ecWebCM = ElementConstitutif::where('code', 'INFO-L1-S2-WEB-CM')->first();
         $ecWebTP = ElementConstitutif::where('code', 'INFO-L1-S2-WEB-TP')->first();
-        
+
         // Création des documents
         // Les documents sont comme des livres dans une bibliothèque
         // Chacun contient des connaissances précieuses pour les étudiants
@@ -70,7 +70,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour les TD d'Algorithmique
             [
                 'title' => 'TD1 - Exercices sur les structures de contrôle',
@@ -96,7 +96,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour les TP d'Algorithmique
             [
                 'title' => 'TP1 - Prise en main de l\'environnement C',
@@ -122,7 +122,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour le CM de Mathématiques
             [
                 'title' => 'Cours 1 - Logique et ensembles',
@@ -148,7 +148,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour les TD de Mathématiques
             [
                 'title' => 'TD1 - Exercices de logique',
@@ -162,7 +162,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour le CM de Développement Web
             [
                 'title' => 'Cours 1 - Introduction au développement web',
@@ -188,7 +188,7 @@ class DocumentSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Documents pour les TP de Développement Web
             [
                 'title' => 'TP1 - Création d\'une page HTML',
@@ -234,4 +234,4 @@ class DocumentSeeder extends Seeder
 
         $this->command->info('Documents créés avec succès!');
     }
-} 
+}

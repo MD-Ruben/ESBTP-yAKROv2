@@ -16,13 +16,13 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 text-center mb-4">
-                            <img src="{{ $etudiant->photo ? asset('storage/'.$etudiant->photo) : asset('images/student-avatar.png') }}" 
+                            <img src="{{ $etudiant->photo ? asset('storage/'.$etudiant->photo) : asset('images/student-avatar.png') }}"
                                  class="img-thumbnail rounded-circle" alt="{{ $etudiant->prenoms }}"
                                  style="width: 150px; height: 150px; object-fit: cover;">
                             <h5 class="mt-3">{{ $etudiant->prenoms }} {{ $etudiant->nom }}</h5>
                             <p class="text-muted mb-1">Matricule: {{ $etudiant->matricule }}</p>
                             <p class="text-muted mb-1">
-                                <i class="fas fa-graduation-cap me-1"></i> 
+                                <i class="fas fa-graduation-cap me-1"></i>
                                 @if($inscriptionActuelle && $inscriptionActuelle->classe)
                                     {{ $inscriptionActuelle->classe->name }}
                                 @else
@@ -149,9 +149,9 @@
                         </div>
                     </div>
                     <div class="progress mb-3" style="height: 20px;">
-                        <div class="progress-bar bg-success" role="progressbar" 
-                            style="width: {{ $statsPresence['taux_presence'] }}%" 
-                            aria-valuenow="{{ $statsPresence['taux_presence'] }}" 
+                        <div class="progress-bar bg-success" role="progressbar"
+                            style="width: {{ $statsPresence['taux_presence'] }}%"
+                            aria-valuenow="{{ $statsPresence['taux_presence'] }}"
                             aria-valuemin="0" aria-valuemax="100">
                             {{ $statsPresence['taux_presence'] }}%
                         </div>
@@ -292,5 +292,24 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Informations du parent / tuteur</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user-tie fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="mt-3">{{ $student->parent->user->name ?? 'Non renseigné' }}</h5>
+                        <p class="text-muted">Parent / Tuteur</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-@endsection 
+@endsection

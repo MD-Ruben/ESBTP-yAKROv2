@@ -108,7 +108,7 @@
                     <form action="{{ route('esbtp.notes.update', $note) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="card">
                             <div class="card-header bg-light">
                                 <h6 class="mb-0">Informations de la note</h6>
@@ -119,12 +119,12 @@
                                         <div class="mb-3">
                                             <label for="valeur" class="form-label">Note <span class="text-danger">*</span></label>
                                             <div class="input-group">
-                                                <input type="number" 
-                                                       class="form-control @error('valeur') is-invalid @enderror" 
-                                                       id="valeur" 
-                                                       name="valeur" 
-                                                       value="{{ old('valeur', $note->valeur) }}" 
-                                                       min="0" 
+                                                <input type="number"
+                                                       class="form-control @error('valeur') is-invalid @enderror"
+                                                       id="valeur"
+                                                       name="valeur"
+                                                       value="{{ old('valeur', $note->valeur) }}"
+                                                       min="0"
                                                        max="{{ $note->evaluation->bareme }}"
                                                        step="0.25"
                                                        {{ old('absent', $note->absent) ? 'disabled' : '' }}>
@@ -139,10 +139,10 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="date_saisie" class="form-label">Date de saisie</label>
-                                            <input type="date" 
-                                                   class="form-control @error('date_saisie') is-invalid @enderror" 
-                                                   id="date_saisie" 
-                                                   name="date_saisie" 
+                                            <input type="date"
+                                                   class="form-control @error('date_saisie') is-invalid @enderror"
+                                                   id="date_saisie"
+                                                   name="date_saisie"
                                                    value="{{ old('date_saisie', $note->created_at ? date('Y-m-d', strtotime($note->created_at)) : date('Y-m-d')) }}">
                                             @error('date_saisie')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -150,24 +150,24 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" 
-                                               type="checkbox" 
-                                               id="absent" 
-                                               name="absent" 
-                                               value="1" 
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="absent"
+                                               name="absent"
+                                               value="1"
                                                {{ old('absent', $note->absent) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="absent">L'étudiant était absent lors de l'évaluation</label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="commentaire" class="form-label">Commentaire</label>
-                                    <textarea class="form-control @error('commentaire') is-invalid @enderror" 
-                                              id="commentaire" 
-                                              name="commentaire" 
+                                    <textarea class="form-control @error('commentaire') is-invalid @enderror"
+                                              id="commentaire"
+                                              name="commentaire"
                                               rows="3">{{ old('commentaire', $note->commentaire) }}</textarea>
                                     @error('commentaire')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -226,6 +226,33 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        // Initialize required state on page load
+        const valeurInput = $('#valeur');
+        const absentCheckbox = $('#absent');
+
+        function updateRequiredState() {
+            const isAbsent = absentCheckbox.is(':checked');
+            console.log('Updating required state - Absent:', isAbsent);
+
+            valeurInput.prop('required', !isAbsent);
+            valeurInput.prop('disabled', isAbsent);
+
+            console.log('Required state after update:', valeurInput.prop('required'));
+            console.log('Disabled state after update:', valeurInput.prop('disabled'));
+
+            if (isAbsent) {
+                valeurInput.val('');
+                $('#note_sur_20').text('--');
+                // Remove validation error if present
+                valeurInput.removeClass('is-invalid');
+                valeurInput.next('.invalid-feedback').remove();
+            }
+        }
+
+        // Initial state
+        console.log('Setting initial state');
+        updateRequiredState();
+
         // Calcul automatique de la note sur 20
         function updateNoteSur20() {
             const valeur = parseFloat($('#valeur').val()) || 0;
@@ -233,19 +260,25 @@
             const noteSur20 = (valeur * 20) / bareme;
             $('#note_sur_20').text(noteSur20.toFixed(2));
         }
-        
+
         $('#valeur').on('input', updateNoteSur20);
-        
+
         // Gestion de la case à cocher "Absent"
         $('#absent').change(function() {
+            console.log('Absent checkbox changed');
+            updateRequiredState();
             if ($(this).is(':checked')) {
-                $('#valeur').prop('disabled', true).val('');
-                $('#note_sur_20').text('0.00');
+                $('#note_sur_20').text('--');
             } else {
-                $('#valeur').prop('disabled', false);
                 updateNoteSur20();
             }
         });
+
+        // Reset button handler
+        $('button[type="reset"]').click(function() {
+            console.log('Form reset triggered');
+            setTimeout(updateRequiredState, 0);
+        });
     });
 </script>
-@endsection 
+@endsection

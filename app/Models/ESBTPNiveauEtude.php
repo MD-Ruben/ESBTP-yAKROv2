@@ -46,7 +46,7 @@ class ESBTPNiveauEtude extends Model
 
     /**
      * Obtenir les étudiants inscrits à ce niveau d'études.
-     * 
+     *
      * Un niveau d'études peut avoir plusieurs étudiants.
      * Par exemple, "Première année BTS" peut avoir plusieurs étudiants inscrits.
      */
@@ -57,7 +57,7 @@ class ESBTPNiveauEtude extends Model
 
     /**
      * Obtenir le nom complet du niveau d'études.
-     * 
+     *
      * @return string
      */
     public function getFullNameAttribute()
@@ -75,7 +75,7 @@ class ESBTPNiveauEtude extends Model
         return $this->belongsToMany(ESBTPFormation::class, 'esbtp_formation_niveau', 'niveau_id', 'formation_id')
                     ->withTimestamps();
     }
-    
+
     /**
      * Relation avec les matières associées à ce niveau d'études.
      *
@@ -87,7 +87,7 @@ class ESBTPNiveauEtude extends Model
                     ->withPivot('coefficient', 'heures_cours', 'is_active')
                     ->withTimestamps();
     }
-    
+
     /**
      * Relation avec les inscriptions associées à ce niveau d'études.
      *
@@ -96,5 +96,16 @@ class ESBTPNiveauEtude extends Model
     public function inscriptions()
     {
         return $this->hasMany(ESBTPInscription::class, 'niveau_id');
+    }
+
+    /**
+     * Relation avec les filières associées à ce niveau d'études.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function filieres()
+    {
+        return $this->belongsToMany(ESBTPFiliere::class, 'esbtp_filiere_niveau', 'niveau_etude_id', 'filiere_id')
+                    ->withTimestamps();
     }
 }

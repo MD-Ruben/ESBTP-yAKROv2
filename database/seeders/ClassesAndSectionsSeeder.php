@@ -50,4 +50,4 @@ class ClassesAndSectionsSeeder extends Seeder
 
         $this->command->info('Sections créées avec succès!');
     }
-} 
+}

@@ -38,7 +38,7 @@
                             <i class="fas fa-info-circle mr-2"></i>{{ session('info') }}
                         </div>
                     @endif
-                    
+
                     <!-- Filtres -->
                     <div class="row mb-4">
                         <div class="col-md-12">
@@ -91,27 +91,29 @@
                             <tbody>
                                 @forelse($notes as $note)
                                     <tr>
-                                        <td>{{ $note->etudiant->nom }} {{ $note->etudiant->prenom }}</td>
-                                        <td>{{ $note->etudiant->classe->nom ?? 'Non assigné' }}</td>
-                                        <td>{{ $note->evaluation->matiere->nom ?? 'N/A' }}</td>
-                                        <td>{{ $note->evaluation->titre ?? 'N/A' }}</td>
-                                        <td>{{ $note->valeur }} / {{ $note->evaluation->bareme ?? '20' }}</td>
+                                        <td>{{ $note->etudiant->nom }} {{ $note->etudiant->prenoms }}</td>
+                                        <td>{{ $note->evaluation->classe->name }}</td>
+                                        <td>{{ $note->evaluation->matiere->name }}</td>
+                                        <td>{{ $note->evaluation->titre }}</td>
+                                        <td>
+                                            @if($note->is_absent)
+                                                <span class="badge badge-danger">Absent</span>
+                                            @else
+                                                {{ $note->note }}/{{ $note->evaluation->bareme }}
+                                            @endif
+                                        </td>
                                         <td>{{ $note->created_at->format('d/m/Y') }}</td>
                                         <td>
-                                            <div class="btn-group" role="group">
+                                            <div class="btn-group">
                                                 <a href="{{ route('esbtp.notes.show', $note->id) }}" class="btn btn-sm btn-info">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="{{ route('esbtp.notes.edit', $note->id) }}" class="btn btn-sm btn-warning">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('esbtp.notes.destroy', $note->id) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette note ?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete('{{ $note->id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -134,7 +136,7 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2();
-        
+
         $('.dataTable').DataTable({
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
@@ -143,4 +145,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

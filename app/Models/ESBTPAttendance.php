@@ -26,6 +26,8 @@ class ESBTPAttendance extends Model
         'seance_cours_id',
         'etudiant_id',
         'date',
+        'heure_debut',
+        'heure_fin',
         'statut', // 'present', 'absent', 'retard', 'excuse'
         'commentaire',
         'created_by',
@@ -130,4 +132,4 @@ class ESBTPAttendance extends Model
     {
         return $query->where('statut', $statut);
     }
-} 
+}

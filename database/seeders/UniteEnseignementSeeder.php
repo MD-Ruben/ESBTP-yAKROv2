@@ -20,13 +20,13 @@ class UniteEnseignementSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer les formations et parcours
         $formationInfoL = Formation::where('code', 'INFO-L')->first();
         $parcoursGL = Parcours::where('code', 'INFO-GL')->first();
         $parcoursSR = Parcours::where('code', 'INFO-SR')->first();
         $parcoursIA = Parcours::where('code', 'INFO-IA')->first();
-        
+
         // Création des unités d'enseignement
         // Les UE sont comme des chapitres d'un livre
         // Chacune contient des connaissances spécifiques sur un sujet
@@ -80,7 +80,7 @@ class UniteEnseignementSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // UE communes à tous les parcours de Licence Informatique (Semestre 2)
             [
                 'code' => 'INFO-L1-S2-ALGO',
@@ -130,7 +130,7 @@ class UniteEnseignementSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // UE spécifiques au parcours Génie Logiciel (Semestre 3)
             [
                 'code' => 'INFO-L2-S3-GL-POO',
@@ -156,7 +156,7 @@ class UniteEnseignementSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // UE spécifiques au parcours Systèmes et Réseaux (Semestre 3)
             [
                 'code' => 'INFO-L2-S3-SR-SYS',
@@ -182,7 +182,7 @@ class UniteEnseignementSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // UE spécifiques au parcours Intelligence Artificielle (Semestre 3)
             [
                 'code' => 'INFO-L2-S3-IA-INTRO',
@@ -216,4 +216,4 @@ class UniteEnseignementSeeder extends Seeder
 
         $this->command->info('Unités d\'enseignement créées avec succès!');
     }
-} 
+}

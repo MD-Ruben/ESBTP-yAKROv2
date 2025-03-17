@@ -21,7 +21,7 @@ class CourseSessionSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer quelques éléments constitutifs
         $ecAlgoCM = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-CM')->first();
         $ecAlgoTD = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-TD')->first();
@@ -30,7 +30,7 @@ class CourseSessionSeeder extends Seeder
         $ecMathTD = ElementConstitutif::where('code', 'INFO-L1-S1-MATH-TD')->first();
         $ecWebCM = ElementConstitutif::where('code', 'INFO-L1-S2-WEB-CM')->first();
         $ecWebTP = ElementConstitutif::where('code', 'INFO-L1-S2-WEB-TP')->first();
-        
+
         // Récupérer quelques salles
         $amphiA = Classroom::where('code', 'AMPHI-A')->first();
         $amphiB = Classroom::where('code', 'AMPHI-B')->first();
@@ -38,7 +38,7 @@ class CourseSessionSeeder extends Seeder
         $td102 = Classroom::where('code', 'TD-102')->first();
         $labInfo1 = Classroom::where('code', 'LAB-INFO-1')->first();
         $labInfo2 = Classroom::where('code', 'LAB-INFO-2')->first();
-        
+
         // Création des sessions de cours
         // Les sessions de cours sont comme des rendez-vous dans un agenda
         // Chacune représente un moment précis où un cours a lieu
@@ -77,7 +77,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour les TD d'Algorithmique (2 groupes)
             [
                 'title' => 'TD Algorithmique Groupe 1 - Exercices sur les structures de contrôle',
@@ -101,7 +101,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour les TP d'Algorithmique (2 groupes)
             [
                 'title' => 'TP Algorithmique Groupe 1 - Implémentation en C',
@@ -125,7 +125,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour le CM de Mathématiques
             [
                 'title' => 'CM Mathématiques - Logique et ensembles',
@@ -149,7 +149,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour les TD de Mathématiques
             [
                 'title' => 'TD Mathématiques Groupe 1 - Exercices de logique',
@@ -173,7 +173,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour le CM de Développement Web (semestre 2)
             [
                 'title' => 'CM Web - Introduction au développement web',
@@ -197,7 +197,7 @@ class CourseSessionSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Sessions pour les TP de Développement Web (semestre 2)
             [
                 'title' => 'TP Web Groupe 1 - Création d\'une page HTML',
@@ -229,4 +229,4 @@ class CourseSessionSeeder extends Seeder
 
         $this->command->info('Sessions de cours créées avec succès!');
     }
-} 
+}

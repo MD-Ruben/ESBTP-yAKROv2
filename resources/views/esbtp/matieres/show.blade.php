@@ -154,7 +154,7 @@
                                                             <td>{{ $niveau->code }}</td>
                                                             <td>{{ $niveau->diplome ?? '-' }}</td>
                                                             <td>
-                                                                <a href="{{ route('esbtp.niveaux-etudes.show', ['niveauEtude' => $niveau->id]) }}" class="btn btn-sm btn-info">
+                                                                <a href="{{ route('esbtp.niveaux-etudes.show', ['niveaux_etude' => $niveau->id]) }}" class="btn btn-sm btn-info">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>
                                                             </td>

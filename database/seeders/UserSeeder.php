@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
     public function run()
     {
         // Création des utilisateurs avec différents rôles
-        
+
         // Super Admin
         $this->createUserWithRole(
             'Super Admin',
@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
             'password123',
             'super-admin'
         );
-        
+
         // Admin
         $this->createUserWithRole(
             'Admin',
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
             'password123',
             'admin'
         );
-        
+
         // Directeur
         $this->createUserWithRole(
             'Jean Dupont',
@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
             'password123',
             'directeur'
         );
-        
+
         // Enseignants
         $this->createUserWithRole(
             'Marie Martin',
@@ -49,14 +49,14 @@ class UserSeeder extends Seeder
             'password123',
             'enseignant'
         );
-        
+
         $this->createUserWithRole(
             'Pierre Dubois',
             'enseignant2@school.com',
             'password123',
             'enseignant'
         );
-        
+
         // Étudiants
         $this->createUserWithRole(
             'Sophie Bernard',
@@ -64,21 +64,21 @@ class UserSeeder extends Seeder
             'password123',
             'etudiant'
         );
-        
+
         $this->createUserWithRole(
             'Lucas Petit',
             'etudiant2@school.com',
             'password123',
             'etudiant'
         );
-        
+
         $this->createUserWithRole(
             'Emma Leroy',
             'etudiant3@school.com',
             'password123',
             'etudiant'
         );
-        
+
         // Parents
         $this->createUserWithRole(
             'Thomas Bernard',
@@ -86,14 +86,14 @@ class UserSeeder extends Seeder
             'password123',
             'parent'
         );
-        
+
         $this->createUserWithRole(
             'Nathalie Petit',
             'parent2@school.com',
             'password123',
             'parent'
         );
-        
+
         // Secrétaire
         $this->createUserWithRole(
             'Isabelle Moreau',
@@ -101,7 +101,7 @@ class UserSeeder extends Seeder
             'password123',
             'secretaire'
         );
-        
+
         // Comptable
         $this->createUserWithRole(
             'Robert Fournier',
@@ -109,7 +109,7 @@ class UserSeeder extends Seeder
             'password123',
             'comptable'
         );
-        
+
         // Bibliothécaire
         $this->createUserWithRole(
             'Sylvie Girard',
@@ -118,7 +118,7 @@ class UserSeeder extends Seeder
             'bibliothecaire'
         );
     }
-    
+
     /**
      * Créer un utilisateur avec un rôle spécifique s'il n'existe pas déjà.
      *
@@ -134,7 +134,7 @@ class UserSeeder extends Seeder
         if (!User::where('email', $email)->exists()) {
             // Générer un username à partir de l'email (partie avant @)
             $username = explode('@', $email)[0];
-            
+
             $user = User::create([
                 'name' => $name,
                 'username' => $username,
@@ -142,13 +142,13 @@ class UserSeeder extends Seeder
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),
             ]);
-            
+
             // Assigner le rôle à l'utilisateur
             $user->assignRole($roleName);
-            
+
             return $user;
         }
-        
+
         return User::where('email', $email)->first();
     }
-} 
+}

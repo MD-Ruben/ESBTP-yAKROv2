@@ -185,7 +185,17 @@
                                             <small class="text-muted">{{ $bulletin->etudiant->matricule }}</small>
                                         </td>
                                         <td>{{ $bulletin->classe->name }}</td>
-                                        <td>{{ $bulletin->periode->nom }}</td>
+                                        <td>
+                                            @if($bulletin->periode == 'semestre1')
+                                                Premier Semestre
+                                            @elseif($bulletin->periode == 'semestre2')
+                                                Deuxième Semestre
+                                            @elseif($bulletin->periode == 'annuel')
+                                                Annuel
+                                            @else
+                                                {{ $bulletin->periode }}
+                                            @endif
+                                        </td>
                                         <td>
                                             @if($bulletin->moyenne_generale !== null)
                                                 <span class="badge {{ $bulletin->moyenne_generale >= 10 ? 'bg-success' : 'bg-danger' }}">
@@ -221,7 +231,7 @@
                                                 <a href="{{ route('esbtp.bulletins.print', $bulletin) }}" class="btn btn-sm btn-secondary" target="_blank">
                                                     <i class="fas fa-print"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                <button type="button" class="btn btn-sm btn-danger"
                                                         onclick="if(confirm('Êtes-vous sûr de vouloir supprimer ce bulletin ?')) document.getElementById('delete-form-{{ $bulletin->id }}').submit();">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -259,11 +269,11 @@
         $('.select2').select2({
             theme: 'bootstrap-5'
         });
-        
+
         // Soumission automatique du formulaire lors du changement d'un filtre
         $('#classe_id, #periode_id, #published').change(function() {
             $('#filter-form').submit();
         });
     });
 </script>
-@endsection 
+@endsection

@@ -33,17 +33,17 @@
                     @if(isset($classe))
                         <div class="mb-4 border-start border-primary ps-3">
                             <h6 class="text-primary">Informations sur l'emploi du temps</h6>
-                            <p class="mb-1"><strong>Classe :</strong> {{ $classe->name }}</p>
-                            <p class="mb-1"><strong>Filière :</strong> {{ $classe->filiere->name }}</p>
-                            <p class="mb-1"><strong>Niveau :</strong> {{ $classe->niveau->name }}</p>
-                            <p class="mb-1"><strong>Année universitaire :</strong> {{ $classe->annee->name }}</p>
+                            <p class="mb-1"><strong>Classe :</strong> {{ $classe->name ?? 'Non définie' }}</p>
+                            <p class="mb-1"><strong>Filière :</strong> {{ $classe->filiere->name ?? 'Non définie' }}</p>
+                            <p class="mb-1"><strong>Niveau :</strong> {{ $classe->niveau->name ?? 'Non défini' }}</p>
+                            <p class="mb-1"><strong>Année universitaire :</strong> {{ $classe->annee->name ?? 'Non définie' }}</p>
                         </div>
                     @endif
 
                     <form action="{{ route('esbtp.seances-cours.store') }}" method="POST">
                         @csrf
 
-                        @if(isset($emploiTemps))
+                        @if(isset($emploiTemps) && $emploiTemps)
                             <input type="hidden" name="emploi_temps_id" value="{{ $emploiTemps->id }}">
                         @else
                             <div class="form-group mb-3">
@@ -51,8 +51,8 @@
                                 <select class="form-select @error('emploi_temps_id') is-invalid @enderror" id="emploi_temps_id" name="emploi_temps_id" required>
                                     <option value="">Sélectionner un emploi du temps</option>
                                     @foreach($emploisTemps as $et)
-                                        <option value="{{ $et->id }}" {{ (old('emploi_temps_id') == $et->id || (isset($request) && $request->emploi_temps_id == $et->id)) ? 'selected' : '' }}>
-                                            {{ $et->titre }} - {{ $et->classe->name }} ({{ $et->classe->filiere->name }})
+                                        <option value="{{ $et->id }}" {{ (old('emploi_temps_id') == $et->id || (isset($request_params) && $request_params->emploi_temps_id == $et->id)) ? 'selected' : '' }}>
+                                            {{ $et->titre ?? 'Sans titre' }} - {{ $et->classe->name ?? 'Classe non définie' }} ({{ $et->classe->filiere->name ?? 'Filière non définie' }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -82,16 +82,9 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="enseignant_id" class="form-label">Enseignant</label>
-                                    <select class="form-select @error('enseignant_id') is-invalid @enderror" id="enseignant_id" name="enseignant_id">
-                                        <option value="">Sélectionner un enseignant</option>
-                                        @foreach($enseignants as $enseignant)
-                                            <option value="{{ $enseignant->id }}" {{ old('enseignant_id') == $enseignant->id ? 'selected' : '' }}>
-                                                {{ $enseignant->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('enseignant_id')
+                                    <label for="enseignant" class="form-label">Enseignant</label>
+                                    <input type="text" class="form-control @error('enseignant') is-invalid @enderror" id="enseignant" name="enseignant" value="{{ old('enseignant') }}" placeholder="Nom de l'enseignant">
+                                    @error('enseignant')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -101,17 +94,16 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="jour_semaine" class="form-label">Jour de la semaine *</label>
-                                    <select class="form-select @error('jour_semaine') is-invalid @enderror" id="jour_semaine" name="jour_semaine" required>
+                                    <label for="jour" class="form-label">Jour *</label>
+                                    <select class="form-select @error('jour') is-invalid @enderror" id="jour" name="jour" required>
                                         <option value="">Sélectionner un jour</option>
-                                        <option value="1" {{ (old('jour_semaine') == 1 || $jour == 1) ? 'selected' : '' }}>Lundi</option>
-                                        <option value="2" {{ (old('jour_semaine') == 2 || $jour == 2) ? 'selected' : '' }}>Mardi</option>
-                                        <option value="3" {{ (old('jour_semaine') == 3 || $jour == 3) ? 'selected' : '' }}>Mercredi</option>
-                                        <option value="4" {{ (old('jour_semaine') == 4 || $jour == 4) ? 'selected' : '' }}>Jeudi</option>
-                                        <option value="5" {{ (old('jour_semaine') == 5 || $jour == 5) ? 'selected' : '' }}>Vendredi</option>
-                                        <option value="6" {{ (old('jour_semaine') == 6 || $jour == 6) ? 'selected' : '' }}>Samedi</option>
+                                        @foreach($joursSemaine as $index => $jourName)
+                                            <option value="{{ $index }}" {{ (old('jour', $jour) == $index) ? 'selected' : '' }}>
+                                                {{ $jourName }}
+                                            </option>
+                                        @endforeach
                                     </select>
-                                    @error('jour_semaine')
+                                    @error('jour')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -120,7 +112,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_debut" class="form-label">Heure de début *</label>
-                                    <input type="time" class="form-control @error('heure_debut') is-invalid @enderror" id="heure_debut" name="heure_debut" value="{{ old('heure_debut') ?: ($heure ? sprintf('%02d:00', $heure) : '') }}" required>
+                                    <input type="time" class="form-control @error('heure_debut') is-invalid @enderror" id="heure_debut" name="heure_debut" value="{{ old('heure_debut', $heure_debut) }}" required>
                                     @error('heure_debut')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -130,7 +122,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="heure_fin" class="form-label">Heure de fin *</label>
-                                    <input type="time" class="form-control @error('heure_fin') is-invalid @enderror" id="heure_fin" name="heure_fin" value="{{ old('heure_fin') ?: ($heure ? sprintf('%02d:00', $heure + 1) : '') }}" required>
+                                    <input type="time" class="form-control @error('heure_fin') is-invalid @enderror" id="heure_fin" name="heure_fin" value="{{ old('heure_fin') ?: ($heure_debut ? sprintf('%02d:00', (int)substr($heure_debut, 0, 2) + 1) : '') }}" required>
                                     @error('heure_fin')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -147,6 +139,8 @@
                                         <option value="td" {{ old('type_seance') == 'td' ? 'selected' : '' }}>Travaux dirigés</option>
                                         <option value="tp" {{ old('type_seance') == 'tp' ? 'selected' : '' }}>Travaux pratiques</option>
                                         <option value="examen" {{ old('type_seance') == 'examen' ? 'selected' : '' }}>Examen</option>
+                                        <option value="pause" {{ old('type_seance') == 'pause' ? 'selected' : '' }}>Récréation</option>
+                                        <option value="dejeuner" {{ old('type_seance') == 'dejeuner' ? 'selected' : '' }}>Pause déjeuner</option>
                                         <option value="autre" {{ old('type_seance') == 'autre' ? 'selected' : '' }}>Autre</option>
                                     </select>
                                     @error('type_seance')
@@ -204,7 +198,7 @@
 <script>
     $(document).ready(function() {
         // Amélioration des listes déroulantes avec Select2
-        $('#matiere_id, #enseignant_id, #emploi_temps_id').select2({
+        $('#matiere_id, #emploi_temps_id').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: 'Sélectionnez un élément'

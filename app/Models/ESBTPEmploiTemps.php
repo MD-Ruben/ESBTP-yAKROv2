@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class ESBTPEmploiTemps extends Model
 {
@@ -25,6 +26,7 @@ class ESBTPEmploiTemps extends Model
     protected $fillable = [
         'titre',
         'classe_id',
+        'annee_universitaire_id',
         'semestre',
         'date_debut',
         'date_fin',
@@ -48,6 +50,43 @@ class ESBTPEmploiTemps extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    /**
+     * Les événements de modèle.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Avant la suppression (soft delete)
+        static::deleting(function ($emploiTemps) {
+            try {
+                // Journaliser l'événement
+                Log::info('Suppression de l\'emploi du temps ID: ' . $emploiTemps->id);
+
+                // Récupérer toutes les séances de cours associées
+                $seances = $emploiTemps->seances;
+
+                if ($seances->count() > 0) {
+                    Log::info('Nombre de séances associées: ' . $seances->count());
+
+                    // Option 1: Supprimer toutes les séances associées
+                    foreach ($seances as $seance) {
+                        Log::info('Suppression de la séance ID: ' . $seance->id);
+                        $seance->delete();
+                    }
+
+                    // Option 2 (alternative): Mettre à jour les séances pour qu'elles référencent un autre emploi du temps
+                    // Cette option nécessiterait de trouver un emploi du temps alternatif
+                    // et de mettre à jour les séances pour qu'elles le référencent
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la suppression des séances associées: ' . $e->getMessage());
+                Log::error('Trace: ' . $e->getTraceAsString());
+                // Ne pas bloquer la suppression de l'emploi du temps
+            }
+        });
+    }
 
     /**
      * Relation avec la classe associée à cet emploi du temps.
@@ -120,7 +159,7 @@ class ESBTPEmploiTemps extends Model
 
         foreach ($jours as $index => $jour) {
             $seancesParJour[$jour] = $this->seances()
-                ->where('jour_semaine', $index)
+                ->where('jour', $index)
                 ->orderBy('heure_debut')
                 ->get();
         }
@@ -200,5 +239,70 @@ class ESBTPEmploiTemps extends Model
         })->update(['is_current' => false]);
 
         return self::where('id', $id)->update(['is_current' => true]);
+    }
+
+    /**
+     * Vérifie si la période de l'emploi du temps correspond à une semaine (5 jours maximum).
+     *
+     * @return bool
+     */
+    public function estUneSemaine()
+    {
+        if (!$this->date_debut || !$this->date_fin) {
+            return false;
+        }
+
+        // Calculer la différence en jours
+        $diffJours = $this->date_debut->diffInDays($this->date_fin);
+
+        // La différence doit être inférieure ou égale à 4 pour avoir 5 jours au maximum
+        // (jour de début + 4 jours = 5 jours au total)
+        return $diffJours <= 4;
+    }
+
+    /**
+     * Génère les dates de la semaine courante (lundi au vendredi).
+     *
+     * @return array Tableau associatif avec les dates de début et de fin
+     */
+    public static function genererSemaineCourante()
+    {
+        $aujourdhui = now();
+
+        // Trouver le lundi de la semaine courante
+        $lundi = $aujourdhui->copy()->startOfWeek();
+
+        // Trouver le vendredi de la semaine courante
+        $vendredi = $lundi->copy()->addDays(4);
+
+        return [
+            'date_debut' => $lundi->format('Y-m-d'),
+            'date_fin' => $vendredi->format('Y-m-d')
+        ];
+    }
+
+    /**
+     * Vérifie si la période de l'emploi du temps chevauche une autre période.
+     *
+     * @param int|null $excludeId ID de l'emploi du temps à exclure de la vérification
+     * @return bool
+     */
+    public function chavauchePeriode($excludeId = null)
+    {
+        $query = self::where('classe_id', $this->classe_id)
+                    ->where(function($q) {
+                        $q->whereBetween('date_debut', [$this->date_debut, $this->date_fin])
+                          ->orWhereBetween('date_fin', [$this->date_debut, $this->date_fin])
+                          ->orWhere(function($q2) {
+                              $q2->where('date_debut', '<=', $this->date_debut)
+                                 ->where('date_fin', '>=', $this->date_fin);
+                          });
+                    });
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
     }
 }

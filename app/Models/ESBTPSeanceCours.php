@@ -24,17 +24,19 @@ class ESBTPSeanceCours extends Model
      */
     protected $fillable = [
         'emploi_temps_id',
+        'classe_id',
         'matiere_id',
-        'enseignant_id',
-        'jour_semaine',
+        'enseignant',
+        'jour',
         'heure_debut',
         'heure_fin',
         'salle',
-        'details',
-        'type_seance',
+        'description',
+        'annee_universitaire_id',
         'is_active',
-        'created_by',
-        'updated_by'
+        'type_seance',
+        'created_at',
+        'updated_at'
     ];
 
     /**
@@ -43,10 +45,8 @@ class ESBTPSeanceCours extends Model
      * @var array
      */
     protected $casts = [
-        'jour_semaine' => 'integer', // 0 = Lundi, 1 = Mardi, etc.
         'heure_debut' => 'datetime:H:i',
         'heure_fin' => 'datetime:H:i',
-        'is_active' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -59,7 +59,8 @@ class ESBTPSeanceCours extends Model
      */
     public function emploiTemps()
     {
-        return $this->belongsTo(ESBTPEmploiTemps::class, 'emploi_temps_id');
+        // Inclure les emplois du temps soft-deleted pour éviter les erreurs
+        return $this->belongsTo(ESBTPEmploiTemps::class, 'emploi_temps_id')->withTrashed();
     }
 
     /**
@@ -79,7 +80,20 @@ class ESBTPSeanceCours extends Model
      */
     public function enseignant()
     {
-        return $this->belongsTo(User::class, 'enseignant_id');
+        // Cette relation est définie pour permettre le eager loading,
+        // même si le champ 'enseignant' est une chaîne de caractères et non une clé étrangère.
+        // Nous utilisons une relation qui ne causera pas d'erreur lors du eager loading.
+        return $this->belongsTo(User::class, 'id', 'id')->whereRaw('1=0');
+    }
+
+    /**
+     * Accesseur pour obtenir le nom de l'enseignant.
+     *
+     * @return string
+     */
+    public function getEnseignantNameAttribute()
+    {
+        return !empty($this->enseignant) ? $this->enseignant : 'Non défini';
     }
 
     /**
@@ -118,8 +132,8 @@ class ESBTPSeanceCours extends Model
             5 => 'Samedi',
             6 => 'Dimanche',
         ];
-        
-        return $jours[$this->jour_semaine] ?? 'Jour inconnu';
+
+        return $jours[$this->jour] ?? 'Jour inconnu';
     }
 
     /**
@@ -132,19 +146,19 @@ class ESBTPSeanceCours extends Model
         if (!$this->heure_debut || !$this->heure_fin) {
             return 0;
         }
-        
+
         $debut = $this->heure_debut;
         $fin = $this->heure_fin;
-        
+
         // Convertir les heures en objets Carbon si ce sont des chaînes
         if (is_string($debut)) {
             $debut = \Carbon\Carbon::createFromFormat('H:i', $debut);
         }
-        
+
         if (is_string($fin)) {
             $fin = \Carbon\Carbon::createFromFormat('H:i', $fin);
         }
-        
+
         // Calculer la différence en minutes
         return $fin->diffInMinutes($debut);
     }
@@ -158,7 +172,7 @@ class ESBTPSeanceCours extends Model
     {
         $debut = $this->heure_debut ? $this->heure_debut->format('H:i') : '--:--';
         $fin = $this->heure_fin ? $this->heure_fin->format('H:i') : '--:--';
-        
+
         return "{$debut} - {$fin}";
     }
 
@@ -171,12 +185,67 @@ class ESBTPSeanceCours extends Model
     public function estEnConflitAvec(ESBTPSeanceCours $autreSeance)
     {
         // Vérifier si les séances sont le même jour
-        if ($this->jour_semaine !== $autreSeance->jour_semaine) {
+        if ($this->jour !== $autreSeance->jour) {
             return false;
         }
-        
+
         // Vérifier si les plages horaires se chevauchent
-        return ($this->heure_debut < $autreSeance->heure_fin) && 
+        return ($this->heure_debut < $autreSeance->heure_fin) &&
                ($this->heure_fin > $autreSeance->heure_debut);
     }
-} 
+
+    /**
+     * Calcule la date réelle de la séance en fonction du jour de la semaine et de la période de l'emploi du temps.
+     *
+     * @return \Carbon\Carbon|null La date de la séance ou null si l'emploi du temps n'est pas défini
+     */
+    public function getDateSeance()
+    {
+        if (!$this->emploiTemps) {
+            return null;
+        }
+
+        // Récupérer la date de début de l'emploi du temps
+        $dateDebut = \Carbon\Carbon::parse($this->emploiTemps->date_debut);
+
+        // Calculer le décalage entre le jour de la semaine de la date de début (1 = lundi, 7 = dimanche)
+        // et le jour de la séance (1 = lundi, 7 = dimanche)
+        $jourDebutSemaine = $dateDebut->dayOfWeek ?: 7; // Carbon retourne 0 pour dimanche, on le convertit en 7
+
+        // Calculer le nombre de jours à ajouter
+        $joursAAjouter = 0;
+        if ($this->jour >= $jourDebutSemaine) {
+            $joursAAjouter = $this->jour - $jourDebutSemaine;
+        } else {
+            $joursAAjouter = 7 - $jourDebutSemaine + $this->jour;
+        }
+
+        // Si le jour calculé dépasse la date de fin, on retourne null
+        $dateSeance = $dateDebut->copy()->addDays($joursAAjouter);
+        if ($dateSeance->isAfter($this->emploiTemps->date_fin)) {
+            return null;
+        }
+
+        return $dateSeance;
+    }
+
+    /**
+     * Retourne le nom du jour de la semaine.
+     *
+     * @return string Le nom du jour de la semaine
+     */
+    public function getNomJour()
+    {
+        $jours = [
+            1 => 'Lundi',
+            2 => 'Mardi',
+            3 => 'Mercredi',
+            4 => 'Jeudi',
+            5 => 'Vendredi',
+            6 => 'Samedi',
+            7 => 'Dimanche'
+        ];
+
+        return $jours[$this->jour] ?? 'Jour inconnu';
+    }
+}

@@ -9,9 +9,15 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Modifier une séance de cours</h5>
-                    <a href="{{ route('esbtp.emploi-temps.show', $seancesCour->emploi_temps_id) }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Retour à l'emploi du temps
-                    </a>
+                    @if($emploiTemps)
+                        <a href="{{ route('esbtp.emploi-temps.show', $seancesCour->emploi_temps_id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Retour à l'emploi du temps
+                        </a>
+                    @else
+                        <a href="{{ route('esbtp.seances-cours.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Retour à la liste des séances
+                        </a>
+                    @endif
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
@@ -24,12 +30,32 @@
                         </div>
                     @endif
 
+                    <!-- Section de débogage -->
+                    <div class="mb-4 border-start border-warning ps-3 bg-light p-3" id="debug-section">
+                        <h6 class="text-warning">Informations de débogage</h6>
+                        <p class="mb-1"><strong>ID de la séance :</strong> {{ $seancesCour->id }}</p>
+                        <p class="mb-1"><strong>ID de l'emploi du temps :</strong> {{ $seancesCour->emploi_temps_id }}</p>
+                        <p class="mb-1"><strong>Emploi du temps trouvé :</strong> {{ $emploiTemps ? 'Oui' : 'Non' }}</p>
+                        @if($emploiTemps)
+                            <p class="mb-1"><strong>ID de l'emploi du temps trouvé :</strong> {{ $emploiTemps->id }}</p>
+                            <p class="mb-1"><strong>Soft deleted :</strong> {{ $emploiTemps->deleted_at ? 'Oui' : 'Non' }}</p>
+                        @endif
+                        <button type="button" id="check-emploi-temps" class="btn btn-warning btn-sm mt-2">
+                            <i class="fas fa-search me-1"></i>Vérifier l'emploi du temps
+                        </button>
+                        <div id="check-result" class="mt-2"></div>
+                    </div>
+
                     <div class="mb-4 border-start border-primary ps-3">
                         <h6 class="text-primary">Informations sur l'emploi du temps</h6>
-                        <p class="mb-1"><strong>Classe :</strong> {{ $seancesCour->emploiTemps->classe->name }}</p>
-                        <p class="mb-1"><strong>Filière :</strong> {{ $seancesCour->emploiTemps->classe->filiere->name }}</p>
-                        <p class="mb-1"><strong>Niveau :</strong> {{ $seancesCour->emploiTemps->classe->niveau->name }}</p>
-                        <p class="mb-1"><strong>Année universitaire :</strong> {{ $seancesCour->emploiTemps->annee->name }}</p>
+                        @if($emploiTemps)
+                            <p class="mb-1"><strong>Classe :</strong> {{ $emploiTemps->classe->name ?? 'Non définie' }}</p>
+                            <p class="mb-1"><strong>Filière :</strong> {{ $emploiTemps->classe->filiere->name ?? 'Non définie' }}</p>
+                            <p class="mb-1"><strong>Niveau :</strong> {{ $emploiTemps->classe->niveau->name ?? 'Non défini' }}</p>
+                            <p class="mb-1"><strong>Année universitaire :</strong> {{ $emploiTemps->annee->name ?? 'Non définie' }}</p>
+                        @else
+                            <p class="mb-1 text-danger">Emploi du temps non disponible. Les informations seront mises à jour après l'enregistrement.</p>
+                        @endif
                     </div>
 
                     <form action="{{ route('esbtp.seances-cours.update', $seancesCour->id) }}" method="POST">
@@ -56,16 +82,9 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="enseignant_id" class="form-label">Enseignant *</label>
-                                    <select class="form-select @error('enseignant_id') is-invalid @enderror" id="enseignant_id" name="enseignant_id" required>
-                                        <option value="">Sélectionner un enseignant</option>
-                                        @foreach($enseignants as $enseignant)
-                                            <option value="{{ $enseignant->id }}" {{ (old('enseignant_id', $seancesCour->enseignant_id) == $enseignant->id) ? 'selected' : '' }}>
-                                                {{ $enseignant->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('enseignant_id')
+                                    <label for="enseignant" class="form-label">Enseignant *</label>
+                                    <input type="text" class="form-control @error('enseignant') is-invalid @enderror" id="enseignant" name="enseignant" value="{{ old('enseignant', $seancesCour->enseignant) }}" required placeholder="Nom de l'enseignant">
+                                    @error('enseignant')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -75,17 +94,17 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="jour_semaine" class="form-label">Jour de la semaine *</label>
-                                    <select class="form-select @error('jour_semaine') is-invalid @enderror" id="jour_semaine" name="jour_semaine" required>
+                                    <label for="jour" class="form-label">Jour *</label>
+                                    <select class="form-select @error('jour') is-invalid @enderror" id="jour" name="jour" required>
                                         <option value="">Sélectionner un jour</option>
-                                        <option value="1" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 1) ? 'selected' : '' }}>Lundi</option>
-                                        <option value="2" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 2) ? 'selected' : '' }}>Mardi</option>
-                                        <option value="3" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 3) ? 'selected' : '' }}>Mercredi</option>
-                                        <option value="4" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 4) ? 'selected' : '' }}>Jeudi</option>
-                                        <option value="5" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 5) ? 'selected' : '' }}>Vendredi</option>
-                                        <option value="6" {{ (old('jour_semaine', $seancesCour->jour_semaine) == 6) ? 'selected' : '' }}>Samedi</option>
+                                        <option value="1" {{ (old('jour', $seancesCour->jour) == 1) ? 'selected' : '' }}>Lundi</option>
+                                        <option value="2" {{ (old('jour', $seancesCour->jour) == 2) ? 'selected' : '' }}>Mardi</option>
+                                        <option value="3" {{ (old('jour', $seancesCour->jour) == 3) ? 'selected' : '' }}>Mercredi</option>
+                                        <option value="4" {{ (old('jour', $seancesCour->jour) == 4) ? 'selected' : '' }}>Jeudi</option>
+                                        <option value="5" {{ (old('jour', $seancesCour->jour) == 5) ? 'selected' : '' }}>Vendredi</option>
+                                        <option value="6" {{ (old('jour', $seancesCour->jour) == 6) ? 'selected' : '' }}>Samedi</option>
                                     </select>
-                                    @error('jour_semaine')
+                                    @error('jour')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -121,6 +140,8 @@
                                         <option value="td" {{ (old('type_seance', $seancesCour->type_seance) == 'td') ? 'selected' : '' }}>Travaux dirigés</option>
                                         <option value="tp" {{ (old('type_seance', $seancesCour->type_seance) == 'tp') ? 'selected' : '' }}>Travaux pratiques</option>
                                         <option value="examen" {{ (old('type_seance', $seancesCour->type_seance) == 'examen') ? 'selected' : '' }}>Examen</option>
+                                        <option value="pause" {{ (old('type_seance', $seancesCour->type_seance) == 'pause') ? 'selected' : '' }}>Récréation</option>
+                                        <option value="dejeuner" {{ (old('type_seance', $seancesCour->type_seance) == 'dejeuner') ? 'selected' : '' }}>Pause déjeuner</option>
                                         <option value="autre" {{ (old('type_seance', $seancesCour->type_seance) == 'autre') ? 'selected' : '' }}>Autre</option>
                                     </select>
                                     @error('type_seance')
@@ -150,9 +171,9 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label for="commentaire" class="form-label">Commentaire</label>
-                            <textarea class="form-control @error('commentaire') is-invalid @enderror" id="commentaire" name="commentaire" rows="3">{{ old('commentaire', $seancesCour->commentaire) }}</textarea>
-                            @error('commentaire')
+                            <label for="description" class="form-label">Détails</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description', $seancesCour->description) }}</textarea>
+                            @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -191,9 +212,10 @@
                 <p class="fw-bold">
                     @php
                         $jours = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+                        $jour = isset($jours[$seancesCour->jour]) ? $jours[$seancesCour->jour] : 'Jour inconnu';
                     @endphp
-                    {{ $jours[$seancesCour->jour_semaine] ?? 'Jour inconnu' }} de {{ $seancesCour->heure_debut }} à {{ $seancesCour->heure_fin }} -
-                    {{ $seancesCour->matiere->name }}
+                    {{ $jour }} de {{ $seancesCour->heure_debut }} à {{ $seancesCour->heure_fin }} -
+                    {{ $seancesCour->matiere->name ?? 'Matière inconnue' }}
                 </p>
                 <p class="text-danger">
                     <i class="fas fa-exclamation-triangle me-1"></i>
@@ -211,13 +233,12 @@
         </div>
     </div>
 </div>
-@endsection
 
 @section('scripts')
 <script>
     $(document).ready(function() {
         // Amélioration des listes déroulantes avec Select2
-        $('#matiere_id, #enseignant_id').select2({
+        $('#matiere_id').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: 'Sélectionnez un élément'
@@ -243,6 +264,59 @@
                 $(this).val('{{ $seancesCour->heure_debut }}');
             }
         });
+
+        // Afficher les informations de débogage dans la console
+        console.log('Débogage séance de cours:', {
+            seance_id: {{ $seancesCour->id }},
+            emploi_temps_id: {{ $seancesCour->emploi_temps_id }},
+            emploi_temps_trouve: {{ $emploiTemps ? 'true' : 'false' }},
+            @if($emploiTemps)
+            emploi_temps: {
+                id: {{ $emploiTemps->id }},
+                classe_id: {{ $emploiTemps->classe_id }},
+                deleted_at: '{{ $emploiTemps->deleted_at }}',
+            },
+            @endif
+        });
+
+        // Fonction pour vérifier l'existence de l'emploi du temps
+        $('#check-emploi-temps').on('click', function() {
+            const emploiTempsId = {{ $seancesCour->emploi_temps_id }};
+            const resultDiv = $('#check-result');
+
+            resultDiv.html('<div class="spinner-border spinner-border-sm text-warning" role="status"><span class="visually-hidden">Chargement...</span></div> Vérification en cours...');
+
+            // Vérifier l'existence de l'emploi du temps via une requête AJAX
+            $.ajax({
+                url: `/api/check-emploi-temps/${emploiTempsId}`,
+                method: 'GET',
+                success: function(data) {
+                    console.log('Résultat de la vérification:', data);
+
+                    if (data.exists) {
+                        resultDiv.html(`<div class="alert alert-success mb-0">L'emploi du temps existe (ID: ${data.id})</div>`);
+                    } else {
+                        resultDiv.html(`<div class="alert alert-danger mb-0">L'emploi du temps n'existe pas</div>`);
+                    }
+
+                    // Afficher les détails complets
+                    if (data.details) {
+                        const detailsHtml = `
+                            <div class="mt-2">
+                                <strong>Détails:</strong>
+                                <pre class="bg-light p-2 mt-1" style="font-size: 0.8rem;">${JSON.stringify(data.details, null, 2)}</pre>
+                            </div>
+                        `;
+                        resultDiv.append(detailsHtml);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erreur lors de la vérification:', error);
+                    resultDiv.html(`<div class="alert alert-danger mb-0">Erreur lors de la vérification: ${error}</div>`);
+                }
+            });
+        });
     });
 </script>
+@endsection
 @endsection

@@ -21,7 +21,7 @@ class EvaluationSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer quelques éléments constitutifs
         $ecAlgoCM = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-CM')->first();
         $ecAlgoTP = ElementConstitutif::where('code', 'INFO-L1-S1-ALGO-TP')->first();
@@ -29,14 +29,14 @@ class EvaluationSeeder extends Seeder
         $ecMathTD = ElementConstitutif::where('code', 'INFO-L1-S1-MATH-TD')->first();
         $ecBddCM = ElementConstitutif::where('code', 'INFO-L1-S2-BDD-CM')->first();
         $ecBddTP = ElementConstitutif::where('code', 'INFO-L1-S2-BDD-TP')->first();
-        
+
         // Récupérer quelques salles
         $amphiA = Classroom::where('code', 'AMPHI-A')->first();
         $amphiB = Classroom::where('code', 'AMPHI-B')->first();
         $td101 = Classroom::where('code', 'TD-101')->first();
         $td102 = Classroom::where('code', 'TD-102')->first();
         $labInfo1 = Classroom::where('code', 'LAB-INFO-1')->first();
-        
+
         // Création des évaluations
         // Les évaluations sont comme des tests de qualité
         // Elles permettent de vérifier si les connaissances ont bien été acquises
@@ -81,7 +81,7 @@ class EvaluationSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Évaluations pour les Mathématiques
             [
                 'title' => 'Contrôle Continu Mathématiques 1',
@@ -122,7 +122,7 @@ class EvaluationSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Évaluations pour les Bases de données (semestre 2)
             [
                 'title' => 'Examen Partiel Bases de données',
@@ -171,4 +171,4 @@ class EvaluationSeeder extends Seeder
 
         $this->command->info('Évaluations créées avec succès!');
     }
-} 
+}

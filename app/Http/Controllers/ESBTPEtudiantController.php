@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use App\Models\ESBTPParent;
 use App\Models\ESBTPInscription;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ESBTPEtudiantController extends Controller
 {
@@ -848,5 +849,184 @@ class ESBTPEtudiantController extends Controller
         $user->save();
 
         return redirect()->route('esbtp.mon-profil.index')->with('success', 'Mot de passe mis à jour avec succès');
+    }
+
+    /**
+     * Générer un certificat de scolarité pour un étudiant.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function genererCertificat($id)
+    {
+        // Récupérer l'étudiant avec ses inscriptions
+        $etudiant = ESBTPEtudiant::with([
+            'inscriptions.anneeUniversitaire',
+            'inscriptions.classe',
+            'inscriptions.filiere',
+            'inscriptions.niveauEtude',
+        ])->findOrFail($id);
+
+        // Récupérer l'année universitaire en cours
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+
+        // Récupérer les inscriptions de l'étudiant, triées par année universitaire (la plus récente en premier)
+        $inscriptions = $etudiant->inscriptions()
+            ->with(['anneeUniversitaire', 'classe', 'filiere', 'niveauEtude'])
+            ->whereHas('anneeUniversitaire', function($query) {
+                $query->where('status', 'active');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Récupérer les moyennes de l'étudiant pour chaque année
+        $moyennes = [];
+        foreach ($inscriptions as $inscription) {
+            // Récupérer la moyenne de l'étudiant pour cette inscription
+            $moyenne = DB::table('esbtp_bulletins')
+                ->where('etudiant_id', $etudiant->id)
+                ->where('annee_universitaire_id', $inscription->annee_universitaire_id)
+                ->where('semestre', 'Annuel')
+                ->value('moyenne_generale');
+
+            $moyennes[$inscription->annee_universitaire_id] = $moyenne;
+        }
+
+        // Préparer les données pour la vue
+        $data = [
+            'etudiant' => $etudiant,
+            'inscriptions' => $inscriptions,
+            'moyennes' => $moyennes,
+            'date_generation' => now(),
+        ];
+
+        // Générer le PDF
+        $pdf = PDF::loadView('esbtp.etudiants.certificat', $data);
+
+        // Définir le nom du fichier
+        $filename = 'Certificat_Scolarite_' . $etudiant->matricule . '.pdf';
+
+        // Retourner le PDF pour téléchargement
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Afficher la vue fusionnée des étudiants et inscriptions.
+     */
+    public function indexFusionne(Request $request)
+    {
+        // Récupérer les filtres de recherche pour les étudiants
+        $searchEtudiants = $request->input('search_etudiants');
+        $filiereEtudiants = $request->input('filiere_etudiants');
+        $niveauEtudiants = $request->input('niveau_etudiants');
+        $anneeEtudiants = $request->input('annee_etudiants');
+        $statusEtudiants = $request->input('status_etudiants');
+
+        // Construire la requête pour les étudiants
+        $queryEtudiants = ESBTPEtudiant::query()
+            ->with(['user', 'inscriptions' => function($q) {
+                $q->with(['filiere', 'niveau', 'classe', 'anneeUniversitaire']);
+            }]);
+
+        // Appliquer les filtres pour les étudiants
+        if ($searchEtudiants) {
+            $queryEtudiants->where(function($q) use ($searchEtudiants) {
+                $q->where('matricule', 'like', "%{$searchEtudiants}%")
+                  ->orWhere('nom', 'like', "%{$searchEtudiants}%")
+                  ->orWhere('prenoms', 'like', "%{$searchEtudiants}%")
+                  ->orWhere('telephone', 'like', "%{$searchEtudiants}%");
+            });
+        }
+
+        if ($statusEtudiants) {
+            $queryEtudiants->where('statut', $statusEtudiants);
+        }
+
+        if ($filiereEtudiants || $niveauEtudiants || $anneeEtudiants) {
+            $queryEtudiants->whereHas('inscriptions', function($q) use ($filiereEtudiants, $niveauEtudiants, $anneeEtudiants) {
+                if ($filiereEtudiants) {
+                    $q->where('filiere_id', $filiereEtudiants);
+                }
+                if ($niveauEtudiants) {
+                    $q->where('niveau_id', $niveauEtudiants);
+                }
+                if ($anneeEtudiants) {
+                    $q->where('annee_universitaire_id', $anneeEtudiants);
+                }
+            });
+        }
+
+        // Récupérer les étudiants paginés
+        $etudiants = $queryEtudiants->latest()->paginate(15, ['*'], 'page_etudiants');
+
+        // Récupérer les filtres de recherche pour les inscriptions
+        $searchInscriptions = $request->input('search_inscriptions');
+        $filiereInscriptions = $request->input('filiere_inscriptions');
+        $niveauInscriptions = $request->input('niveau_inscriptions');
+        $anneeInscriptions = $request->input('annee_inscriptions');
+        $statusInscriptions = $request->input('status_inscriptions', 'active');
+
+        // Construire la requête pour les inscriptions
+        $queryInscriptions = ESBTPInscription::query()
+            ->with(['etudiant', 'filiere', 'niveau', 'classe', 'anneeUniversitaire']);
+
+        // Appliquer les filtres pour les inscriptions
+        if ($searchInscriptions) {
+            $queryInscriptions->whereHas('etudiant', function($q) use ($searchInscriptions) {
+                $q->where('matricule', 'like', "%{$searchInscriptions}%")
+                  ->orWhere('nom', 'like', "%{$searchInscriptions}%")
+                  ->orWhere('prenoms', 'like', "%{$searchInscriptions}%");
+            });
+        }
+
+        if ($filiereInscriptions) {
+            $queryInscriptions->where('filiere_id', $filiereInscriptions);
+        }
+
+        if ($niveauInscriptions) {
+            $queryInscriptions->where('niveau_id', $niveauInscriptions);
+        }
+
+        if ($anneeInscriptions) {
+            $queryInscriptions->where('annee_universitaire_id', $anneeInscriptions);
+        } else {
+            // Par défaut, filtrer par année en cours
+            $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+            if ($anneeEnCours) {
+                $queryInscriptions->where('annee_universitaire_id', $anneeEnCours->id);
+            }
+        }
+
+        if ($statusInscriptions) {
+            $queryInscriptions->where('status', $statusInscriptions);
+        }
+
+        // Récupérer les inscriptions paginées
+        $inscriptions = $queryInscriptions->latest()->paginate(15, ['*'], 'page_inscriptions');
+
+        // Récupérer les listes pour les filtres
+        $filieres = ESBTPFiliere::where('is_active', true)->get();
+        $niveaux = ESBTPNiveauEtude::where('is_active', true)->get();
+        $annees = ESBTPAnneeUniversitaire::orderBy('start_date', 'desc')->get();
+        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+
+        return view('esbtp.etudiants.index_fusionne', compact(
+            'etudiants',
+            'inscriptions',
+            'filieres',
+            'niveaux',
+            'annees',
+            'anneeEnCours',
+            'searchEtudiants',
+            'filiereEtudiants',
+            'niveauEtudiants',
+            'anneeEtudiants',
+            'statusEtudiants',
+            'searchInscriptions',
+            'filiereInscriptions',
+            'niveauInscriptions',
+            'anneeInscriptions',
+            'statusInscriptions'
+        ));
     }
 }

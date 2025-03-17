@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ESBTPEmploiTempsController extends Controller
 {
+    // Constructor without authorizeResource
+    public function __construct()
+    {
+        // No policy-based authorization
+    }
+
     /**
      * Affiche la liste des emplois du temps.
      *
@@ -24,6 +30,7 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function index()
     {
+        // No policy-based authorization
         $emploisTemps = ESBTPEmploiTemps::with(['classe', 'seances'])->get();
 
         // Ajout des filières pour le filtre
@@ -64,9 +71,16 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function create()
     {
-        $classes = ESBTPClasse::all();
-        $annees = ESBTPAnneeUniversitaire::where('is_active', true)->get();
-        return view('esbtp.emploi-temps.create', compact('classes', 'annees'));
+        // Récupérer les classes
+        $classes = ESBTPClasse::orderBy('name')->get();
+
+        // Récupérer les années universitaires
+        $annees = ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+
+        // Générer les dates de la semaine courante
+        $semaineCourante = ESBTPEmploiTemps::genererSemaineCourante();
+
+        return view('esbtp.emploi-temps.create', compact('classes', 'annees', 'semaineCourante'));
     }
 
     /**
@@ -77,26 +91,50 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function store(Request $request)
     {
+        // Valider les données
         $validated = $request->validate([
             'titre' => 'required|string|max:255',
             'classe_id' => 'required|exists:esbtp_classes,id',
             'annee_universitaire_id' => 'required|exists:esbtp_annee_universitaires,id',
-            'semestre' => 'required|string',
+            'semestre' => 'required|string|max:50',
             'date_debut' => 'required|date',
-            'date_fin' => 'required|date|after:date_debut',
+            'date_fin' => 'required|date|after_or_equal:date_debut',
         ]);
 
-        $validated['created_by'] = Auth::id();
-        $validated['is_active'] = true;
-        $validated['is_current'] = $request->has('is_current');
+        // Vérifier que la période ne dépasse pas 5 jours
+        $dateDebut = \Carbon\Carbon::parse($validated['date_debut']);
+        $dateFin = \Carbon\Carbon::parse($validated['date_fin']);
+        $diffJours = $dateDebut->diffInDays($dateFin);
 
-        $emploiTemps = ESBTPEmploiTemps::create($validated);
-
-        if ($emploiTemps->is_current) {
-            ESBTPEmploiTemps::setAsCurrent($emploiTemps->id);
+        if ($diffJours > 4) {
+            return back()->withInput()->withErrors([
+                'date_fin' => 'La période de l\'emploi du temps ne doit pas dépasser 5 jours (du lundi au vendredi).'
+            ]);
         }
 
-        return redirect()->route('esbtp.emploi-temps.show', $emploiTemps)
+        // Créer l'emploi du temps
+        $emploiTemps = new ESBTPEmploiTemps();
+        $emploiTemps->titre = $validated['titre'];
+        $emploiTemps->classe_id = $validated['classe_id'];
+        $emploiTemps->annee_universitaire_id = $validated['annee_universitaire_id'];
+        $emploiTemps->semestre = $validated['semestre'];
+        $emploiTemps->date_debut = $validated['date_debut'];
+        $emploiTemps->date_fin = $validated['date_fin'];
+        $emploiTemps->created_by = Auth::id();
+        $emploiTemps->is_active = $request->has('is_active');
+        $emploiTemps->is_current = $request->has('is_current');
+
+        // Sauvegarder l'emploi du temps
+        $emploiTemps->save();
+
+        // Si l'emploi du temps est marqué comme courant, désactiver les autres
+        if ($emploiTemps->is_current) {
+            ESBTPEmploiTemps::where('id', '!=', $emploiTemps->id)
+                ->where('classe_id', $emploiTemps->classe_id)
+                ->update(['is_current' => false]);
+        }
+
+        return redirect()->route('esbtp.emploi-temps.show', $emploiTemps->id)
             ->with('success', 'Emploi du temps créé avec succès.');
     }
 
@@ -108,10 +146,10 @@ class ESBTPEmploiTempsController extends Controller
      */
     public function show(ESBTPEmploiTemps $emploi_temp)
     {
+        // No policy-based authorization
         // Charger les séances pour cet emploi du temps
         $emploi_temp->load([
             'seances.matiere',
-            'seances.enseignant',
             'classe',
             'classe.filiere',
             'classe.niveau',
@@ -124,9 +162,13 @@ class ESBTPEmploiTempsController extends Controller
         // Grouper les séances par jour
         $seancesParJour = $emploi_temp->getSeancesParJour();
 
-        // Récupérer les heures de début et de fin pour l'affichage
-        $heuresDebut = ['08:00', '10:00', '13:00', '15:00', '17:00'];
-        $heuresFin = ['10:00', '12:00', '15:00', '17:00', '19:00'];
+        // Récupérer les heures de début et de fin pour l'affichage (créneaux d'une heure)
+        $heuresDebut = [];
+        $heuresFin = [];
+        for ($heure = 8; $heure < 18; $heure++) {
+            $heuresDebut[] = sprintf('%02d:00', $heure);
+            $heuresFin[] = sprintf('%02d:00', $heure + 1);
+        }
 
         // Noms des jours pour l'affichage
         $joursNoms = [
@@ -137,6 +179,10 @@ class ESBTPEmploiTempsController extends Controller
             5 => 'Vendredi',
             6 => 'Samedi',
         ];
+
+        // Créer les variables $timeSlots et $days pour la vue
+        $timeSlots = $heuresDebut;
+        $days = array_keys($joursNoms);
 
         // Calcul des statistiques par matière
         $matiereStats = [];
@@ -151,31 +197,72 @@ class ESBTPEmploiTempsController extends Controller
         // Renommer la variable pour la vue
         $emploiTemps = $emploi_temp;
 
-        return view('esbtp.emploi-temps.show', compact('emploiTemps', 'seances', 'seancesParJour', 'heuresDebut', 'heuresFin', 'joursNoms', 'matiereStats'));
+        return view('esbtp.emploi-temps.show', compact(
+            'emploiTemps', 'seances', 'seancesParJour',
+            'heuresDebut', 'heuresFin', 'joursNoms',
+            'matiereStats', 'timeSlots', 'days'
+        ));
     }
 
     /**
-     * Affiche le formulaire de modification d'un emploi du temps.
+     * Affiche le formulaire d'édition d'un emploi du temps.
      *
-     * @param  \App\Models\ESBTPEmploiTemps  $emplois_temp
+     * @param  \App\Models\ESBTPEmploiTemps  $emploi_temp
      * @return \Illuminate\Http\Response
      */
-    public function edit(ESBTPEmploiTemps $emplois_temp)
+    public function edit(ESBTPEmploiTemps $emploi_temp)
     {
-        $emploiTemps = $emplois_temp;
+        \Log::info('Tentative d\'édition d\'emploi du temps', [
+            'emploi_temps_id' => $emploi_temp->id,
+            'user_id' => auth()->id(),
+            'user_permissions' => auth()->user()->getAllPermissions()->pluck('name'),
+            'user_roles' => auth()->user()->getRoleNames()
+        ]);
+
+        // No policy-based authorization
+        $emploiTemps = $emploi_temp;
+
+        // Ensure $emploiTemps is an object
+        if (!is_object($emploiTemps)) {
+            \Log::error('$emploiTemps is not an object', [
+                'type' => gettype($emploiTemps),
+                'value' => $emploiTemps
+            ]);
+
+            // Try to find the emploi_temp by ID if it's an integer
+            if (is_numeric($emploiTemps)) {
+                $emploiTemps = ESBTPEmploiTemps::find($emploiTemps);
+                if (!$emploiTemps) {
+                    abort(404, 'Emploi du temps non trouvé');
+                }
+            } else {
+                abort(404, 'Emploi du temps non trouvé');
+            }
+        }
+
         $classes = ESBTPClasse::all();
-        return view('esbtp.emploi-temps.edit', compact('emploiTemps', 'classes'));
+        $annees = ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+
+        // Log the variables being passed to the view
+        \Log::info('Variables passed to edit view', [
+            'emploiTemps' => $emploiTemps,
+            'classes_count' => $classes->count(),
+            'annees_count' => $annees->count()
+        ]);
+
+        return view('esbtp.emploi-temps.edit', compact('emploiTemps', 'classes', 'annees'));
     }
 
     /**
      * Met à jour un emploi du temps.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ESBTPEmploiTemps  $emplois_temp
+     * @param  \App\Models\ESBTPEmploiTemps  $emploi_temp
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ESBTPEmploiTemps $emplois_temp)
+    public function update(Request $request, ESBTPEmploiTemps $emploi_temp)
     {
+        // No policy-based authorization
         $validated = $request->validate([
             'titre' => 'required|string|max:255',
             'classe_id' => 'required|exists:esbtp_classes,id',
@@ -187,25 +274,57 @@ class ESBTPEmploiTempsController extends Controller
         $validated['updated_by'] = Auth::id();
         $validated['is_current'] = $request->has('is_current');
 
-        $emplois_temp->update($validated);
+        $emploi_temp->update($validated);
 
-        if ($emplois_temp->is_current) {
-            ESBTPEmploiTemps::setAsCurrent($emplois_temp->id);
+        if ($emploi_temp->is_current) {
+            ESBTPEmploiTemps::setAsCurrent($emploi_temp->id);
         }
 
-        return redirect()->route('esbtp.emploi-temps.show', $emplois_temp)
+        return redirect()->route('esbtp.emploi-temps.show', ['emploi_temp' => $emploi_temp->id])
             ->with('success', 'Emploi du temps mis à jour avec succès.');
     }
 
     /**
      * Supprime un emploi du temps.
      *
-     * @param  \App\Models\ESBTPEmploiTemps  $emplois_temp
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\ESBTPEmploiTemps  $emploi_temp
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ESBTPEmploiTemps $emplois_temp)
+    public function destroy(Request $request, ESBTPEmploiTemps $emploi_temp)
     {
-        $emplois_temp->delete();
+        // Vérifier si l'utilisateur a la permission de supprimer les emplois du temps
+        if (!auth()->user()->can('delete_timetables')) {
+            abort(403, 'Accès non autorisé. Permission de suppression requise.');
+        }
+
+        // Vérifier si l'emploi du temps a des séances associées
+        $seancesCount = $emploi_temp->seances()->count();
+
+        // Si l'emploi du temps a des séances associées et que la suppression forcée n'est pas demandée
+        if ($seancesCount > 0 && !$request->has('force_delete')) {
+            // Journaliser la tentative de suppression
+            \Log::warning('Tentative de suppression d\'un emploi du temps avec des séances associées', [
+                'emploi_temps_id' => $emploi_temp->id,
+                'seances_count' => $seancesCount,
+                'user_id' => auth()->id()
+            ]);
+
+            // Rediriger avec un message d'avertissement et un paramètre pour confirmer la suppression forcée
+            return redirect()->route('esbtp.emploi-temps.show', $emploi_temp)
+                ->with('warning', "Cet emploi du temps a {$seancesCount} séance(s) de cours associée(s). La suppression entraînera également la suppression de ces séances. Veuillez confirmer cette action.")
+                ->with('show_force_delete', true);
+        }
+
+        // Journaliser la suppression
+        \Log::info('Suppression de l\'emploi du temps', [
+            'emploi_temps_id' => $emploi_temp->id,
+            'force_delete' => $request->has('force_delete'),
+            'user_id' => auth()->id()
+        ]);
+
+        // Supprimer l'emploi du temps (les séances associées seront supprimées par l'événement de modèle)
+        $emploi_temp->delete();
 
         return redirect()->route('esbtp.emploi-temps.index')
             ->with('success', 'Emploi du temps supprimé avec succès.');
@@ -219,35 +338,112 @@ class ESBTPEmploiTempsController extends Controller
     public function studentTimetable()
     {
         $user = Auth::user();
+        \Log::info('Utilisateur connecté:', ['user_id' => $user->id]);
+
         $etudiant = ESBTPEtudiant::where('user_id', $user->id)->first();
+        \Log::info('Étudiant trouvé:', ['etudiant_id' => $etudiant ? $etudiant->id : null]);
 
         if (!$etudiant) {
             return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
         }
 
-        $emploiTemps = ESBTPEmploiTemps::where('classe_id', $etudiant->classe_id)
-            ->where('is_current', true)
+        // Récupérer l'inscription active de l'étudiant pour l'année en cours
+        $inscription = $etudiant->inscriptions()
+            ->where('status', 'active')
+            ->whereHas('anneeUniversitaire', function($query) {
+                $query->where('is_current', true);
+            })
             ->first();
+        \Log::info('Inscription trouvée:', [
+            'inscription_id' => $inscription ? $inscription->id : null,
+            'classe_id' => $inscription ? $inscription->classe_id : null,
+            'status' => $inscription ? $inscription->status : null,
+            'annee_universitaire' => $inscription && $inscription->anneeUniversitaire ? [
+                'id' => $inscription->anneeUniversitaire->id,
+                'name' => $inscription->anneeUniversitaire->name,
+                'is_current' => $inscription->anneeUniversitaire->is_current
+            ] : null
+        ]);
+
+        if (!$inscription) {
+            return view('etudiants.emploi-temps', [
+                'etudiant' => $etudiant,
+                'emploiTemps' => null,
+                'seances' => collect(),
+                'inscription' => null
+            ])->with('warning', 'Aucune inscription active trouvée pour l\'année en cours.');
+        }
+
+        // Récupérer l'emploi du temps actif pour la classe de l'étudiant
+        $emploiTemps = ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        \Log::info('Emploi du temps trouvé:', [
+            'emploi_temps_id' => $emploiTemps ? $emploiTemps->id : null,
+            'classe_id' => $emploiTemps ? $emploiTemps->classe_id : null,
+            'is_active' => $emploiTemps ? $emploiTemps->is_active : null,
+            'sql' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->toSql(),
+            'bindings' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->getBindings(),
+            'total_emplois_temps' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)->count(),
+            'emplois_temps_actifs' => ESBTPEmploiTemps::where('classe_id', $inscription->classe_id)
+                ->where('is_active', true)
+                ->count()
+        ]);
 
         if (!$emploiTemps) {
             return view('etudiants.emploi-temps', [
                 'etudiant' => $etudiant,
                 'emploiTemps' => null,
-                'seances' => collect()
+                'seances' => collect(),
+                'inscription' => $inscription
             ])->with('warning', 'Aucun emploi du temps n\'est actuellement disponible pour votre classe.');
         }
 
+        // Charger les séances avec leurs relations
         $seances = $emploiTemps->seances()
-            ->orderBy('jour_semaine')
+            ->with(['matiere', 'enseignant'])
+            ->where('is_active', true)
+            ->orderBy('jour')
             ->orderBy('heure_debut')
-            ->get()
-            ->groupBy('jour_semaine');
+            ->get();
 
-        return view('etudiants.emploi-temps', compact('etudiant', 'emploiTemps', 'seances'));
+        \Log::info('Séances trouvées avant groupement:', [
+            'nombre_seances' => $seances->count(),
+            'seances' => $seances->map(function($seance) {
+                return [
+                    'id' => $seance->id,
+                    'jour' => $seance->jour,
+                    'heure_debut' => $seance->heure_debut,
+                    'heure_fin' => $seance->heure_fin,
+                    'matiere' => $seance->matiere ? $seance->matiere->name : null,
+                    'enseignant' => $seance->enseignant ? $seance->enseignant->name : null
+                ];
+            })->toArray()
+        ]);
+
+        // Grouper les séances par jour
+        $seancesGroupees = $seances->groupBy('jour');
+
+        \Log::info('Séances après groupement:', [
+            'jours_avec_seances' => $seancesGroupees->keys()->toArray(),
+            'nombre_seances_par_jour' => $seancesGroupees->map->count()->toArray()
+        ]);
+
+        return view('etudiants.emploi-temps', compact('etudiant', 'emploiTemps', 'inscription', 'seancesGroupees'));
     }
 
     public function setAsCurrent($id)
     {
+        $emploiTemps = ESBTPEmploiTemps::findOrFail($id);
+        // No policy-based authorization
+
         ESBTPEmploiTemps::setAsCurrent($id);
         return redirect()->back()->with('success', 'Emploi du temps défini comme actuel.');
     }
@@ -262,6 +458,122 @@ class ESBTPEmploiTempsController extends Controller
             return response()->json(['message' => 'Aucun emploi du temps actuel trouvé pour cette classe.'], 404);
         }
 
+        // No policy-based authorization
         return response()->json($emploiTemps->load('seances'));
+    }
+
+    /**
+     * Affiche le formulaire pour ajouter une séance à un emploi du temps.
+     *
+     * @param ESBTPEmploiTemps $emploi_temp
+     * @return \Illuminate\Http\Response
+     */
+    public function addSession(ESBTPEmploiTemps $emploi_temp)
+    {
+        $this->authorize('create', ESBTPSeanceCours::class);
+
+        $matieres = ESBTPMatiere::whereHas('filieres', function($query) use ($emploi_temp) {
+            $query->whereHas('classes', function($q) use ($emploi_temp) {
+                $q->where('id', $emploi_temp->classe_id);
+            });
+        })->get();
+
+        $enseignants = User::role('enseignant')->get();
+
+        return view('esbtp.emploi-temps.add-session', compact('emploi_temp', 'matieres', 'enseignants'));
+    }
+
+    /**
+     * Enregistre une nouvelle séance pour un emploi du temps.
+     *
+     * @param Request $request
+     * @param ESBTPEmploiTemps $emploi_temp
+     * @return \Illuminate\Http\Response
+     */
+    public function storeSession(Request $request, ESBTPEmploiTemps $emploi_temp)
+    {
+        $this->authorize('create', ESBTPSeanceCours::class);
+
+        $validated = $request->validate([
+            'matiere_id' => 'required|exists:esbtp_matieres,id',
+            'enseignant_id' => 'nullable|exists:users,id',
+            'jour' => 'required|string|max:20',
+            'heure_debut' => 'required|date_format:H:i',
+            'heure_fin' => 'required|date_format:H:i|after:heure_debut',
+            'salle' => 'nullable|string|max:50',
+            'description' => 'nullable|string',
+            'classe_id' => 'required|exists:esbtp_classes,id',
+            'annee_universitaire_id' => 'required|exists:esbtp_annee_universitaires,id'
+        ]);
+
+        $validated['emploi_temps_id'] = $emploi_temp->id;
+
+        $seance = ESBTPSeanceCours::create($validated);
+
+        return redirect()->route('esbtp.emploi-temps.show', $emploi_temp)
+            ->with('success', 'Séance ajoutée avec succès à l\'emploi du temps.');
+    }
+
+    /**
+     * Affiche les emplois du temps pour la journée en cours.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function today()
+    {
+        // Récupérer le jour de la semaine actuel (0 = Lundi, 1 = Mardi, etc.)
+        $jourActuel = now()->dayOfWeekIso - 1; // dayOfWeekIso retourne 1 pour lundi, 2 pour mardi, etc.
+
+        // Récupérer la date actuelle
+        $dateActuelle = now()->format('Y-m-d');
+
+        // Récupérer les emplois du temps actifs
+        $emploisTempsActifs = ESBTPEmploiTemps::where('is_active', true)
+            ->where('date_debut', '<=', $dateActuelle)
+            ->where('date_fin', '>=', $dateActuelle)
+            ->with(['classe', 'classe.filiere', 'classe.niveau'])
+            ->get();
+
+        // Récupérer les IDs des emplois du temps actifs
+        $emploisTempsIds = $emploisTempsActifs->pluck('id')->toArray();
+
+        // Récupérer les séances de cours pour aujourd'hui
+        $seancesAujourdhui = ESBTPSeanceCours::whereIn('emploi_temps_id', $emploisTempsIds)
+            ->where('jour', $jourActuel)
+            ->with(['matiere', 'enseignant', 'emploiTemps.classe'])
+            ->orderBy('heure_debut')
+            ->get();
+
+        // Grouper les séances par classe
+        $seancesParClasse = $seancesAujourdhui->groupBy(function($seance) {
+            return $seance->emploiTemps->classe->name ?? 'Non définie';
+        });
+
+        // Statistiques
+        $totalSeancesAujourdhui = $seancesAujourdhui->count();
+        $totalClassesAujourdhui = $seancesParClasse->count();
+
+        // Noms des jours pour l'affichage
+        $joursNoms = [
+            0 => 'Lundi',
+            1 => 'Mardi',
+            2 => 'Mercredi',
+            3 => 'Jeudi',
+            4 => 'Vendredi',
+            5 => 'Samedi',
+            6 => 'Dimanche',
+        ];
+
+        // Jour actuel en texte
+        $jourActuelTexte = $joursNoms[$jourActuel] ?? 'Jour inconnu';
+
+        return view('esbtp.emploi-temps.today', compact(
+            'seancesAujourdhui',
+            'seancesParClasse',
+            'totalSeancesAujourdhui',
+            'totalClassesAujourdhui',
+            'jourActuelTexte',
+            'dateActuelle'
+        ));
     }
 }

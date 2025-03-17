@@ -20,11 +20,11 @@ class ElementConstitutifSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer un enseignant pour l'attribution
         $teacher = Teacher::first();
         $teacherId = $teacher ? $teacher->id : null;
-        
+
         // Récupérer les unités d'enseignement
         $ueAlgo1 = UniteEnseignement::where('code', 'INFO-L1-S1-ALGO')->first();
         $ueMath = UniteEnseignement::where('code', 'INFO-L1-S1-MATH')->first();
@@ -33,7 +33,7 @@ class ElementConstitutifSeeder extends Seeder
         $ueAlgo2 = UniteEnseignement::where('code', 'INFO-L1-S2-ALGO')->first();
         $ueBdd = UniteEnseignement::where('code', 'INFO-L1-S2-BDD')->first();
         $ueWeb = UniteEnseignement::where('code', 'INFO-L1-S2-WEB')->first();
-        
+
         // Création des éléments constitutifs
         // Les EC sont comme les ingrédients d'une recette
         // Chacun apporte une saveur particulière à l'UE
@@ -75,7 +75,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Mathématiques pour l'informatique
             [
                 'code' => 'INFO-L1-S1-MATH-CM',
@@ -101,7 +101,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Architecture des ordinateurs
             [
                 'code' => 'INFO-L1-S1-ARCHI-CM',
@@ -127,7 +127,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Langues et Communication
             [
                 'code' => 'INFO-L1-S1-LANG-ANG',
@@ -153,7 +153,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Algorithmique et Programmation 2
             [
                 'code' => 'INFO-L1-S2-ALGO-CM',
@@ -179,7 +179,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Bases de données
             [
                 'code' => 'INFO-L1-S2-BDD-CM',
@@ -217,7 +217,7 @@ class ElementConstitutifSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // EC pour l'UE Développement Web
             [
                 'code' => 'INFO-L1-S2-WEB-CM',
@@ -251,4 +251,4 @@ class ElementConstitutifSeeder extends Seeder
 
         $this->command->info('Éléments constitutifs créés avec succès!');
     }
-} 
+}

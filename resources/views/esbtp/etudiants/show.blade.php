@@ -16,6 +16,9 @@
                         <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
+                        <a href="{{ route('esbtp.etudiants.certificat', $etudiant) }}" class="btn btn-success btn-sm" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Certificat de scolarité
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">

@@ -88,20 +88,21 @@ class ESBTPEvaluationController extends Controller
         // Get the matiere_id from the request
         $matiere_id = $request->input('matiere_id');
 
-        // If matiere_id is provided, check if evaluations exist for this subject
-        if ($matiere_id) {
-            $matiere = ESBTPMatiere::findOrFail($matiere_id);
-            $evaluationsCount = ESBTPEvaluation::where('matiere_id', $matiere_id)->count();
-
-            // If evaluations exist, redirect to the evaluations list filtered by this subject
-            if ($evaluationsCount > 0) {
-                return redirect()->route('esbtp.evaluations.index', ['matiere_id' => $matiere_id])
-                    ->with('info', 'Il existe déjà des évaluations pour cette matière. Vous pouvez en ajouter une nouvelle ici.');
-            }
-        }
+        // Suppression du bloc de redirection qui empêche la présélection de la matière
+        // if ($matiere_id) {
+        //     $matiere = ESBTPMatiere::findOrFail($matiere_id);
+        //     $evaluationsCount = ESBTPEvaluation::where('matiere_id', $matiere_id)->count();
+        //
+        //     // If evaluations exist, redirect to the evaluations list filtered by this subject
+        //     if ($evaluationsCount > 0) {
+        //         return redirect()->route('esbtp.evaluations.index', ['matiere_id' => $matiere_id])
+        //             ->with('info', 'Il existe déjà des évaluations pour cette matière. Vous pouvez en ajouter une nouvelle ici.');
+        //     }
+        // }
 
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $matieres = ESBTPMatiere::where('is_active', true)->orderBy('name')->get();
+        $types = ESBTPEvaluation::getTypes();
 
         // Prepare subjects for JavaScript
         $matieresJson = $matieres->map(function ($matiere) {
@@ -113,7 +114,7 @@ class ESBTPEvaluationController extends Controller
             ];
         });
 
-        return view('esbtp.evaluations.create', compact('classes', 'matieres', 'matieresJson', 'matiere_id'));
+        return view('esbtp.evaluations.create', compact('classes', 'matieres', 'matieresJson', 'matiere_id', 'types'));
     }
 
     /**
@@ -240,8 +241,9 @@ class ESBTPEvaluationController extends Controller
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $matieres = ESBTPMatiere::orderBy('name')->get();
+        $types = ESBTPEvaluation::getTypes();
 
-        return view('esbtp.evaluations.edit', compact('evaluation', 'classes', 'matieres'));
+        return view('esbtp.evaluations.edit', compact('evaluation', 'classes', 'matieres', 'types'));
     }
 
     /**
@@ -297,6 +299,7 @@ class ESBTPEvaluationController extends Controller
                 $evaluation->matiere_id = $request->matiere_id;
             }
 
+            $evaluation->updated_by = Auth::id();
             $evaluation->save();
 
             return redirect()->route('esbtp.evaluations.show', $evaluation)
@@ -435,25 +438,54 @@ class ESBTPEvaluationController extends Controller
 
     public function updateStatus(Request $request, ESBTPEvaluation $evaluation)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', [
-                ESBTPEvaluation::STATUS_DRAFT,
-                ESBTPEvaluation::STATUS_SCHEDULED,
-                ESBTPEvaluation::STATUS_IN_PROGRESS,
-                ESBTPEvaluation::STATUS_COMPLETED,
-                ESBTPEvaluation::STATUS_CANCELLED
-            ])
+        \Log::info('Début updateStatus', [
+            'request_method' => $request->method(),
+            'request_all' => $request->all(),
+            'evaluation_id' => $evaluation->id
         ]);
 
         try {
-            $evaluation->update([
-                'status' => $validated['status'],
-                'updated_by' => Auth::id()
+            $validated = $request->validate([
+                'status' => 'required|in:' . implode(',', [
+                    ESBTPEvaluation::STATUS_DRAFT,
+                    ESBTPEvaluation::STATUS_SCHEDULED,
+                    ESBTPEvaluation::STATUS_IN_PROGRESS,
+                    ESBTPEvaluation::STATUS_COMPLETED,
+                    ESBTPEvaluation::STATUS_CANCELLED,
+                ])
             ]);
 
-            return back()->with('success', 'Statut de l\'évaluation mis à jour avec succès.');
+            $evaluation->update($validated);
+
+            \Log::info('Statut mis à jour avec succès', [
+                'evaluation_id' => $evaluation->id,
+                'new_status' => $validated['status']
+            ]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Statut mis à jour avec succès',
+                    'evaluation' => $evaluation
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Statut mis à jour avec succès');
         } catch (\Exception $e) {
-            return back()->with('error', 'Une erreur est survenue lors de la mise à jour du statut.');
+            \Log::error('Erreur lors de la mise à jour du statut', [
+                'evaluation_id' => $evaluation->id,
+                'error' => $e->getMessage()
+            ]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la mise à jour du statut',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour du statut');
         }
     }
 

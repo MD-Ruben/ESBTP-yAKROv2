@@ -59,11 +59,11 @@
                                                 <tbody>
                                                     @foreach($timetableByDay[$dayKey] as $entry)
                                                         <tr class="section-row" data-section="{{ $entry->section_id }}">
-                                                            <td>{{ $entry->section->name }}</td>
+                                                            <td>{{ $entry->section->name ?? 'Non définie' }}</td>
                                                             <td>{{ \Carbon\Carbon::parse($entry->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($entry->end_time)->format('H:i') }}</td>
-                                                            <td>{{ $entry->subject->name }}</td>
-                                                            <td>{{ $entry->teacher->user->name ?? 'N/A' }}</td>
-                                                            <td>{{ $entry->room_number ?? 'N/A' }}</td>
+                                                            <td>{{ $entry->subject->name ?? 'Non définie' }}</td>
+                                                            <td>{{ $entry->teacher->user->name ?? 'Non défini' }}</td>
+                                                            <td>{{ $entry->room_number ?? 'Non définie' }}</td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -91,14 +91,14 @@
         // Filtrage par section
         $('#section_filter').change(function() {
             var sectionId = $(this).val();
-            
+
             if (sectionId === 'all') {
                 $('.section-row').show();
             } else {
                 $('.section-row').hide();
                 $('.section-row[data-section="' + sectionId + '"]').show();
             }
-            
+
             // Masquer les jours sans cours après filtrage
             $('.card').each(function() {
                 var visibleRows = $(this).find('.section-row:visible').length;
@@ -111,4 +111,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

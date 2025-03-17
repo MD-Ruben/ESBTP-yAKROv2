@@ -242,5 +242,96 @@
         </div>
     </div>
     @endif
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-calendar me-1"></i>
+            Emploi du temps - {{ $classe->name ?? 'Classe non définie' }}
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Horaire</th>
+                            @foreach(['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as $index => $jour)
+                                <th>{{ $jour }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(['08:00-10:00', '10:00-12:00', '13:00-15:00', '15:00-17:00', '17:00-19:00'] as $horaire)
+                            <tr>
+                                <td class="align-middle">{{ $horaire }}</td>
+                                @foreach(range(0, 5) as $jour)
+                                    <td class="align-middle">
+                                        @if(isset($seances[$jour]))
+                                            @foreach($seances[$jour] as $seance)
+                                                @php
+                                                    $heureDebut = \Carbon\Carbon::parse($seance->heure_debut)->format('H:i');
+                                                    $heureFin = \Carbon\Carbon::parse($seance->heure_fin)->format('H:i');
+                                                    $creneauSeance = $heureDebut.'-'.$heureFin;
+                                                    $creneauMatch = false;
+
+                                                    // Extraire les heures de début et de fin du créneau actuel
+                                                    list($slotStart, $slotEnd) = explode('-', $horaire);
+
+                                                    // Debug logging
+                                                    \Log::debug('Comparaison des créneaux:', [
+                                                        'jour' => $jour,
+                                                        'horaire_attendu' => $horaire,
+                                                        'slot_start' => $slotStart,
+                                                        'slot_end' => $slotEnd,
+                                                        'seance_debut' => $heureDebut,
+                                                        'seance_fin' => $heureFin,
+                                                        'matiere' => $seance->matiere->name ?? 'Non définie',
+                                                        'seance_id' => $seance->id
+                                                    ]);
+
+                                                    // Comparer les heures sans les secondes
+                                                    if ($heureDebut === $slotStart && $heureFin === $slotEnd) {
+                                                        $creneauMatch = true;
+                                                        \Log::info('Créneau correspondant trouvé:', [
+                                                            'jour' => $jour,
+                                                            'horaire' => $horaire,
+                                                            'matiere' => $seance->matiere->name ?? 'Non définie',
+                                                            'seance_id' => $seance->id
+                                                        ]);
+                                                    }
+                                                @endphp
+                                                @if($creneauMatch)
+                                                    <div class="p-2 bg-light border rounded">
+                                                        <strong>{{ $seance->matiere->name ?? 'Matière non définie' }}</strong><br>
+                                                        @if($seance->salle)
+                                                            Salle: {{ $seance->salle }}<br>
+                                                        @endif
+                                                        @if($seance->enseignantName)
+                                                            Prof: {{ $seance->enseignantName }}
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        @else
+                                            @php
+                                                \Log::warning('Aucune séance trouvée pour le jour ' . $jour);
+                                            @endphp
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @if(isset($emploiTemps))
+            <div class="card-footer">
+                <small class="text-muted">
+                    Période: {{ \Carbon\Carbon::parse($emploiTemps->date_debut)->format('d/m/Y') }} -
+                    {{ \Carbon\Carbon::parse($emploiTemps->date_fin)->format('d/m/Y') }}
+                </small>
+            </div>
+        @endif
+    </div>
 </div>
 @endsection

@@ -24,7 +24,7 @@ class ESBTPAnnonceController extends Controller
         $annonces = ESBTPAnnonce::with(['classes', 'etudiants', 'user'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-        
+
         // Préparation des statistiques
         $stats = [
             'total' => ESBTPAnnonce::count(),
@@ -32,7 +32,7 @@ class ESBTPAnnonceController extends Controller
             'pending' => ESBTPAnnonce::where('is_published', false)->count(),
             'urgent' => ESBTPAnnonce::where('priorite', 2)->count()
         ];
-        
+
         return view('esbtp.annonces.index', compact('annonces', 'stats'));
     }
 
@@ -47,7 +47,7 @@ class ESBTPAnnonceController extends Controller
         $etudiants = ESBTPEtudiant::orderBy('nom')->get();
         $filieres = ESBTPFiliere::where('is_active', true)->orderBy('name')->get();
         $niveaux = ESBTPNiveauEtude::where('is_active', true)->orderBy('name')->get();
-        
+
         return view('esbtp.annonces.create', compact('classes', 'etudiants', 'filieres', 'niveaux'));
     }
 
@@ -62,18 +62,18 @@ class ESBTPAnnonceController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'date_debut' => 'required|date',
-            'date_fin' => 'required|date|after_or_equal:date_debut',
+            'date_publication' => 'required|date',
+            'date_expiration' => 'required|date|after_or_equal:date_publication',
             'type' => 'required|in:general,classe,etudiant',
-            'priorite' => 'required|in:normale,moyenne,elevee',
+            'priorite' => 'required|in:0,1,2',
             'classes' => 'required_if:type,classe|array',
             'etudiants' => 'required_if:type,etudiant|array',
         ], [
             'titre.required' => 'Le titre est obligatoire',
             'contenu.required' => 'Le contenu est obligatoire',
-            'date_debut.required' => 'La date de début est obligatoire',
-            'date_fin.required' => 'La date de fin est obligatoire',
-            'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début',
+            'date_publication.required' => 'La date de publication est obligatoire',
+            'date_expiration.required' => 'La date d\'expiration est obligatoire',
+            'date_expiration.after_or_equal' => 'La date d\'expiration doit être postérieure ou égale à la date de publication',
             'priorite.required' => 'La priorité est obligatoire',
             'classes.required_if' => 'Veuillez sélectionner au moins une classe',
             'etudiants.required_if' => 'Veuillez sélectionner au moins un étudiant',
@@ -84,12 +84,12 @@ class ESBTPAnnonceController extends Controller
             $annonce = new ESBTPAnnonce();
             $annonce->titre = $request->titre;
             $annonce->contenu = $request->contenu;
-            $annonce->date_debut = $request->date_debut;
-            $annonce->date_fin = $request->date_fin;
+            $annonce->date_publication = $request->date_publication;
+            $annonce->date_expiration = $request->date_expiration;
             $annonce->type = $request->type;
             $annonce->priorite = $request->priorite;
-            $annonce->is_active = $request->has('is_active');
-            $annonce->user_id = Auth::id();
+            $annonce->is_published = $request->has('is_published');
+            $annonce->created_by = Auth::id();
             $annonce->save();
 
             // Attacher les classes ou les étudiants selon le type
@@ -100,7 +100,7 @@ class ESBTPAnnonceController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('annonces.index')
+            return redirect()->route('esbtp.annonces.index')
                 ->with('success', 'L\'annonce a été créée avec succès');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -132,10 +132,10 @@ class ESBTPAnnonceController extends Controller
     {
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $etudiants = ESBTPEtudiant::orderBy('nom')->get();
-        
+
         $classeIds = $annonce->classes->pluck('id')->toArray();
         $etudiantIds = $annonce->etudiants->pluck('id')->toArray();
-        
+
         return view('esbtp.annonces.edit', compact('annonce', 'classes', 'etudiants', 'classeIds', 'etudiantIds'));
     }
 
@@ -151,18 +151,18 @@ class ESBTPAnnonceController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'contenu' => 'required|string',
-            'date_debut' => 'required|date',
-            'date_fin' => 'required|date|after_or_equal:date_debut',
+            'date_publication' => 'required|date',
+            'date_expiration' => 'required|date|after_or_equal:date_publication',
             'type' => 'required|in:general,classe,etudiant',
-            'priorite' => 'required|in:normale,moyenne,elevee',
+            'priorite' => 'required|in:0,1,2',
             'classes' => 'required_if:type,classe|array',
             'etudiants' => 'required_if:type,etudiant|array',
         ], [
             'titre.required' => 'Le titre est obligatoire',
             'contenu.required' => 'Le contenu est obligatoire',
-            'date_debut.required' => 'La date de début est obligatoire',
-            'date_fin.required' => 'La date de fin est obligatoire',
-            'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début',
+            'date_publication.required' => 'La date de publication est obligatoire',
+            'date_expiration.required' => 'La date d\'expiration est obligatoire',
+            'date_expiration.after_or_equal' => 'La date d\'expiration doit être postérieure ou égale à la date de publication',
             'priorite.required' => 'La priorité est obligatoire',
             'classes.required_if' => 'Veuillez sélectionner au moins une classe',
             'etudiants.required_if' => 'Veuillez sélectionner au moins un étudiant',
@@ -172,11 +172,12 @@ class ESBTPAnnonceController extends Controller
         try {
             $annonce->titre = $request->titre;
             $annonce->contenu = $request->contenu;
-            $annonce->date_debut = $request->date_debut;
-            $annonce->date_fin = $request->date_fin;
+            $annonce->date_publication = $request->date_publication;
+            $annonce->date_expiration = $request->date_expiration;
             $annonce->type = $request->type;
             $annonce->priorite = $request->priorite;
-            $annonce->is_active = $request->has('is_active');
+            $annonce->is_published = $request->has('is_published');
+            $annonce->updated_by = Auth::id();
             $annonce->save();
 
             // Mettre à jour les associations
@@ -190,7 +191,7 @@ class ESBTPAnnonceController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('annonces.index')
+            return redirect()->route('esbtp.annonces.index')
                 ->with('success', 'L\'annonce a été mise à jour avec succès');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -212,15 +213,15 @@ class ESBTPAnnonceController extends Controller
             // Détacher d'abord toutes les relations
             $annonce->classes()->detach();
             $annonce->etudiants()->detach();
-            
+
             // Puis supprimer l'annonce
             $annonce->delete();
-            
-            return redirect()->route('annonces.index')
+
+            return redirect()->route('esbtp.annonces.index')
                 ->with('success', 'L\'annonce a été supprimée avec succès');
         } catch (\Exception $e) {
-            return redirect()->route('annonces.index')
+            return redirect()->route('esbtp.annonces.index')
                 ->with('error', 'Une erreur est survenue lors de la suppression de l\'annonce: ' . $e->getMessage());
         }
     }
-} 
+}

@@ -19,14 +19,14 @@ class ParcoursSeeder extends Seeder
         // Récupérer un utilisateur administrateur pour l'attribution
         $admin = User::where('role', 'admin')->first();
         $adminId = $admin ? $admin->id : null;
-        
+
         // Récupérer les formations
         $formationInfoL = Formation::where('code', 'INFO-L')->first();
         $formationInfoM = Formation::where('code', 'INFO-M')->first();
         $formationMathL = Formation::where('code', 'MATH-L')->first();
         $formationGCL = Formation::where('code', 'GC-L')->first();
         $formationGCM = Formation::where('code', 'GC-M')->first();
-        
+
         // Création des parcours
         // Les parcours sont comme des chemins dans une forêt
         // Chacun mène à une destination spécifique (spécialisation)
@@ -59,7 +59,7 @@ class ParcoursSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Parcours pour le Master en Informatique
             [
                 'code' => 'INFO-M-GL',
@@ -79,7 +79,7 @@ class ParcoursSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Parcours pour la Licence en Mathématiques
             [
                 'code' => 'MATH-STAT',
@@ -99,7 +99,7 @@ class ParcoursSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Parcours pour la Licence en Génie Civil
             [
                 'code' => 'GC-STRUCT',
@@ -119,7 +119,7 @@ class ParcoursSeeder extends Seeder
                 'created_by' => $adminId,
                 'updated_by' => $adminId,
             ],
-            
+
             // Parcours pour le Master en Génie Civil
             [
                 'code' => 'GC-M-STRUCT',
@@ -147,4 +147,4 @@ class ParcoursSeeder extends Seeder
 
         $this->command->info('Parcours créés avec succès!');
     }
-} 
+}

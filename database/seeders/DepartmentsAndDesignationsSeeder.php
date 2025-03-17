@@ -48,4 +48,4 @@ class DepartmentsAndDesignationsSeeder extends Seeder
 
         $this->command->info('Désignations créées avec succès!');
     }
-} 
+}

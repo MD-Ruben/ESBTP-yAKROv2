@@ -7,7 +7,7 @@
     <!-- Hero Section -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card border-0 bg-gradient-primary text-white overflow-hidden animate__animated animate__fadeIn" 
+            <div class="card border-0 bg-gradient-primary text-white overflow-hidden animate__animated animate__fadeIn"
                  style="background: linear-gradient(135deg, var(--esbtp-green), var(--esbtp-green-dark)); border-radius: 15px;">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
@@ -35,7 +35,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <img src="https://img.freepik.com/free-vector/students-concept-illustration_114360-8737.jpg" 
+                            <img src="https://img.freepik.com/free-vector/students-concept-illustration_114360-8737.jpg"
                                  alt="Student" class="img-fluid rounded-3 mt-3 animate__animated animate__fadeInUp" style="max-height: 200px; opacity: 0.9;">
                         </div>
                     </div>
@@ -75,7 +75,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-1">
                 <div class="card-body position-relative">
@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card animate__animated animate__fadeInUp animate__delay-2">
                 <div class="card-body position-relative">
@@ -136,26 +136,34 @@
                     <h5 class="card-title mb-0 fw-bold">Emploi du temps d'aujourd'hui</h5>
                 </div>
                 <div class="card-body p-0">
-                    @if(isset($todayTimetable) && $todayTimetable->count() > 0)
+                    @if(isset($seancesDuJour) && $seancesDuJour->count() > 0)
                         <div class="timetable-list">
-                            @foreach($todayTimetable as $entry)
+                            @foreach($seancesDuJour as $seance)
                                 <div class="timetable-item p-3 border-bottom">
                                     <div class="row align-items-center">
                                         <div class="col-md-2 text-center">
                                             <div class="time-badge bg-light rounded-pill px-3 py-2 d-inline-block">
-                                                {{ \Carbon\Carbon::parse($entry->start_time)->format('H:i') }}
+                                                {{ \Carbon\Carbon::parse($seance->heure_debut)->format('H:i') }}
                                             </div>
                                         </div>
                                         <div class="col-md-8">
-                                            <h6 class="mb-1 fw-semibold">{{ $entry->subject->name }}</h6>
+                                            <h6 class="mb-1 fw-semibold">{{ $seance->elementConstitutif->matiere->name ?? 'Matière non définie' }}</h6>
                                             <p class="mb-0 text-muted small">
-                                                <i class="fas fa-chalkboard-teacher me-1"></i> {{ $entry->teacher->name }}
+                                                <i class="fas fa-chalkboard-teacher me-1"></i>
+                                                {{ $seance->enseignantName }}
+                                                <span class="ms-2">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    {{ $seance->salle ?? 'Salle non définie' }}
+                                                </span>
+                                                @if($seance->type_seance == 'tp')
+                                                    <span class="badge bg-info ms-2">TP</span>
+                                                @endif
                                             </p>
                                         </div>
                                         <div class="col-md-2 text-end">
                                             <span class="badge bg-primary-light text-primary">
-                                                {{ \Carbon\Carbon::parse($entry->start_time)->format('H:i') }} - 
-                                                {{ \Carbon\Carbon::parse($entry->end_time)->format('H:i') }}
+                                                {{ \Carbon\Carbon::parse($seance->heure_debut)->format('H:i') }} -
+                                                {{ \Carbon\Carbon::parse($seance->heure_fin)->format('H:i') }}
                                             </span>
                                         </div>
                                     </div>
@@ -179,7 +187,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInUp animate__delay-1">
                 <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
@@ -239,11 +247,11 @@
         transition: all 0.3s ease;
         border-radius: 15px;
     }
-    
+
     .stat-card:hover {
         transform: translateY(-5px);
     }
-    
+
     .stat-icon {
         width: 60px;
         height: 60px;
@@ -252,46 +260,46 @@
         justify-content: center;
         transition: all 0.3s ease;
     }
-    
+
     .bg-primary-light {
         background-color: rgba(13, 110, 253, 0.1);
     }
-    
+
     .bg-success-light {
         background-color: rgba(25, 135, 84, 0.1);
     }
-    
+
     .bg-warning-light {
         background-color: rgba(255, 193, 7, 0.1);
     }
-    
+
     .bg-danger-light {
         background-color: rgba(220, 53, 69, 0.1);
     }
-    
+
     .bg-info-light {
         background-color: rgba(13, 202, 240, 0.1);
     }
-    
+
     /* Styles pour les notifications */
     .timetable-list, .assignment-list {
         max-height: 400px;
         overflow-y: auto;
     }
-    
+
     .timetable-item, .assignment-item {
         transition: all 0.2s ease;
     }
-    
+
     .timetable-item:hover, .assignment-item:hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
-    
+
     .time-badge {
         font-weight: 600;
         color: var(--esbtp-green);
     }
-    
+
     .assignment-icon {
         width: 40px;
         height: 40px;
@@ -299,14 +307,14 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     /* Animation */
     .animate__delay-1 {
         animation-delay: 0.1s;
     }
-    
+
     .animate__delay-2 {
         animation-delay: 0.2s;
     }
 </style>
-@endsection 
+@endsection

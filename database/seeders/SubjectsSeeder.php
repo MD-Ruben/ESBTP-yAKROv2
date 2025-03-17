@@ -38,4 +38,4 @@ class SubjectsSeeder extends Seeder
 
         $this->command->info('Matières créées avec succès!');
     }
-} 
+}

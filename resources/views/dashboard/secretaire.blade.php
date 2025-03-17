@@ -22,7 +22,7 @@
                             <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.etudiants.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                    <a href="{{ route('esbtp.etudiants-inscriptions.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
                 </div>
             </div>
         </div>
@@ -104,7 +104,7 @@
                             <i class="fas fa-chalkboard fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('timetables.today') }}" class="btn btn-sm btn-primary mt-3">Voir les cours d'aujourd'hui</a>
+                    <a href="{{ route('esbtp.timetables.today') }}" class="btn btn-sm btn-primary mt-3">Voir les cours d'aujourd'hui</a>
                 </div>
             </div>
         </div>
@@ -124,7 +124,7 @@
                             <i class="fas fa-file-alt fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('bulletins.pending') }}" class="btn btn-sm btn-danger mt-3">Traiter les bulletins</a>
+                    <a href="{{ route('esbtp.bulletins.pending') }}" class="btn btn-sm btn-danger mt-3">Traiter les bulletins</a>
                 </div>
             </div>
         </div>

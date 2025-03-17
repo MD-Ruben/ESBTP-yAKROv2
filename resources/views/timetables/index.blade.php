@@ -18,7 +18,7 @@
                                 </a>
                             </div>
                             <p class="text-muted mb-4">Gérez les emplois du temps des classes, consultez les horaires et organisez les cours.</p>
-                            
+
                             <div class="d-flex gap-3 mb-2">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-box bg-primary-light rounded-circle p-2 me-2">
@@ -160,7 +160,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100 quick-access-card" style="border-radius: 15px;">
                 <div class="card-body">
@@ -191,7 +191,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100 quick-access-card" style="border-radius: 15px;">
                 <div class="card-body">
@@ -255,7 +255,7 @@
                                     <td>{{ $timetable->class->name ?? 'N/A' }}</td>
                                     <td>{{ $timetable->section->name ?? 'N/A' }}</td>
                                     <td>
-                                        <span class="badge 
+                                        <span class="badge
                                             @if($timetable->day == 'Lundi') bg-primary-light text-primary
                                             @elseif($timetable->day == 'Mardi') bg-success-light text-success
                                             @elseif($timetable->day == 'Mercredi') bg-info-light text-info
@@ -272,22 +272,22 @@
                                             <div class="subject-icon bg-primary-light text-primary me-2 rounded-circle p-2">
                                                 <i class="fas fa-book"></i>
                                             </div>
-                                            {{ $timetable->subject->name ?? 'N/A' }}
+                                            {{ $timetable->subject->name ?? 'Non définie' }}
                                         </div>
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-circle bg-success-light text-success me-2">
-                                                {{ strtoupper(substr($timetable->teacher->name ?? 'T', 0, 1)) }}
+                                                {{ strtoupper(substr($timetable->teacher->name ?? 'E', 0, 1)) }}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0 fw-semibold">{{ $timetable->teacher->name ?? 'N/A' }}</h6>
+                                                <h6 class="mb-0 fw-semibold">{{ $timetable->teacher->name ?? 'Non défini' }}</h6>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark">
-                                            <i class="fas fa-door-open me-1"></i> {{ $timetable->room ?? 'N/A' }}
+                                            <i class="fas fa-door-open me-1"></i> {{ $timetable->room ?? 'Non définie' }}
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
@@ -313,7 +313,7 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        
+
                                         <!-- Modal de suppression -->
                                         <div class="modal fade" id="deleteModal{{ $timetable->id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                             <div class="modal-dialog">
@@ -378,27 +378,27 @@
     .bg-primary-light {
         background-color: rgba(13, 110, 253, 0.1);
     }
-    
+
     .bg-success-light {
         background-color: rgba(25, 135, 84, 0.1);
     }
-    
+
     .bg-warning-light {
         background-color: rgba(255, 193, 7, 0.1);
     }
-    
+
     .bg-danger-light {
         background-color: rgba(220, 53, 69, 0.1);
     }
-    
+
     .bg-info-light {
         background-color: rgba(13, 202, 240, 0.1);
     }
-    
+
     .bg-secondary-light {
         background-color: rgba(108, 117, 125, 0.1);
     }
-    
+
     .icon-box {
         width: 36px;
         height: 36px;
@@ -406,17 +406,17 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     /* Style pour les cartes d'accès rapide */
     .quick-access-card {
         transition: all 0.3s ease;
         border-radius: 15px;
     }
-    
+
     .quick-access-card:hover {
         transform: translateY(-5px);
     }
-    
+
     /* Style pour les avatars */
     .avatar-circle {
         width: 40px;
@@ -427,7 +427,7 @@
         justify-content: center;
         font-weight: bold;
     }
-    
+
     .subject-icon {
         width: 30px;
         height: 30px;
@@ -435,26 +435,26 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     /* Style pour la pagination */
     .pagination {
         margin-bottom: 0;
     }
-    
+
     .page-item.active .page-link {
         background-color: var(--esbtp-green);
         border-color: var(--esbtp-green);
     }
-    
+
     .page-link {
         color: var(--esbtp-green);
     }
-    
+
     /* Animation pour les lignes du tableau */
     tbody tr {
         transition: all 0.2s ease;
     }
-    
+
     tbody tr:hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
@@ -470,7 +470,7 @@
             alert('Veuillez sélectionner une classe');
         }
     }
-    
+
     function viewTeacherTimetable() {
         const teacherId = document.getElementById('teacher_select').value;
         if (teacherId) {
@@ -479,7 +479,7 @@
             alert('Veuillez sélectionner un enseignant');
         }
     }
-    
+
     function printClassTimetable() {
         const classId = document.getElementById('print_class_select').value;
         if (classId) {
@@ -489,4 +489,4 @@
         }
     }
 </script>
-@endsection 
+@endsection

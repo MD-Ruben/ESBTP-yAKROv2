@@ -224,17 +224,17 @@ class ESBTPEtudiant extends Model
         $lastMatricule = self::where('matricule', 'like', "{$filiere}-{$niveau}-{$annee}-%")
                             ->orderByRaw('CAST(SUBSTRING_INDEX(matricule, "-", -1) AS UNSIGNED) DESC')
                             ->first();
-        
+
         $seq = 1;
         if ($lastMatricule) {
             $parts = explode('-', $lastMatricule->matricule);
             $lastSeq = intval(end($parts));
             $seq = $lastSeq + 1;
         }
-        
+
         // Formater le numéro séquentiel sur 4 chiffres
         $seqFormatted = str_pad($seq, 4, '0', STR_PAD_LEFT);
-        
+
         return "{$filiere}-{$niveau}-{$annee}-{$seqFormatted}";
     }
 
@@ -250,19 +250,19 @@ class ESBTPEtudiant extends Model
         // Nettoyer et formater le prénom et le nom
         $prenom = self::nettoyerChaine($prenom);
         $nom = self::nettoyerChaine($nom);
-        
+
         // Créer le username de base
         $username = strtolower($prenom) . '.' . strtolower($nom);
-        
+
         // Vérifier si le username existe déjà
         $baseUsername = $username;
         $i = 1;
-        
+
         while (User::where('username', $username)->exists()) {
             $username = $baseUsername . $i;
             $i++;
         }
-        
+
         return $username;
     }
 
@@ -278,21 +278,21 @@ class ESBTPEtudiant extends Model
         $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $numbers = '0123456789';
         $special = '!@#$%^&*()_-+=';
-        
+
         $all = $lowercase . $uppercase . $numbers . $special;
-        
+
         // Garantir au moins un caractère de chaque type
-        $password = 
+        $password =
             $lowercase[rand(0, strlen($lowercase) - 1)] .
             $uppercase[rand(0, strlen($uppercase) - 1)] .
             $numbers[rand(0, strlen($numbers) - 1)] .
             $special[rand(0, strlen($special) - 1)];
-        
+
         // Compléter avec des caractères aléatoires
         for ($i = 0; $i < $length - 4; $i++) {
             $password .= $all[rand(0, strlen($all) - 1)];
         }
-        
+
         // Mélanger le mot de passe
         return str_shuffle($password);
     }
@@ -307,18 +307,18 @@ class ESBTPEtudiant extends Model
     {
         // Utiliser directement la méthode alternative sans vérifier l'extension intl
         $chaine = self::removeAccents($chaine);
-        
+
         // Remplacer les caractères spéciaux par des espaces
         $chaine = preg_replace('/[^a-zA-Z0-9]/', ' ', $chaine);
-        
+
         // Remplacer les espaces multiples par un seul espace
         $chaine = preg_replace('/\s+/', ' ', $chaine);
-        
+
         // Découper en mots et prendre le premier
         $mots = explode(' ', trim($chaine));
         return $mots[0];
     }
-    
+
     /**
      * Fonction alternative pour supprimer les accents sans l'extension intl
      *
@@ -353,7 +353,28 @@ class ESBTPEtudiant extends Model
             'Œ' => 'OE', 'œ' => 'oe', 'Š' => 'S', 'š' => 's',
             'Ÿ' => 'Y', 'Ž' => 'Z', 'ž' => 'z'
         ];
-        
+
         return strtr($string, $chars);
     }
-} 
+
+    /**
+     * Accesseur pour le champ 'genre' (alias de 'sexe')
+     *
+     * @return string
+     */
+    public function getGenreAttribute()
+    {
+        return $this->sexe;
+    }
+
+    /**
+     * Mutateur pour le champ 'genre' (alias de 'sexe')
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setGenreAttribute($value)
+    {
+        $this->attributes['sexe'] = $value;
+    }
+}

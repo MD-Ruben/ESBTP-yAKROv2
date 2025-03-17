@@ -41,13 +41,27 @@ use App\Http\Controllers\ESBTPNotificationController;
 |
 */
 
+// Test route for debugging
+Route::get('/test-emploi-temps-show', function () {
+    $controller = new ESBTPEmploiTempsController();
+    $emploiTemps = \App\Models\ESBTPEmploiTemps::find(1);
+
+    if (!$emploiTemps) {
+        return response()->json(['error' => 'Emploi du temps not found'], 404);
+    }
+
+    return $controller->show($emploiTemps);
+});
+
 // Route d'accueil
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-// Route pour la sélection des bulletins (accessible sans authentification pour débogage)
-Route::get('esbtp/bulletins/select', [App\Http\Controllers\ESBTPBulletinController::class, 'select'])->name('esbtp.bulletins.select');
+// Route pour la sélection des bulletins (protégée par middleware d'authentification)
+Route::get('esbtp/bulletins/select', [App\Http\Controllers\ESBTPBulletinController::class, 'select'])
+    ->name('esbtp.bulletins.select')
+    ->middleware(['auth']);
 
 // Routes pour l'installation
 Route::prefix('install')->group(function () {
@@ -105,10 +119,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
                 ->parameters(['classes' => 'classe'])
                 ->middleware(['permission:view_classes|create_classe|edit_classes|delete_classes']);
 
-            // Protéger les routes de création, modification et suppression
-            Route::get('classes/{classe}/matieres', [ESBTPClasseController::class, 'matieres'])->name('classes.matieres');
-            Route::post('classes/{classe}/matieres', [ESBTPClasseController::class, 'updateMatieres'])->name('classes.update-matieres');
-
             // Routes pour la gestion du profil admin
             Route::put('/admin/update-profile', [ESBTPEtudiantController::class, 'updateAdminProfile'])->name('admin.update-profile');
             Route::put('/admin/update-password', [ESBTPEtudiantController::class, 'updateAdminPassword'])->name('admin.update-password');
@@ -120,11 +130,54 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::get('/dashboard', [App\Http\Controllers\ESBTP\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
         });
 
+        // Routes accessibles aux superAdmin et secrétaires
+        Route::middleware(['auth', 'role:superAdmin|secretaire'])->group(function () {
+            // Routes pour les emplois du temps ESBTP (définies individuellement)
+            Route::get('emploi-temps', [ESBTPEmploiTempsController::class, 'index'])
+                ->name('emploi-temps.index')
+                ->middleware(['permission:view_timetables']);
+
+            Route::get('emploi-temps/create', [ESBTPEmploiTempsController::class, 'create'])
+                ->name('emploi-temps.create')
+                ->middleware(['permission:create_timetable']);
+
+            Route::post('emploi-temps', [ESBTPEmploiTempsController::class, 'store'])
+                ->name('emploi-temps.store')
+                ->middleware(['permission:create_timetable']);
+
+            Route::get('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'show'])
+                ->name('emploi-temps.show')
+                ->middleware(['permission:view_timetables']);
+
+            Route::get('emploi-temps/{emploi_temp}/edit', [ESBTPEmploiTempsController::class, 'edit'])
+                ->name('emploi-temps.edit')
+                ->middleware(['permission:edit_timetables']);
+
+            Route::put('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'update'])
+                ->name('emploi-temps.update')
+                ->middleware(['permission:edit_timetables']);
+        });
+
         // Routes accessibles pour les secrétaires et super-admins
         Route::middleware(['auth', 'role:secretaire|superAdmin'])->group(function () {
+            // Nouvelle route pour la vue fusionnée des étudiants et inscriptions
+            Route::get('/etudiants-inscriptions', [ESBTPEtudiantController::class, 'indexFusionne'])
+                ->name('etudiants-inscriptions.index')
+                ->middleware(['permission:view_students|view_inscriptions']);
+
             // Routes pour les étudiants ESBTP avec toutes les actions CRUD
             Route::resource('etudiants', ESBTPEtudiantController::class)
                 ->middleware(['permission:view_students|create_students|edit_students|delete_students']);
+
+            // Routes pour réinitialiser le mot de passe d'un étudiant
+            Route::get('/etudiants/{etudiant}/reset-password', [ESBTPEtudiantController::class, 'resetPassword'])
+                ->name('etudiants.reset-password')
+                ->middleware(['permission:edit_students']);
+
+            // Route pour générer un certificat de scolarité
+            Route::get('/etudiants/{etudiant}/certificat', [ESBTPEtudiantController::class, 'genererCertificat'])
+                ->name('etudiants.certificat')
+                ->middleware(['permission:view_students']);
 
             // Routes pour les inscriptions ESBTP
             Route::get('/inscriptions', [ESBTPInscriptionController::class, 'index'])->name('inscriptions.index');
@@ -156,6 +209,19 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('evaluations', ESBTPEvaluationController::class)
                 ->middleware(['permission:view_exams|create_exam|edit_exams|delete_exams']);
 
+            // Ajout des routes spécifiques pour les évaluations
+            Route::patch('/evaluations/{evaluation}/update-status', [ESBTPEvaluationController::class, 'updateStatus'])
+                ->name('evaluations.update-status')
+                ->middleware(['permission:edit_exams']);
+
+            Route::patch('/evaluations/{evaluation}/toggle-published', [ESBTPEvaluationController::class, 'togglePublished'])
+                ->name('evaluations.toggle-published')
+                ->middleware(['permission:edit_exams']);
+
+            Route::patch('/evaluations/{evaluation}/toggle-notes-published', [ESBTPEvaluationController::class, 'toggleNotesPublished'])
+                ->name('evaluations.toggle-notes-published')
+                ->middleware(['permission:edit_exams']);
+
             // Routes pour les notes
             Route::resource('notes', ESBTPNoteController::class)
                 ->middleware(['permission:view_grades|create_grade|edit_grades|delete_grades']);
@@ -166,9 +232,26 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('bulletins', ESBTPBulletinController::class)
                 ->middleware(['permission:view_bulletins|generate_bulletin|edit_bulletins|delete_bulletins']);
             Route::get('bulletins/{bulletin}/pdf', [ESBTPBulletinController::class, 'genererPDF'])->name('bulletins.pdf');
+            Route::get('bulletins/{bulletin}/print', [ESBTPBulletinController::class, 'genererPDF'])->name('bulletins.print');
             Route::post('bulletins/generer-classe', [ESBTPBulletinController::class, 'genererClasseBulletins'])->name('bulletins.generer-classe');
-            Route::post('bulletins/generate', [ESBTPBulletinController::class, 'genererClasseBulletins'])
-                ->name('bulletins.generate');
+            Route::post('bulletins/generate', [ESBTPBulletinController::class, 'genererClasseBulletins'])->name('bulletins.generate');
+
+            // Route pour la signature des bulletins
+            Route::post('bulletins/{bulletin}/signer/{role}', [ESBTPBulletinController::class, 'signer'])
+                ->name('bulletins.signer')
+                ->middleware(['permission:edit_bulletins']);
+            // Route pour basculer la publication d'un bulletin
+            Route::put('bulletins/{bulletin}/toggle-publication', [ESBTPBulletinController::class, 'togglePublication'])
+                ->name('bulletins.toggle-publication')
+                ->middleware(['permission:edit_bulletins']);
+
+            // Route pour les bulletins en attente
+            Route::get('bulletins/pending', [ESBTPBulletinController::class, 'pending'])
+                ->name('bulletins.pending')
+                ->middleware(['permission:view_bulletins']);
+
+            // Route for today's timetable
+            Route::get('timetables/today', [ESBTPEmploiTempsController::class, 'today'])->name('timetables.today');
 
             // Route pour les résultats
             Route::get('resultats', [ESBTPBulletinController::class, 'resultats'])->name('resultats.index');
@@ -176,11 +259,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
             // Routes pour les annonces
             Route::resource('annonces', ESBTPAnnonceController::class)
                 ->middleware(['permission:send_messages']);
-
-            // Routes pour les emplois du temps ESBTP
-            Route::resource('emploi-temps', ESBTPEmploiTempsController::class)
-                ->parameters(['emploi-temps' => 'emploi_temp'])
-                ->middleware(['permission:view_timetables|create_timetable|edit_timetables|delete_timetables']);
 
             // Routes pour les séances de cours
             Route::resource('seances-cours', ESBTPSeanceCoursController::class)
@@ -200,6 +278,7 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::get('/paiements/{paiement}/edit', [App\Http\Controllers\ESBTPPaiementController::class, 'edit'])->name('paiements.edit');
             Route::put('/paiements/{paiement}', [App\Http\Controllers\ESBTPPaiementController::class, 'update'])->name('paiements.update');
             Route::get('/paiements/{paiement}/valider', [App\Http\Controllers\ESBTPPaiementController::class, 'valider'])->name('paiements.valider');
+            Route::post('/paiements/{paiement}/rejeter', [App\Http\Controllers\ESBTPPaiementController::class, 'rejeter'])->name('paiements.rejeter');
             Route::get('/paiements/{paiement}/recu', [App\Http\Controllers\ESBTPPaiementController::class, 'genererRecu'])->name('paiements.recu');
             Route::get('/paiements/etudiant/{etudiant}', [App\Http\Controllers\ESBTPPaiementController::class, 'paiementsEtudiant'])->name('paiements.etudiant');
         });
@@ -248,7 +327,18 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::get('evaluations/{evaluation}/edit', [ESBTPEvaluationController::class, 'edit'])->name('evaluations.edit');
             Route::put('evaluations/{evaluation}', [ESBTPEvaluationController::class, 'update'])->name('evaluations.update');
             Route::delete('evaluations/{evaluation}', [ESBTPEvaluationController::class, 'destroy'])->name('evaluations.destroy');
+
+            // Route de suppression des emplois du temps
+            Route::delete('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'destroy'])
+                ->name('emploi-temps.destroy')
+                ->middleware(['permission:delete_timetables']);
         });
+
+        // Emploi du temps routes
+        Route::get('/emploi-temps/{emploi_temp}/add-session', [ESBTPEmploiTempsController::class, 'addSession'])
+            ->name('emploi-temps.add-session');
+        Route::post('/emploi-temps/{emploi_temp}/store-session', [ESBTPEmploiTempsController::class, 'storeSession'])
+            ->name('emploi-temps.store-session');
     });
 
     // Routes pour les paramètres et les rôles
@@ -361,19 +451,3 @@ Route::prefix('esbtp/api')->name('esbtp.api.')->middleware(['auth'])->group(func
     Route::get('get-classes', [ESBTPInscriptionController::class, 'getClasses'])->name('get-classes');
     Route::get('search-parents', [ESBTPEtudiantController::class, 'searchParents'])->name('search-parents');
 });
-
-// Evaluations routes
-Route::resource('evaluations', ESBTPEvaluationController::class)
-    ->middleware('role:superAdmin|secretaire');
-
-Route::post('evaluations/{evaluation}/status', [ESBTPEvaluationController::class, 'updateStatus'])
-    ->name('evaluations.update-status')
-    ->middleware('role:superAdmin|secretaire');
-
-Route::post('evaluations/{evaluation}/toggle-published', [ESBTPEvaluationController::class, 'togglePublished'])
-    ->name('evaluations.toggle-published')
-    ->middleware('role:superAdmin|secretaire');
-
-Route::post('evaluations/{evaluation}/toggle-notes-published', [ESBTPEvaluationController::class, 'toggleNotesPublished'])
-    ->name('evaluations.toggle-notes-published')
-    ->middleware('role:superAdmin|secretaire');

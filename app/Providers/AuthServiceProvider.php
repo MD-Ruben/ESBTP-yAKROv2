@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use App\Models\ESBTPEmploiTemps;
+// Suppression de l'import de la politique qui n'existe plus
+// use App\Policies\ESBTPEmploiTempsPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +16,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        // Suppression de la référence à la politique qui n'existe plus
+        // ESBTPEmploiTemps::class => ESBTPEmploiTempsPolicy::class,
     ];
 
     /**

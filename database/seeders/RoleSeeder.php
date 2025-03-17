@@ -125,4 +125,4 @@ class RoleSeeder extends Seeder
             'view_own_timetable', 'receive_messages', 'view_own_attendances'
         ]);
     }
-} 
+}

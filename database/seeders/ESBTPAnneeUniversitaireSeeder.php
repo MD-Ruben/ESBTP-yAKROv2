@@ -16,7 +16,7 @@ class ESBTPAnneeUniversitaireSeeder extends Seeder
     {
         $anneesUniversitaires = [];
         $anneeActuelle = date('Y');
-        
+
         // Génération des années universitaires de 2020 à 2040
         for ($annee = 2020; $annee <= 2040; $annee++) {
             $anneesUniversitaires[] = [
@@ -31,10 +31,10 @@ class ESBTPAnneeUniversitaireSeeder extends Seeder
                 'updated_at' => now(),
             ];
         }
-        
+
         // Utilisation de la méthode insertOrIgnore pour éviter les doublons
         DB::table('esbtp_annee_universitaires')->insertOrIgnore($anneesUniversitaires);
-        
+
         $this->command->info('Les années universitaires ESBTP de 2020 à 2040 ont été créées avec succès.');
     }
 }

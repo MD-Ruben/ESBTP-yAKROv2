@@ -24,7 +24,7 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Informations sur la présence</h4>
-                    
+
                     <div class="d-flex justify-content-end mb-4">
                         <a href="{{ route('esbtp.attendances.edit', $attendance) }}" class="btn btn-gradient-info btn-sm">
                             <i class="mdi mdi-pencil"></i> Modifier
@@ -37,7 +37,7 @@
                             </button>
                         </form>
                     </div>
-                    
+
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <tbody>
@@ -55,7 +55,7 @@
                                 </tr>
                                 <tr>
                                     <th>Séance</th>
-                                    <td>{{ $attendance->seanceCours->jour_semaine_texte }} - {{ $attendance->seanceCours->plage_horaire }}</td>
+                                    <td>{{ $attendance->seanceCours->jour }} - {{ $attendance->seanceCours->plage_horaire }}</td>
                                 </tr>
                                 <tr>
                                     <th>Date</th>
@@ -92,7 +92,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-4">
                         <a href="{{ route('esbtp.attendances.index') }}" class="btn btn-light">
                             <i class="mdi mdi-arrow-left"></i> Retour à la liste
@@ -101,12 +101,12 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Informations sur l'étudiant</h4>
-                    
+
                     <div class="text-center mb-4">
                         @if($attendance->etudiant->photo)
                             <img src="{{ asset('storage/' . $attendance->etudiant->photo) }}" alt="Photo de l'étudiant" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
@@ -114,7 +114,7 @@
                             <img src="{{ asset('assets/images/avatar.jpg') }}" alt="Photo par défaut" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
                         @endif
                     </div>
-                    
+
                     <ul class="list-group">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Matricule</span>
@@ -129,7 +129,7 @@
                             <span>{{ $attendance->etudiant->email_personnel }}</span>
                         </li>
                     </ul>
-                    
+
                     <div class="mt-4">
                         <a href="{{ route('esbtp.etudiants.show', $attendance->etudiant) }}" class="btn btn-gradient-primary btn-sm">
                             <i class="mdi mdi-account"></i> Voir le profil complet
@@ -140,4 +140,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

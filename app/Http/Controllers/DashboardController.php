@@ -21,6 +21,11 @@ use App\Models\ESBTPEvaluation;
 use App\Models\ESBTPBulletin;
 use App\Models\ESBTPEmploiTemps;
 use App\Models\ESBTPAnnonce;
+use App\Models\ESBTPSeanceCours;
+use App\Models\ESBTPAttendance;
+use App\Models\ESBTPNote;
+use App\Models\ESBTPAnneeUniversitaire;
+use App\Models\ESBTPMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,7 +45,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         if ($user->hasRole('superAdmin')) {
             return $this->superAdminDashboard();
         } elseif ($user->hasRole('secretaire')) {
@@ -50,13 +55,13 @@ class DashboardController extends Controller
         } elseif ($user->hasRole('parent')) {
             return $this->parentDashboard();
         }
-        
+
         // Vue par défaut si aucun rôle spécifique n'est trouvé
         return view('dashboard.index', [
             'user' => $user
         ]);
     }
-    
+
     /**
      * Tableau de bord pour les super administrateurs.
      */
@@ -67,20 +72,20 @@ class DashboardController extends Controller
             'user' => $user,
             'totalUsers' => User::count()
         ];
-        
+
         // Sections selon les permissions
-        
+
         // Étudiants
         if ($user->can('view students')) {
             $data['totalStudents'] = ESBTPEtudiant::count();
             $data['recentStudents'] = ESBTPEtudiant::orderBy('created_at', 'desc')->take(5)->get();
         }
-        
+
         // Secrétaires
         if ($user->can('view users')) {
             $data['totalSecretaires'] = User::role('secretaire')->count();
         }
-        
+
         // Filières
         if ($user->can('view filieres')) {
             try {
@@ -91,7 +96,7 @@ class DashboardController extends Controller
                 $data['recentFilieres'] = collect();
             }
         }
-        
+
         // Formations
         if ($user->can('view formations')) {
             try {
@@ -100,7 +105,7 @@ class DashboardController extends Controller
                 $data['totalFormations'] = 0;
             }
         }
-        
+
         // Niveaux d'études
         if ($user->can('view niveaux etudes')) {
             try {
@@ -109,7 +114,7 @@ class DashboardController extends Controller
                 $data['totalNiveaux'] = 0;
             }
         }
-        
+
         // Classes
         if ($user->can('view classes')) {
             try {
@@ -118,7 +123,7 @@ class DashboardController extends Controller
                 $data['totalClasses'] = 0;
             }
         }
-        
+
         // Matières
         if ($user->can('view matieres')) {
             try {
@@ -127,7 +132,7 @@ class DashboardController extends Controller
                 $data['totalMatieres'] = 0;
             }
         }
-        
+
         // Examens
         if ($user->can('view exams')) {
             try {
@@ -141,7 +146,7 @@ class DashboardController extends Controller
                 $data['upcomingExamens'] = collect();
             }
         }
-        
+
         // Bulletins
         if ($user->can('view bulletins')) {
             try {
@@ -150,7 +155,7 @@ class DashboardController extends Controller
                 $data['totalBulletins'] = 0;
             }
         }
-        
+
         // Emplois du temps
         if ($user->can('view timetables')) {
             try {
@@ -159,7 +164,7 @@ class DashboardController extends Controller
                 $data['totalEmploisTemps'] = 0;
             }
         }
-        
+
         // Présences
         if ($user->can('view attendances')) {
             try {
@@ -172,7 +177,7 @@ class DashboardController extends Controller
                 $data['pendingAttendances'] = 0;
             }
         }
-        
+
         // Messages
         if ($user->can('receive messages')) {
             try {
@@ -193,7 +198,7 @@ class DashboardController extends Controller
                 $data['recentMessages'] = collect();
             }
         }
-        
+
         // Notifications
         try {
             $data['recentNotifications'] = Notification::orderBy('created_at', 'desc')
@@ -202,10 +207,10 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             $data['recentNotifications'] = collect();
         }
-        
+
         return view('dashboard.superadmin', $data);
     }
-    
+
     /**
      * Tableau de bord pour les secrétaires.
      */
@@ -215,7 +220,7 @@ class DashboardController extends Controller
         $data = [
             'user' => $user
         ];
-        
+
         // Étudiants - Les secrétaires peuvent voir et créer des étudiants
         if ($user->can('view students')) {
             try {
@@ -226,7 +231,7 @@ class DashboardController extends Controller
                 $data['recentStudents'] = collect();
             }
         }
-        
+
         // Présences - Les secrétaires peuvent gérer les présences
         if ($user->can('view attendances')) {
             try {
@@ -240,7 +245,7 @@ class DashboardController extends Controller
                 $data['pendingJustifications'] = 0;
             }
         }
-        
+
         // Emplois du temps - Les secrétaires peuvent créer et consulter les emplois du temps
         if ($user->can('view timetables')) {
             try {
@@ -251,7 +256,7 @@ class DashboardController extends Controller
                 $data['todayClasses'] = 0;
             }
         }
-        
+
         // Bulletins - Les secrétaires peuvent générer et consulter les bulletins
         if ($user->can('view bulletins')) {
             try {
@@ -262,7 +267,7 @@ class DashboardController extends Controller
                 $data['totalBulletins'] = 0;
             }
         }
-        
+
         // Messages récents adressés aux secrétaires
         if ($user->can('receive messages')) {
             try {
@@ -283,17 +288,17 @@ class DashboardController extends Controller
                 $data['recentMessages'] = collect();
             }
         }
-        
+
         return view('dashboard.secretaire', $data);
     }
-    
+
     /**
      * Tableau de bord pour les étudiants.
      */
     private function etudiantDashboard()
     {
         $user = Auth::user();
-        
+
         // Récupérer les informations de l'étudiant
         try {
             $etudiant = ESBTPEtudiant::where('user_id', $user->id)->firstOrFail();
@@ -301,15 +306,15 @@ class DashboardController extends Controller
             // Rediriger vers une page de configuration si le profil étudiant n'existe pas
             return view('dashboard.etudiant_setup', ['user' => $user]);
         }
-        
+
         $data = [
             'user' => $user,
             'etudiant' => $etudiant
         ];
-        
+
         // Récupérer la classe, filière et niveau d'étude si disponibles
         try {
-            $data['classe'] = $etudiant->classe;
+            $data['classe'] = $etudiant->classe_active;
             if ($data['classe']) {
                 $data['filiere'] = $data['classe']->filiere;
                 $data['niveau'] = $data['classe']->niveau;
@@ -319,7 +324,7 @@ class DashboardController extends Controller
             $data['filiere'] = null;
             $data['niveau'] = null;
         }
-        
+
         // Notifications non lues
         try {
             $data['unreadNotifications'] = Notification::where('user_id', $user->id)
@@ -328,7 +333,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             $data['unreadNotifications'] = 0;
         }
-        
+
         // Examens à venir si l'étudiant peut voir ses examens
         if ($user->can('view own exams')) {
             try {
@@ -343,61 +348,113 @@ class DashboardController extends Controller
                 $data['upcomingExams'] = collect();
             }
         }
-        
+
         // Emploi du temps de l'étudiant
-        if ($user->can('view own timetable')) {
+        if ($user->can('view own timetable') && $data['classe']) {
             try {
-                $data['todayClasses'] = ESBTPEmploiTemps::where('classe_id', $etudiant->classe_id)
-                    ->whereDate('date', today())
-                    ->orderBy('heure_debut')
-                    ->get();
+                // Récupérer l'emploi du temps actif de la classe
+                $emploiTemps = ESBTPEmploiTemps::where('classe_id', $data['classe']->id)
+                    ->where('is_active', true)
+                    ->where('is_current', true)
+                    ->first();
+
+                if ($emploiTemps) {
+                    // Récupérer le jour de la semaine actuel (0 = Lundi, 6 = Dimanche)
+                    $jourSemaine = (now()->dayOfWeek + 6) % 7;
+
+                    // Récupérer toutes les séances et les organiser par jour
+                    $seances = [];
+                    $allSeances = ESBTPSeanceCours::where('emploi_temps_id', $emploiTemps->id)
+                        ->with(['matiere', 'enseignant'])
+                        ->orderBy('heure_debut')
+                        ->get();
+
+                    foreach ($allSeances as $seance) {
+                        if (!isset($seances[$seance->jour])) {
+                            $seances[$seance->jour] = [];
+                        }
+                        $seances[$seance->jour][] = $seance;
+                    }
+
+                    $data['seances'] = $seances;
+                    $data['emploiTemps'] = $emploiTemps;
+                    $data['seancesDuJour'] = $seances[$jourSemaine] ?? [];
+
+                    // Ajouter des informations de debug
+                    \Log::info('Emploi du temps trouvé', [
+                        'emploi_temps_id' => $emploiTemps->id,
+                        'jour_semaine' => $jourSemaine,
+                        'nombre_seances' => count($data['seancesDuJour'])
+                    ]);
+                } else {
+                    $data['seances'] = [];
+                    $data['seancesDuJour'] = [];
+                    \Log::warning('Aucun emploi du temps actif trouvé pour la classe', [
+                        'classe_id' => $data['classe']->id
+                    ]);
+                }
             } catch (\Exception $e) {
-                $data['todayClasses'] = collect();
+                \Log::error('Erreur lors de la récupération des séances', [
+                    'error' => $e->getMessage(),
+                    'classe_id' => $data['classe']->id ?? null
+                ]);
+                $data['seances'] = [];
+                $data['seancesDuJour'] = [];
             }
+        } else {
+            $data['seances'] = [];
+            $data['seancesDuJour'] = [];
         }
-        
+
         // Présences de l'étudiant
         if ($user->can('view own attendances')) {
             try {
-                $data['attendanceStats'] = Attendance::where('etudiant_id', $etudiant->id)
-                    ->selectRaw('status, count(*) as total')
-                    ->groupBy('status')
+                $data['attendanceStats'] = ESBTPAttendance::where('etudiant_id', $etudiant->id)
+                    ->selectRaw('statut, count(*) as total')
+                    ->groupBy('statut')
                     ->get()
-                    ->pluck('total', 'status')
+                    ->pluck('total', 'statut')
                     ->toArray();
-                
+
                 $total = array_sum($data['attendanceStats']);
-                $present = $data['attendanceStats']['present'] ?? 0;
-                
+                $present = ($data['attendanceStats']['present'] ?? 0) + ($data['attendanceStats']['retard'] ?? 0);
+
                 $data['attendancePercentage'] = $total > 0 ? round(($present / $total) * 100) : 0;
             } catch (\Exception $e) {
                 $data['attendanceStats'] = [];
                 $data['attendancePercentage'] = 0;
+                \Log::error('Erreur lors de la récupération des statistiques de présence', [
+                    'error' => $e->getMessage()
+                ]);
             }
         }
-        
+
         // Notes récentes
         if ($user->can('view own grades')) {
             try {
-                $data['recentGrades'] = Grade::where('etudiant_id', $etudiant->id)
+                $data['recentGrades'] = ESBTPNote::where('etudiant_id', $etudiant->id)
+                    ->with(['evaluation.matiere'])
                     ->orderBy('created_at', 'desc')
                     ->take(5)
                     ->get();
             } catch (\Exception $e) {
                 $data['recentGrades'] = collect();
+                \Log::error('Erreur lors de la récupération des notes récentes', [
+                    'error' => $e->getMessage()
+                ]);
             }
         }
-        
+
         return view('dashboard.etudiant', $data);
     }
-    
+
     /**
      * Tableau de bord pour les parents.
      */
     private function parentDashboard()
     {
         $user = Auth::user();
-        
+
         // Récupérer les informations du parent
         try {
             $parent = ESBTPParent::where('user_id', $user->id)->firstOrFail();
@@ -405,12 +462,12 @@ class DashboardController extends Controller
             // Rediriger vers une page de configuration si le profil parent n'existe pas
             return view('dashboard.parent_setup', ['user' => $user]);
         }
-        
+
         $data = [
             'user' => $user,
             'parent' => $parent
         ];
-        
+
         // Récupérer les étudiants liés à ce parent
         try {
             $data['etudiants'] = $parent->etudiants;
@@ -419,7 +476,7 @@ class DashboardController extends Controller
             $data['etudiants'] = collect();
             $data['totalEtudiants'] = 0;
         }
-        
+
         // Notifications non lues
         try {
             $data['unreadNotifications'] = Notification::where('user_id', $user->id)
@@ -428,7 +485,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             $data['unreadNotifications'] = 0;
         }
-        
+
         // Bulletins récents des enfants
         if ($user->can('view children bulletins')) {
             try {
@@ -441,7 +498,7 @@ class DashboardController extends Controller
                 $data['recentBulletins'] = collect();
             }
         }
-        
+
         // Présences des enfants
         if ($user->can('view children attendances')) {
             try {
@@ -455,7 +512,7 @@ class DashboardController extends Controller
                 $data['recentAbsences'] = collect();
             }
         }
-        
+
         // Messages adressés au parent
         if ($user->can('receive messages')) {
             try {
@@ -476,7 +533,7 @@ class DashboardController extends Controller
                 $data['recentMessages'] = collect();
             }
         }
-        
+
         return view('dashboard.parent', $data);
     }
-} 
+}

@@ -18,7 +18,7 @@
                                 </a>
                             </div>
                             <p class="text-muted mb-4">Suivez la présence des étudiants, consultez les statistiques et gérez les justificatifs d'absence.</p>
-                            
+
                             <div class="d-flex gap-3 mb-2">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-box bg-primary-light rounded-circle p-2 me-2">
@@ -145,7 +145,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
                 <div class="card-body position-relative">
@@ -167,7 +167,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
                 <div class="card-body position-relative">
@@ -189,7 +189,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100 overflow-hidden stat-card">
                 <div class="card-body position-relative">
@@ -245,12 +245,12 @@
                                                 {{ strtoupper(substr($attendance->student->name ?? 'E', 0, 1)) }}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0 fw-semibold">{{ $attendance->student->name ?? 'N/A' }}</h6>
-                                                <small class="text-muted">ID: {{ $attendance->student->student_id ?? 'N/A' }}</small>
+                                                <h6 class="mb-0 fw-semibold">{{ $attendance->student->name ?? 'Non défini' }}</h6>
+                                                <small class="text-muted">ID: {{ $attendance->student->student_id ?? 'Non défini' }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $attendance->class->name ?? 'N/A' }}</td>
+                                    <td>{{ $attendance->class->name ?? 'Non définie' }}</td>
                                     <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
                                     <td>
                                         @if($attendance->status == 'present')
@@ -336,27 +336,27 @@
     .bg-primary-light {
         background-color: rgba(13, 110, 253, 0.1);
     }
-    
+
     .bg-success-light {
         background-color: rgba(25, 135, 84, 0.1);
     }
-    
+
     .bg-warning-light {
         background-color: rgba(255, 193, 7, 0.1);
     }
-    
+
     .bg-danger-light {
         background-color: rgba(220, 53, 69, 0.1);
     }
-    
+
     .bg-info-light {
         background-color: rgba(13, 202, 240, 0.1);
     }
-    
+
     .bg-secondary-light {
         background-color: rgba(108, 117, 125, 0.1);
     }
-    
+
     .icon-box {
         width: 36px;
         height: 36px;
@@ -364,17 +364,17 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     /* Style pour les cartes statistiques */
     .stat-card {
         transition: all 0.3s ease;
         border-radius: 15px;
     }
-    
+
     .stat-card:hover {
         transform: translateY(-5px);
     }
-    
+
     .stat-icon {
         width: 60px;
         height: 60px;
@@ -383,7 +383,7 @@
         justify-content: center;
         transition: all 0.3s ease;
     }
-    
+
     /* Style pour les avatars */
     .avatar-circle {
         width: 40px;
@@ -394,28 +394,28 @@
         justify-content: center;
         font-weight: bold;
     }
-    
+
     /* Style pour la pagination */
     .pagination {
         margin-bottom: 0;
     }
-    
+
     .page-item.active .page-link {
         background-color: var(--esbtp-green);
         border-color: var(--esbtp-green);
     }
-    
+
     .page-link {
         color: var(--esbtp-green);
     }
-    
+
     /* Animation pour les lignes du tableau */
     tbody tr {
         transition: all 0.2s ease;
     }
-    
+
     tbody tr:hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
 </style>
-@endsection 
+@endsection

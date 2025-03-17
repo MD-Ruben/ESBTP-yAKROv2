@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ESBTPResultatMatiere extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * La table associée au modèle.
      *
      * @var string
      */
-    protected $table = 'esbtp_resultat_matieres';
+    protected $table = 'esbtp_resultats_matieres';
 
     /**
      * Les attributs qui sont assignables en masse.
@@ -28,7 +29,8 @@ class ESBTPResultatMatiere extends Model
         'coefficient',
         'rang',
         'appreciation',
-        'total_notes',
+        'created_by',
+        'updated_by'
     ];
 
     /**
@@ -37,10 +39,8 @@ class ESBTPResultatMatiere extends Model
      * @var array
      */
     protected $casts = [
-        'moyenne' => 'float',
-        'coefficient' => 'float',
-        'rang' => 'integer',
-        'total_notes' => 'integer',
+        'moyenne' => 'decimal:2',
+        'coefficient' => 'integer'
     ];
 
     /**
@@ -71,6 +71,26 @@ class ESBTPResultatMatiere extends Model
     }
 
     /**
+     * Relation avec le créateur de ce résultat.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relation avec le mise à jour de ce résultat.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
      * Obtenir la moyenne pondérée (moyenne * coefficient).
      *
      * @return float
@@ -88,7 +108,7 @@ class ESBTPResultatMatiere extends Model
     public function getMentionAttribute()
     {
         $moyenne = $this->moyenne;
-        
+
         if ($moyenne >= 16) {
             return 'Très Bien';
         } elseif ($moyenne >= 14) {
@@ -101,4 +121,26 @@ class ESBTPResultatMatiere extends Model
             return 'Insuffisant';
         }
     }
-} 
+
+    /**
+     * Déterminer l'appréciation associée à la moyenne.
+     *
+     * @return string
+     */
+    public function determinerAppreciation()
+    {
+        $moyenne = $this->moyenne;
+
+        if ($moyenne >= 16) {
+            return 'Excellent';
+        } elseif ($moyenne >= 14) {
+            return 'Très Bien';
+        } elseif ($moyenne >= 12) {
+            return 'Bien';
+        } elseif ($moyenne >= 10) {
+            return 'Passable';
+        } else {
+            return 'Insuffisant';
+        }
+    }
+}

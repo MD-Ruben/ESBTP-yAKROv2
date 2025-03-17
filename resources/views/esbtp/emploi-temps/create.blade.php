@@ -77,14 +77,14 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="periode" class="form-label">Période *</label>
-                                    <select class="form-select @error('periode') is-invalid @enderror" id="periode" name="periode" required>
+                                    <label for="semestre" class="form-label">Période *</label>
+                                    <select class="form-select @error('semestre') is-invalid @enderror" id="semestre" name="semestre" required>
                                         <option value="">Sélectionner une période</option>
-                                        <option value="semestre1" {{ old('periode') == 'semestre1' ? 'selected' : '' }}>Semestre 1</option>
-                                        <option value="semestre2" {{ old('periode') == 'semestre2' ? 'selected' : '' }}>Semestre 2</option>
-                                        <option value="annee" {{ old('periode') == 'annee' ? 'selected' : '' }}>Année complète</option>
+                                        <option value="Semestre 1">Semestre 1</option>
+                                        <option value="Semestre 2">Semestre 2</option>
+                                        <option value="Année complète">Année complète</option>
                                     </select>
-                                    @error('periode')
+                                    @error('semestre')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -94,21 +94,28 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="date_debut" class="form-label">Date de début</label>
-                                    <input type="date" class="form-control @error('date_debut') is-invalid @enderror" id="date_debut" name="date_debut" value="{{ old('date_debut') }}">
+                                    <label for="date_debut" class="form-label">Date de début *</label>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control @error('date_debut') is-invalid @enderror" id="date_debut" name="date_debut" value="{{ old('date_debut', $semaineCourante['date_debut'] ?? '') }}" required>
+                                        <button type="button" class="btn btn-outline-secondary" id="btn-semaine-courante">
+                                            <i class="fas fa-calendar-week"></i> Semaine courante
+                                        </button>
+                                    </div>
                                     @error('date_debut')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
-
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="date_fin" class="form-label">Date de fin</label>
-                                    <input type="date" class="form-control @error('date_fin') is-invalid @enderror" id="date_fin" name="date_fin" value="{{ old('date_fin') }}">
+                                    <label for="date_fin" class="form-label">Date de fin *</label>
+                                    <input type="date" class="form-control @error('date_fin') is-invalid @enderror" id="date_fin" name="date_fin" value="{{ old('date_fin', $semaineCourante['date_fin'] ?? '') }}" required>
                                     @error('date_fin')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> La période doit être de 5 jours maximum (du lundi au vendredi).
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -145,30 +152,30 @@
 <script>
     $(document).ready(function() {
         // Amélioration des listes déroulantes avec Select2
-        $('#classe_id, #annee_universitaire_id, #periode').select2({
+        $('#classe_id, #annee_universitaire_id, #semestre').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: 'Sélectionnez un élément'
         });
 
-        // Validation des dates
-        $('#date_fin').on('change', function() {
-            var dateDebut = $('#date_debut').val();
-            var dateFin = $(this).val();
-
-            if (dateDebut && dateFin && dateDebut > dateFin) {
-                alert("La date de fin doit être postérieure à la date de début.");
-                $(this).val('');
-            }
+        // Bouton pour définir la semaine courante
+        document.getElementById('btn-semaine-courante').addEventListener('click', function() {
+            document.getElementById('date_debut').value = '{{ $semaineCourante['date_debut'] }}';
+            document.getElementById('date_fin').value = '{{ $semaineCourante['date_fin'] }}';
         });
 
-        $('#date_debut').on('change', function() {
-            var dateDebut = $(this).val();
-            var dateFin = $('#date_fin').val();
+        // Validation côté client pour la période de 5 jours maximum
+        document.getElementById('date_fin').addEventListener('change', function() {
+            const dateDebut = new Date(document.getElementById('date_debut').value);
+            const dateFin = new Date(this.value);
 
-            if (dateDebut && dateFin && dateDebut > dateFin) {
-                alert("La date de début doit être antérieure à la date de fin.");
-                $(this).val('');
+            // Calculer la différence en jours
+            const diffTime = Math.abs(dateFin - dateDebut);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 4) {
+                alert('La période de l\'emploi du temps ne doit pas dépasser 5 jours (du lundi au vendredi).');
+                this.value = '';
             }
         });
     });

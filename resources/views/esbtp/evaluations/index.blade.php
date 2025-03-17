@@ -51,20 +51,23 @@
                                         <td>{{ $evaluation->classe->nom }}</td>
                                         <td>{{ $evaluation->matiere->nom }}</td>
                                         <td>
-                                            <form action="{{ route('esbtp.evaluations.update-status', $evaluation) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('esbtp.evaluations.update-status', $evaluation) }}" method="POST" class="d-inline status-form">
                                                 @csrf
-                                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                @method('PATCH')
+                                                <select name="status" class="form-select form-select-sm status-select">
                                                     <option value="draft" {{ $evaluation->status === 'draft' ? 'selected' : '' }}>Brouillon</option>
                                                     <option value="scheduled" {{ $evaluation->status === 'scheduled' ? 'selected' : '' }}>Planifiée</option>
                                                     <option value="in_progress" {{ $evaluation->status === 'in_progress' ? 'selected' : '' }}>En cours</option>
                                                     <option value="completed" {{ $evaluation->status === 'completed' ? 'selected' : '' }}>Terminée</option>
                                                     <option value="cancelled" {{ $evaluation->status === 'cancelled' ? 'selected' : '' }}>Annulée</option>
                                                 </select>
+                                                <button type="submit" style="display: none;"></button>
                                             </form>
                                         </td>
                                         <td>
                                             <form action="{{ route('esbtp.evaluations.toggle-published', $evaluation) }}" method="POST" class="d-inline">
                                                 @csrf
+                                                @method('PATCH')
                                                 <button type="submit" class="btn btn-sm {{ $evaluation->is_published ? 'btn-success' : 'btn-secondary' }}">
                                                     {{ $evaluation->is_published ? 'Publiée' : 'Non publiée' }}
                                                 </button>
@@ -73,6 +76,7 @@
                                         <td>
                                             <form action="{{ route('esbtp.evaluations.toggle-notes-published', $evaluation) }}" method="POST" class="d-inline">
                                                 @csrf
+                                                @method('PATCH')
                                                 <button type="submit" class="btn btn-sm {{ $evaluation->notes_published ? 'btn-success' : 'btn-secondary' }}" {{ !$evaluation->canPublishNotes() && !$evaluation->notes_published ? 'disabled' : '' }}>
                                                     {{ $evaluation->notes_published ? 'Notes publiées' : 'Notes non publiées' }}
                                                 </button>
@@ -122,6 +126,61 @@
     $(document).ready(function() {
         $('.select2').select2({
             theme: 'bootstrap-5'
+        });
+
+        // Gestionnaire pour la soumission du formulaire de statut
+        $('.status-select').on('change', function(e) {
+            e.preventDefault();
+            const select = $(this);
+            const form = select.closest('.status-form');
+            const url = form.attr('action');
+            const status = select.val();
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour le select avec la nouvelle valeur
+                    select.val(data.evaluation.status);
+                    // Afficher un message de succès temporaire
+                    const alertDiv = $('<div class="alert alert-success alert-dismissible fade show" role="alert">')
+                        .text(data.message)
+                        .append('<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>');
+                    form.before(alertDiv);
+                    setTimeout(() => alertDiv.alert('close'), 3000);
+                } else {
+                    console.error('Update failed:', data);
+                    alert('La mise à jour du statut a échoué');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Une erreur est survenue lors de la mise à jour du statut');
+                // En cas d'erreur, remettre le select à sa valeur précédente
+                select.val(select.data('previous-value'));
+            });
+
+            // Sauvegarder la valeur précédente pour pouvoir revenir en arrière en cas d'erreur
+            select.data('previous-value', status);
+        });
+
+        // Sauvegarder la valeur initiale de chaque select
+        $('.status-select').each(function() {
+            $(this).data('previous-value', $(this).val());
         });
 
         $('.datatable').DataTable({

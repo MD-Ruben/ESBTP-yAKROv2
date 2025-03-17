@@ -177,7 +177,7 @@
                                         <td>{{ $annonce->id }}</td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                @if($annonce->is_urgent)
+                                                @if($annonce->priorite == 2)
                                                     <span class="badge bg-danger me-2" title="Urgente">
                                                         <i class="fas fa-exclamation-triangle"></i>
                                                     </span>
@@ -203,11 +203,17 @@
                                             @if($annonce->type == 'general')
                                                 <span class="badge bg-secondary">Tous</span>
                                             @elseif($annonce->type == 'classe')
-                                                {{ $annonce->classe ? $annonce->classe->name : 'Non défini' }}
-                                            @elseif($annonce->type == 'filiere')
-                                                {{ $annonce->filiere ? $annonce->filiere->name : 'Non défini' }}
-                                            @elseif($annonce->type == 'niveau')
-                                                {{ $annonce->niveau ? $annonce->niveau->name : 'Non défini' }}
+                                                @if($annonce->classes->count() > 0)
+                                                    <span class="badge bg-info">{{ $annonce->classes->count() }} classe(s)</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Aucune classe</span>
+                                                @endif
+                                            @elseif($annonce->type == 'etudiant')
+                                                @if($annonce->etudiants->count() > 0)
+                                                    <span class="badge bg-info">{{ $annonce->etudiants->count() }} étudiant(s)</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Aucun étudiant</span>
+                                                @endif
                                             @endif
                                         </td>
                                         <td>
@@ -225,7 +231,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            {{ $annonce->user ? $annonce->user->name : 'Système' }}
+                                            {{ $annonce->createdBy ? $annonce->createdBy->name : 'Système' }}
                                             <small class="d-block text-muted">{{ date('d/m/Y', strtotime($annonce->created_at)) }}</small>
                                         </td>
                                         <td>
@@ -236,7 +242,7 @@
                                                 <a href="{{ route('esbtp.annonces.edit', $annonce) }}" class="btn btn-sm btn-warning">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                <button type="button" class="btn btn-sm btn-danger"
                                                         onclick="if(confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) document.getElementById('delete-form-{{ $annonce->id }}').submit();">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -276,4 +282,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

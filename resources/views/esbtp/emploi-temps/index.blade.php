@@ -45,14 +45,14 @@
                             <tbody>
                                 @forelse($emploisTemps as $emploiTemps)
                                     <tr>
-                                        <td>{{ $emploiTemps->classe->name }}</td>
-                                        <td>{{ $emploiTemps->classe->filiere->name }}</td>
-                                        <td>{{ $emploiTemps->classe->niveau->name }}</td>
-                                        <td>{{ $emploiTemps->annee->name }}</td>
+                                        <td>{{ $emploiTemps->classe->name ?? 'Non définie' }}</td>
+                                        <td>{{ $emploiTemps->classe->filiere->name ?? 'Non définie' }}</td>
+                                        <td>{{ $emploiTemps->classe->niveau->name ?? 'Non défini' }}</td>
+                                        <td>{{ $emploiTemps->annee->name ?? 'Non définie' }}</td>
                                         <td>
-                                            @if($emploiTemps->periode == 'semestre1')
+                                            @if($emploiTemps->semestre == 'Semestre 1')
                                                 Semestre 1
-                                            @elseif($emploiTemps->periode == 'semestre2')
+                                            @elseif($emploiTemps->semestre == 'Semestre 2')
                                                 Semestre 2
                                             @else
                                                 Année complète
@@ -68,17 +68,20 @@
                                         <td>{{ $emploiTemps->created_at->format('d/m/Y') }}</td>
                                         <td>
                                             <div class="btn-group" role="group" aria-label="Actions">
-                                                <a href="{{ route('esbtp.emploi-temps.show', $emploiTemps->id) }}" class="btn btn-sm btn-info" title="Voir">
+                                                <a href="{{ route('esbtp.emploi-temps.show', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-sm btn-info" title="Voir">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="{{ route('esbtp.emploi-temps.edit', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                @if(auth()->user()->hasRole('superAdmin') && auth()->user()->can('delete_timetables'))
                                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $emploiTemps->id }}" title="Supprimer">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                @endif
                                             </div>
 
+                                            @if(auth()->user()->hasRole('superAdmin') && auth()->user()->can('delete_timetables'))
                                             <!-- Modal de confirmation de suppression -->
                                             <div class="modal fade" id="deleteModal{{ $emploiTemps->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $emploiTemps->id }}" aria-hidden="true">
                                                 <div class="modal-dialog">
@@ -89,21 +92,24 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <p>Êtes-vous sûr de vouloir supprimer cet emploi du temps ?</p>
-                                                            <p><strong>Classe :</strong> {{ $emploiTemps->classe->name }}</p>
-                                                            <p><strong>Année universitaire :</strong> {{ $emploiTemps->annee->name }}</p>
+                                                            <p><strong>Classe :</strong> {{ $emploiTemps->classe->name ?? 'Non définie' }}</p>
+                                                            <p><strong>Année universitaire :</strong> {{ $emploiTemps->annee->name ?? 'Non définie' }}</p>
                                                             <p class="text-danger"><strong>Attention :</strong> Cette action supprimera également toutes les séances de cours associées à cet emploi du temps.</p>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <form action="{{ route('esbtp.emploi-temps.destroy', $emploiTemps->id) }}" method="POST">
+                                                            <form action="{{ route('esbtp.emploi-temps.destroy', ['emploi_temp' => $emploiTemps->id]) }}" method="POST">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                                                                <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet emploi du temps ?')">
+                                                                    <i class="fas fa-trash"></i> Supprimer
+                                                                </button>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

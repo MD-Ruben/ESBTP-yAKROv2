@@ -120,15 +120,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ public_path('images/logo.png') }}" alt="Logo ESBTP" class="logo">
-            <div class="title">École Supérieure du Bâtiment et des Travaux Publics</div>
+            <img src="{{ public_path('images/esbtp_logo.png') }}" alt="Logo ESBTP" class="logo">
+            <div class="title">Ecole Spéciale du Bâtiment et des Travaux Publics</div>
             <div class="subtitle">Reçu de Paiement</div>
         </div>
-        
+
         <div class="receipt-number">
             REÇU N° {{ $paiement->numero_recu }}
         </div>
-        
+
         <div class="info-section">
             <div class="info-title">Informations de l'Étudiant</div>
             <table>
@@ -154,7 +154,7 @@
                 </tr>
             </table>
         </div>
-        
+
         <div class="payment-details">
             <div class="payment-title">Détails du Paiement</div>
             <table>
@@ -183,32 +183,32 @@
                 </tr>
                 @endif
             </table>
-            
+
             <div class="amount">
                 Montant: {{ number_format($paiement->montant, 0, ',', ' ') }} FCFA
             </div>
-            
+
             <div style="text-align: center; font-style: italic; margin-top: 10px;">
                 {{ ucfirst(\App\Services\NumberToWords::convert($paiement->montant)) }} Francs CFA
             </div>
         </div>
-        
+
         <div class="signature">
             <div class="signature-box">
                 <div>Date d'émission</div>
                 <div>{{ $paiement->date_validation ? $paiement->date_validation->format('d/m/Y') : date('d/m/Y') }}</div>
             </div>
-            
+
             <div class="signature-box">
                 <div>Signature et Cachet</div>
                 <div>{{ $paiement->validatedBy ? $paiement->validatedBy->name : 'Le Comptable' }}</div>
             </div>
         </div>
-        
+
         <div class="footer">
             <p>Ce reçu est un document officiel. Toute falsification constitue un délit passible de poursuites judiciaires.</p>
-            <p>ESBTP - Adresse: [Adresse complète] - Tél: [Numéro de téléphone] - Email: [Email]</p>
+            <p>ESBTP - BP 2541 Yamoussoukro - Email: esbtp@aviso.ci - Tél/Fax: 30 64 39 93 - Cel: 05 93 34 26 / 07 72 88 56</p>
         </div>
     </div>
 </body>
-</html> 
+</html>

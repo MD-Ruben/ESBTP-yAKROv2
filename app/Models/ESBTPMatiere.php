@@ -207,7 +207,7 @@ class ESBTPMatiere extends Model
      */
     public function seancesCours()
     {
-        return $this->hasMany(ESBTPSeanceCours::class, 'matiere_id');
+        return $this->hasMany(ESBTPCours::class, 'matiere_id');
     }
 
     /**

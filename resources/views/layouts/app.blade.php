@@ -461,6 +461,7 @@
 
                 @hasanyrole('superAdmin|secretaire')
                 <div class="menu-category">Structure académique</div>
+                @role('superAdmin')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.filieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.filieres.*') ? 'active' : '' }}">
                         <i class="fas fa-graduation-cap nav-icon"></i>
@@ -473,6 +474,7 @@
                         <span>Niveaux d'études</span>
                     </a>
                 </li>
+                @endrole
                 <li class="nav-item">
                     <a href="{{ route('esbtp.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
                         <i class="fas fa-chalkboard nav-icon"></i>
@@ -490,15 +492,9 @@
                 @hasanyrole('superAdmin|secretaire')
                 <div class="menu-category">Gestion des étudiants</div>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.etudiants.index') }}" class="nav-link {{ request()->routeIs('esbtp.etudiants.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.etudiants-inscriptions.index') }}" class="nav-link {{ request()->routeIs('esbtp.etudiants-inscriptions.*') || request()->routeIs('esbtp.etudiants.*') || request()->routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
                         <i class="fas fa-user-graduate nav-icon"></i>
-                        <span>Étudiants</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.inscriptions.index') }}" class="nav-link {{ request()->routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-plus nav-icon"></i>
-                        <span>Inscriptions</span>
+                        <span>Étudiants & Inscriptions</span>
                     </a>
                 </li>
                 @endhasanyrole
@@ -722,7 +718,8 @@
                                 </div>
                             </div>
                             <div class="notifications-footer">
-                                <a href="@if(auth()->user()->hasRole('etudiant')){{ route('esbtp.mes-notifications.index') }}@else{{ route('notifications.index') }}@endif" class="dropdown-item text-center">Voir toutes les notifications</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="@if(auth()->check() && auth()->user()->hasRole('etudiant')){{ route('esbtp.mes-notifications.index') }}@else{{ route('notifications.index') }}@endif" class="dropdown-item text-center">Voir toutes les notifications</a>
                             </div>
                         </div>
                     </div>
@@ -811,7 +808,7 @@
         let isLoading = false;
 
         function updateUnreadCount() {
-            @if(auth()->user()->hasRole('etudiant'))
+            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
             fetch('{{ route("esbtp.notifications.unreadCount") }}')
             @else
             fetch('{{ route("notifications.unreadCount") }}')
@@ -828,7 +825,7 @@
 
             notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Chargement...</small></div>';
 
-            @if(auth()->user()->hasRole('etudiant'))
+            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
             fetch('{{ route("esbtp.mes-notifications.index") }}', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -853,7 +850,7 @@
         }
 
         function markAsRead(id) {
-            @if(auth()->user()->hasRole('etudiant'))
+            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
             fetch(`{{ url('esbtp/mes-notifications') }}/${id}/read`, {
             @else
             fetch(`{{ url('notifications') }}/${id}/read`, {
@@ -873,7 +870,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            @if(auth()->user()->hasRole('etudiant'))
+            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
             fetch('{{ route("esbtp.mes-notifications.markAllAsRead") }}', {
             @else
             fetch('{{ route("notifications.markAllAsRead") }}', {
