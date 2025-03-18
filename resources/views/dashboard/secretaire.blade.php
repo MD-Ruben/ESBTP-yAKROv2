@@ -156,7 +156,7 @@
                                 @foreach($recentStudents as $etudiant)
                                 <tr>
                                     <td>{{ $etudiant->nom }}</td>
-                                    <td>{{ $etudiant->prenom }}</td>
+                                    <td>{{ $etudiant->prenoms }}</td>
                                     <td>{{ $etudiant->matricule }}</td>
                                     <td>{{ $etudiant->classe->nom ?? 'Non assigné' }}</td>
                                     <td>{{ $etudiant->created_at->format('d/m/Y') }}</td>
@@ -230,7 +230,7 @@
                             <select class="form-select" id="recipient_id" name="recipient_id">
                                 <option value="">Choisir un étudiant</option>
                                 @foreach(App\Models\ESBTPEtudiant::all() as $etudiant)
-                                    <option value="{{ $etudiant->user_id }}">{{ $etudiant->nom }} {{ $etudiant->prenom }} ({{ $etudiant->matricule }})</option>
+                                    <option value="{{ $etudiant->user_id }}">{{ $etudiant->nom }} {{ $etudiant->prenoms }} ({{ $etudiant->matricule }})</option>
                                 @endforeach
                             </select>
                         </div>

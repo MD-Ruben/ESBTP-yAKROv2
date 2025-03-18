@@ -122,11 +122,13 @@ class ESBTPNote extends Model
             return 0;
         }
 
+        $rawNote = $this->note ?? $this->valeur;
+
         if ($this->evaluation && $this->evaluation->bareme > 0) {
-            return round(($this->valeur / $this->evaluation->bareme) * 20, 2);
+            return round(($rawNote / $this->evaluation->bareme) * 20, 2);
         }
 
-        return $this->valeur;
+        return $rawNote;
     }
 
     /**
@@ -167,5 +169,116 @@ class ESBTPNote extends Model
         } else {
             return 'Insuffisant';
         }
+    }
+
+    /**
+     * Scope to only include notes with valid evaluations
+     */
+    public function scopeWithValidEvaluation($query)
+    {
+        return $query->whereHas('evaluation');
+    }
+
+    /**
+     * Check if this note has a valid evaluation
+     */
+    public function hasValidEvaluation()
+    {
+        return $this->evaluation()->exists();
+    }
+
+    /**
+     * Get the formatted note with barème
+     */
+    public function getFormattedNoteAttribute()
+    {
+        if ($this->is_absent) {
+            return 'Absent';
+        }
+
+        if (!$this->hasValidEvaluation()) {
+            return "{$this->note}/N/A";
+        }
+
+        return "{$this->note}/{$this->evaluation->bareme}";
+    }
+
+    /**
+     * Scope pour filtrer les notes par période (semestre)
+     */
+    public function scopeByPeriode($query, $periode)
+    {
+        if ($periode === 'annuel') {
+            return $query;
+        }
+
+        return $query->where(function($q) use ($periode) {
+            $q->where('semestre', $periode)
+                ->orWhereHas('evaluation', function($eval) use ($periode) {
+                    $eval->where('periode', $periode);
+                });
+        });
+    }
+
+    /**
+     * Scope pour filtrer les notes par année universitaire
+     */
+    public function scopeByAnneeUniversitaire($query, $anneeId)
+    {
+        return $query->whereHas('evaluation', function($q) use ($anneeId) {
+            $q->where('annee_universitaire_id', $anneeId);
+        });
+    }
+
+    /**
+     * Synchroniser le semestre de la note avec la période de l'évaluation
+     *
+     * @return bool
+     */
+    public function synchronizerPeriode()
+    {
+        if (!$this->evaluation) {
+            return false;
+        }
+
+        if ($this->semestre !== $this->evaluation->periode) {
+            $this->semestre = $this->evaluation->periode;
+            return $this->save();
+        }
+
+        return true;
+    }
+
+    /**
+     * Synchroniser toutes les notes avec les périodes de leurs évaluations
+     *
+     * @return array
+     */
+    public static function synchronizerToutesPeriodes()
+    {
+        $notes = self::with('evaluation')->get();
+        $total = $notes->count();
+        $updated = 0;
+        $missingEval = 0;
+
+        foreach ($notes as $note) {
+            if (!$note->evaluation) {
+                $missingEval++;
+                continue;
+            }
+
+            if ($note->semestre !== $note->evaluation->periode) {
+                $note->semestre = $note->evaluation->periode;
+                if ($note->save()) {
+                    $updated++;
+                }
+            }
+        }
+
+        return [
+            'total' => $total,
+            'updated' => $updated,
+            'missing_evaluations' => $missingEval
+        ];
     }
 }

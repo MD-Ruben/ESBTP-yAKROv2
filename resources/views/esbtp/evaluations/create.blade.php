@@ -43,16 +43,29 @@
                                         @enderror
                                     </div>
 
+                                    <!-- Champ Type d'évaluation -->
                                     <div class="mb-3">
                                         <label for="type" class="form-label">Type d'évaluation <span class="text-danger">*</span></label>
                                         <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
                                             <option value="">Sélectionner un type</option>
-                                            <option value="examen" {{ old('type') == 'examen' ? 'selected' : '' }}>Examen</option>
-                                            <option value="devoir" {{ old('type') == 'devoir' ? 'selected' : '' }}>Devoir</option>
-                                            <option value="quiz" {{ old('type') == 'quiz' ? 'selected' : '' }}>Quiz</option>
-                                            <option value="tp" {{ old('type') == 'tp' ? 'selected' : '' }}>TP</option>
+                                            @foreach($types as $typeKey => $typeValue)
+                                                <option value="{{ $typeKey }}" {{ old('type') == $typeKey ? 'selected' : '' }}>{{ $typeValue }}</option>
+                                            @endforeach
                                         </select>
                                         @error('type')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Champ Période -->
+                                    <div class="mb-3">
+                                        <label for="periode" class="form-label">Période <span class="text-danger">*</span></label>
+                                        <select class="form-select @error('periode') is-invalid @enderror" id="periode" name="periode" required>
+                                            <option value="">Sélectionner une période</option>
+                                            <option value="semestre1" {{ old('periode') == 'semestre1' ? 'selected' : '' }}>Semestre 1</option>
+                                            <option value="semestre2" {{ old('periode') == 'semestre2' ? 'selected' : '' }}>Semestre 2</option>
+                                        </select>
+                                        @error('periode')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>

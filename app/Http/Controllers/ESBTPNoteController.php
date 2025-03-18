@@ -21,50 +21,38 @@ class ESBTPNoteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ESBTPNote::with([
-            'evaluation.matiere',
-            'evaluation.classe',
-            'etudiant.inscriptions',
-            'createdBy'
-        ]);
+        // Initialize query with proper eager loading
+        $query = ESBTPNote::whereHas('evaluation')  // Only fetch notes with valid evaluations
+            ->with([
+                'evaluation.matiere',
+                'evaluation.classe',
+                'etudiant',
+                'createdBy'
+            ]);
 
-        // Filtres
-        if ($request->has('evaluation_id') && $request->evaluation_id) {
-            $query->where('evaluation_id', $request->evaluation_id);
-        }
-
-        if ($request->has('etudiant_id') && $request->etudiant_id) {
-            $query->where('etudiant_id', $request->etudiant_id);
-        }
-
-        $classe_id = $request->input('classe_id');
-        if ($classe_id) {
-            $query->whereHas('evaluation', function($q) use ($classe_id) {
-                $q->where('classe_id', $classe_id);
+        // Apply filters
+        if ($request->filled('classe_id')) {
+            $query->whereHas('evaluation', function($q) use ($request) {
+                $q->where('classe_id', $request->classe_id);
             });
         }
 
-        $matiere_id = $request->input('matiere_id');
-        if ($matiere_id) {
-            $query->whereHas('evaluation', function($q) use ($matiere_id) {
-                $q->where('matiere_id', $matiere_id);
+        if ($request->filled('matiere_id')) {
+            $query->whereHas('evaluation', function($q) use ($request) {
+                $q->whereHas('matiere', function($mq) use ($request) {
+                    $mq->where('id', $request->matiere_id);
+                });
             });
         }
 
-        $notes = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Get the paginated results
+        $notes = $query->latest()->paginate(50);
 
-        // Compter toutes les notes pour le débogage
-        $totalNotes = ESBTPNote::count();
-        $message = "Il y a actuellement $totalNotes notes dans la base de données.";
-        session()->flash('info', $message);
-        \Log::info($message);
-
-        $evaluations = ESBTPEvaluation::orderBy('date_evaluation', 'desc')->get();
-        $etudiants = ESBTPEtudiant::orderBy('nom')->get();
-        $classes = ESBTPClasse::orderBy('name')->get();
+        // Get filter options
+        $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $matieres = ESBTPMatiere::orderBy('name')->get();
 
-        return view('esbtp.notes.index', compact('notes', 'evaluations', 'etudiants', 'classes', 'matieres', 'classe_id', 'matiere_id'));
+        return view('esbtp.notes.index', compact('notes', 'classes', 'matieres'));
     }
 
     /**
@@ -93,122 +81,78 @@ class ESBTPNoteController extends Controller
      */
     public function store(Request $request)
     {
-        // Débogage : Enregistrer les données reçues
-        \Log::info('Données reçues pour la création de note:', $request->all());
-
         $request->validate([
-            'evaluation_id' => 'required|exists:esbtp_evaluations,id',
             'etudiant_id' => 'required|exists:esbtp_etudiants,id',
-            'valeur' => 'required_without:absent|numeric|min:0',
+            'evaluation_id' => 'required|exists:esbtp_evaluations,id',
+            'note' => 'required_unless:is_absent,1|numeric|min:0',
+            'is_absent' => 'sometimes|boolean',
             'commentaire' => 'nullable|string',
-            'absent' => 'nullable|boolean',
         ], [
-            'evaluation_id.required' => 'L\'évaluation est obligatoire',
             'etudiant_id.required' => 'L\'étudiant est obligatoire',
-            'valeur.required_without' => 'La valeur de la note est obligatoire si l\'étudiant n\'est pas absent',
-            'valeur.numeric' => 'La valeur doit être un nombre',
-            'valeur.min' => 'La valeur doit être positive',
+            'evaluation_id.required' => 'L\'évaluation est obligatoire',
+            'note.required_unless' => 'La note est obligatoire si l\'étudiant n\'est pas absent',
+            'note.numeric' => 'La note doit être un nombre',
+            'note.min' => 'La note doit être positive',
+            'is_absent.boolean' => 'Le statut d\'absence doit être un booléen',
         ]);
 
         try {
             // Débogage : Log du début du try
             \Log::info('Début du traitement de la note après validation');
 
-            // Vérifier que l'étudiant est bien dans la classe associée à l'évaluation
+            // Vérifier si l'étudiant a déjà une note pour cette évaluation
+            $existingNote = ESBTPNote::where('etudiant_id', $request->etudiant_id)
+                ->where('evaluation_id', $request->evaluation_id)
+                ->first();
+
+            if ($existingNote) {
+                return redirect()->back()
+                    ->with('error', 'Cet étudiant a déjà une note pour cette évaluation.')
+                    ->withInput();
+            }
+
+            // Récupérer l'évaluation pour obtenir le barème et la classe
             $evaluation = ESBTPEvaluation::findOrFail($request->evaluation_id);
-            \Log::info('Évaluation trouvée:', ['id' => $evaluation->id, 'titre' => $evaluation->titre, 'classe_id' => $evaluation->classe_id]);
 
-            $etudiant = ESBTPEtudiant::findOrFail($request->etudiant_id);
-            \Log::info('Étudiant trouvé:', ['id' => $etudiant->id, 'nom' => $etudiant->nom]);
+            // Récupérer la classe associée à l'évaluation
+            $classe_id = $evaluation->classe_id;
 
-            // Vérifier les inscriptions de l'étudiant - Correction : retirer la condition is_active qui n'existe pas
-            $inscriptions = $etudiant->inscriptions()->where('classe_id', $evaluation->classe_id)->get();
-            \Log::info('Inscriptions de l\'étudiant:', ['count' => $inscriptions->count(), 'inscriptions' => $inscriptions->toArray()]);
+            // Récupérer la période de l'évaluation
+            $semestre = $evaluation->periode;
 
-            // Désactiver temporairement la vérification d'inscription si nécessaire
-            // $estInscrit = $inscriptions->count() > 0;
-            $estInscrit = true; // Forcer à true pour contourner la vérification
-            \Log::info('Vérification de l\'inscription désactivée:', ['estInscrit' => $estInscrit, 'classe_id' => $evaluation->classe_id]);
-
-            if (!$estInscrit) {
-                \Log::warning('Étudiant non inscrit dans la classe de l\'évaluation');
-                return redirect()->back()
-                    ->with('error', 'L\'étudiant n\'est pas inscrit dans la classe associée à cette évaluation')
-                    ->withInput();
-            }
-
-            // Vérifier que l'étudiant n'a pas déjà une note pour cette évaluation
-            $noteExistante = ESBTPNote::where('evaluation_id', $request->evaluation_id)
-                ->where('etudiant_id', $request->etudiant_id)
-                ->exists();
-
-            \Log::info('Vérification de note existante:', ['noteExistante' => $noteExistante]);
-
-            if ($noteExistante) {
-                \Log::warning('Une note existe déjà pour cet étudiant et cette évaluation');
-                return redirect()->back()
-                    ->with('error', 'L\'étudiant a déjà une note pour cette évaluation')
-                    ->withInput();
-            }
-
-            // Vérifier que la note ne dépasse pas le barème
-            if (!$request->has('absent') && $request->valeur > $evaluation->bareme) {
-                \Log::warning('La note dépasse le barème:', ['valeur' => $request->valeur, 'bareme' => $evaluation->bareme]);
-                return redirect()->back()
-                    ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $evaluation->bareme . ')')
-                    ->withInput();
-            }
-
-            \Log::info('Création d\'une nouvelle instance de ESBTPNote');
+            // Créer la note
             $note = new ESBTPNote();
-            $note->evaluation_id = $request->evaluation_id;
             $note->etudiant_id = $request->etudiant_id;
-            $note->matiere_id = $evaluation->matiere_id;
-            $note->classe_id = $evaluation->classe_id;
-            $note->semestre = $evaluation->periode;
-            $note->annee_universitaire = $evaluation->anneeUniversitaire ? $evaluation->anneeUniversitaire->name : 'N/A';
-            $note->note = $request->has('absent') ? 0 : $request->valeur;
-            $note->type_evaluation = $evaluation->type;
-            $note->is_absent = $request->has('absent');
+            $note->evaluation_id = $request->evaluation_id;
+            $note->classe_id = $classe_id; // Utiliser la classe de l'évaluation
+            $note->semestre = $semestre; // Utiliser la période de l'évaluation
+            $note->note = $request->is_absent ? 0 : $request->note;
+            $note->is_absent = $request->has('is_absent') ? 1 : 0;
             $note->commentaire = $request->commentaire;
             $note->created_by = Auth::id();
+            $note->save();
 
-            \Log::info('Avant sauvegarde de la note avec les champs obligatoires:', $note->toArray());
+            // Débogage : Log des détails de la note créée
+            \Log::info('Note créée', [
+                'id' => $note->id,
+                'etudiant_id' => $note->etudiant_id,
+                'evaluation_id' => $note->evaluation_id,
+                'note' => $note->note,
+                'is_absent' => $note->is_absent,
+                'classe_id' => $note->classe_id,
+                'semestre' => $note->semestre
+            ]);
 
-            try {
-                \Log::info('Tentative de sauvegarde de la note');
-                $result = $note->save();
-                \Log::info('Résultat de la sauvegarde:', ['success' => $result, 'note_id' => $note->id]);
-
-                if ($result) {
-                    \Log::info('Sauvegarde réussie, note créée avec ID: ' . $note->id);
-                } else {
-                    \Log::warning('Méthode save() a retourné false sans lancer d\'exception');
-                }
-            } catch (\Exception $e) {
-                \Log::error('Exception lors du save de la note: ' . $e->getMessage());
-                \Log::error('Trace du save: ' . $e->getTraceAsString());
-                throw $e; // Relancer l'exception pour qu'elle soit traitée par le bloc catch externe
-            }
-
-            \Log::info('Préparation de la redirection vers la page de l\'évaluation avec ID: ' . $note->evaluation_id);
-            try {
-                // Utiliser une URL directe au lieu d'une route nommée
-                $redirectResponse = redirect('/esbtp/evaluations/' . $note->evaluation_id)
-                    ->with('success', 'La note a été ajoutée avec succès');
-                \Log::info('Redirection générée avec succès (URL directe)');
-                return $redirectResponse;
-            } catch (\Exception $e) {
-                \Log::error('Exception lors de la redirection: ' . $e->getMessage());
-                \Log::error('Trace de la redirection: ' . $e->getTraceAsString());
-                throw $e;
-            }
+            return redirect()->route('esbtp.notes.index')
+                ->with('success', 'Note créée avec succès.');
         } catch (\Exception $e) {
-            \Log::error('Exception lors de la création de la note: ' . $e->getMessage());
-            \Log::error('Trace: ' . $e->getTraceAsString());
+            // Débogage : Log de l'erreur
+            \Log::error('Erreur lors de la création de la note : ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de l\'ajout de la note: ' . $e->getMessage())
+                ->with('error', 'Erreur lors de la création de la note : ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -247,34 +191,51 @@ class ESBTPNoteController extends Controller
     public function update(Request $request, ESBTPNote $note)
     {
         $request->validate([
-            'valeur' => 'required_without:absent|numeric|min:0',
+            'note' => 'required_unless:is_absent,1|numeric|min:0',
+            'is_absent' => 'sometimes|boolean',
             'commentaire' => 'nullable|string',
-            'absent' => 'nullable|boolean',
-        ], [
-            'valeur.required_without' => 'La valeur de la note est obligatoire si l\'étudiant n\'est pas absent',
-            'valeur.numeric' => 'La valeur doit être un nombre',
-            'valeur.min' => 'La valeur doit être positive',
         ]);
 
         try {
-            // Vérifier que la note ne dépasse pas le barème
-            if (!$request->has('absent') && $request->valeur > $note->evaluation->bareme) {
+            // Récupérer l'évaluation associée à cette note
+            $evaluation = $note->evaluation;
+
+            if (!$evaluation) {
                 return redirect()->back()
-                    ->with('error', 'La note ne peut pas dépasser le barème de l\'évaluation (' . $note->evaluation->bareme . ')')
+                    ->with('error', 'Évaluation introuvable pour cette note.')
                     ->withInput();
             }
 
-            $note->note = $request->has('absent') ? 0 : $request->valeur;
-            $note->is_absent = $request->has('absent');
+            // Synchroniser le semestre avec la période de l'évaluation
+            $note->semestre = $evaluation->periode;
+
+            // Mettre à jour les autres champs
+            $note->note = $request->is_absent ? 0 : $request->note;
+            $note->is_absent = $request->has('is_absent') ? 1 : 0;
             $note->commentaire = $request->commentaire;
             $note->updated_by = Auth::id();
             $note->save();
 
-            return redirect()->route('esbtp.evaluations.show', $note->evaluation_id)
-                ->with('success', 'La note a été mise à jour avec succès');
+            // Débogage : Log des détails de la note mise à jour
+            \Log::info('Note mise à jour', [
+                'id' => $note->id,
+                'etudiant_id' => $note->etudiant_id,
+                'evaluation_id' => $note->evaluation_id,
+                'note' => $note->note,
+                'is_absent' => $note->is_absent,
+                'semestre' => $note->semestre
+            ]);
+
+            return redirect()->route('esbtp.notes.index')
+                ->with('success', 'Note mise à jour avec succès.');
         } catch (\Exception $e) {
+            // Débogage : Log de l'erreur
+            \Log::error('Erreur lors de la mise à jour de la note : ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return redirect()->back()
-                ->with('error', 'Une erreur est survenue lors de la mise à jour de la note: ' . $e->getMessage())
+                ->with('error', 'Erreur lors de la mise à jour de la note : ' . $e->getMessage())
                 ->withInput();
         }
     }

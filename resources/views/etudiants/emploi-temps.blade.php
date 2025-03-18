@@ -159,16 +159,16 @@
                                                     }
                                                 }
                                             }
-                                        @endphp
+                                                    @endphp
 
                                         @if($cellOccupied && $seanceToDisplay)
                                             <td class="align-middle" rowspan="{{ $rowspan }}">
-                                                <div class="p-2 bg-light border rounded">
+                                                        <div class="p-2 bg-light border rounded">
                                                     <strong>{{ $seanceToDisplay['seance']->matiere->name ?? 'Matière non définie' }}</strong><br>
                                                     <small class="text-muted">{{ $seanceToDisplay['heureDebut'] }} - {{ $seanceToDisplay['heureFin'] }}</small><br>
                                                     @if($seanceToDisplay['seance']->salle)
                                                         Salle: {{ $seanceToDisplay['seance']->salle }}<br>
-                                                    @endif
+                                                            @endif
                                                     @if($seanceToDisplay['seance']->enseignant)
                                                         Prof: {{ $seanceToDisplay['seance']->enseignantName }}
                                                     @endif
@@ -176,7 +176,7 @@
                                             </td>
                                         @elseif(!$cellOccupied)
                                             <td></td>
-                                        @endif
+                                            @endif
                                     @endforeach
                                 </tr>
                             @endforeach

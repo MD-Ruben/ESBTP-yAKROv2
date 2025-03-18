@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use PDF;
 use App\Models\ESBTPAbsence;
+use App\Models\ESBTPEvaluation;
 
 class ESBTPBulletinController extends Controller
 {
@@ -162,7 +163,15 @@ class ESBTPBulletinController extends Controller
                 // Récupérer toutes les évaluations de cette matière pour cette classe
                 $evaluations = $matiere ? $matiere->evaluations()
                     ->where('classe_id', $classe->id)
+                    ->where('periode', $request->periode)
                     ->get() : collect();
+
+                \Log::info('Récupération des évaluations', [
+                    'matiere_id' => $matiere->id,
+                    'nombre_evaluations' => $evaluations->count(),
+                    'classe_id' => $classe->id,
+                    'periode' => $request->periode
+                ]);
 
                 if (!$evaluations || $evaluations->isEmpty()) {
                     continue; // Passer à la matière suivante s'il n'y a pas d'évaluations
@@ -222,31 +231,47 @@ class ESBTPBulletinController extends Controller
      */
     private function calculerMoyenneGenerale(ESBTPBulletin $bulletin)
     {
-        $resultats = $bulletin->resultats;
+        \Log::info('Calcul de la moyenne générale pour le bulletin ' . $bulletin->id);
 
-        if ($resultats->isEmpty()) {
-            $bulletin->moyenne_generale = null;
-            $bulletin->save();
-            return;
-        }
+        try {
+            $resultats = $bulletin->resultats;
+            \Log::info('Nombre de résultats trouvés: ' . $resultats->count());
 
-        $sommePoints = 0;
-        $sommeCoefficients = 0;
-
-        foreach ($resultats as $resultat) {
-            if ($resultat->moyenne !== null) {
-                $sommePoints += $resultat->moyenne * $resultat->coefficient;
-                $sommeCoefficients += $resultat->coefficient;
+            if ($resultats->isEmpty()) {
+                \Log::info('Aucun résultat trouvé pour le bulletin ' . $bulletin->id);
+                $bulletin->moyenne_generale = null;
+                $bulletin->save();
+                return;
             }
+
+            $sommePoints = 0;
+            $sommeCoefficients = 0;
+
+            foreach ($resultats as $resultat) {
+                if ($resultat->moyenne !== null) {
+                    \Log::info('Résultat pour matière ' . $resultat->matiere_id . ': moyenne=' . $resultat->moyenne . ', coefficient=' . $resultat->coefficient);
+                    $sommePoints += $resultat->moyenne * $resultat->coefficient;
+                    $sommeCoefficients += $resultat->coefficient;
+                } else {
+                    \Log::info('Résultat ignoré pour matière ' . $resultat->matiere_id . ' (moyenne null)');
+                }
+            }
+
+            \Log::info('Somme des points: ' . $sommePoints . ', Somme des coefficients: ' . $sommeCoefficients);
+            $moyenneGenerale = $sommeCoefficients > 0 ? $sommePoints / $sommeCoefficients : null;
+            \Log::info('Moyenne générale calculée: ' . $moyenneGenerale);
+
+            $bulletin->moyenne_generale = $moyenneGenerale;
+            $bulletin->save();
+            \Log::info('Moyenne générale enregistrée pour le bulletin ' . $bulletin->id);
+
+            // Calculer le rang si la moyenne a changé
+            $this->calculerRang($bulletin);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du calcul de la moyenne générale: ' . $e->getMessage());
+            \Log::error('Trace: ' . $e->getTraceAsString());
+            throw $e;
         }
-
-        $moyenneGenerale = $sommeCoefficients > 0 ? $sommePoints / $sommeCoefficients : null;
-
-        $bulletin->moyenne_generale = $moyenneGenerale;
-        $bulletin->save();
-
-        // Calculer le rang si la moyenne a changé
-        $this->calculerRang($bulletin);
     }
 
     /**
@@ -720,11 +745,29 @@ class ESBTPBulletinController extends Controller
             // Récupérer tous les étudiants inscrits dans cette classe pour cette année
             try {
                 \Log::info('Récupération des étudiants inscrits');
-                $etudiants = ESBTPEtudiant::whereHas('inscriptions', function($query) use ($request) {
-                    $query->where('classe_id', $request->classe_id)
-                        ->where('annee_universitaire_id', $request->annee_universitaire_id);
-                })->get();
+
+                // Utiliser une requête directe à la place de la relation 'inscriptions'
+                $etudiantIds = DB::table('esbtp_inscriptions')
+                    ->where('classe_id', $request->classe_id)
+                    ->where('annee_universitaire_id', $request->annee_universitaire_id)
+                    ->where('status', 'active')
+                    ->pluck('etudiant_id');
+
+                $etudiants = ESBTPEtudiant::whereIn('id', $etudiantIds)->get();
+
+                // Si aucun étudiant n'est trouvé par cette méthode, essayer de récupérer tous les étudiants de la classe
+                if ($etudiants->isEmpty()) {
+                    \Log::info('Aucun étudiant trouvé via les inscriptions, recherche alternative');
+                    $etudiants = ESBTPEtudiant::where('classe_id', $request->classe_id)->get();
+                }
+
                 \Log::info('Nombre d\'étudiants trouvés: ' . $etudiants->count());
+
+                if ($etudiants->isEmpty()) {
+                    \Log::warning('Aucun étudiant trouvé pour la classe ' . $classe->name);
+                    return redirect()->route('esbtp.bulletins.index')
+                        ->with('warning', 'Aucun étudiant trouvé pour la classe sélectionnée.');
+                }
             } catch (\Exception $e) {
                 \Log::error('Erreur lors de la récupération des étudiants: ' . $e->getMessage());
                 \Log::error('SQL: ' . $e->getTraceAsString());
@@ -734,7 +777,7 @@ class ESBTPBulletinController extends Controller
             $bulletinsGeneres = 0;
 
             foreach ($etudiants as $etudiant) {
-                \Log::info('Traitement de l\'étudiant: ' . $etudiant->id . ' - ' . $etudiant->nom . ' ' . $etudiant->prenom);
+                \Log::info('Traitement de l\'étudiant: ' . $etudiant->id . ' - ' . $etudiant->nom . ' ' . $etudiant->prenoms);
                 // Vérifier si un bulletin existe déjà pour cet étudiant
                 try {
                     $bulletinExistant = ESBTPBulletin::where('etudiant_id', $etudiant->id)
@@ -785,29 +828,79 @@ class ESBTPBulletinController extends Controller
 
                     // Pour chaque matière, calculer la moyenne et créer un résultat
                     foreach ($matieres as $matiere) {
-                        \Log::info('Traitement de la matière: ' . $matiere->id . ' - ' . $matiere->nom);
+                        \Log::info('Traitement de la matière: ' . $matiere->id . ' - ' . ($matiere->nom ?? $matiere->name ?? 'Nom inconnu'));
+
+                        // Vérifier si la matière est valide
+                        if (!$matiere || !$matiere->id) {
+                            \Log::warning('Matière invalide trouvée');
+                            continue;
+                        }
+
                         // Récupérer toutes les évaluations de cette matière pour cette classe
                         try {
-                            $evaluations = $matiere ? $matiere->evaluations()
+                            $evaluations = $matiere->evaluations()
                                 ->where('classe_id', $classe->id)
-                                ->get() : collect();
+                                ->where('periode', $request->periode)
+                                ->get();
 
-                            \Log::info('Nombre d\'évaluations trouvées: ' . $evaluations->count());
+                            \Log::info('Nombre d\'évaluations trouvées: ' . $evaluations->count(), [
+                                'matiere_id' => $matiere->id,
+                                'classe_id' => $classe->id,
+                                'periode' => $request->periode
+                            ]);
 
                             if (!$evaluations || $evaluations->isEmpty()) {
-                                \Log::info('Pas d\'évaluations pour la matière: ' . $matiere->id);
+                                \Log::info('Pas d\'évaluations pour la matière et la période: ' . $matiere->id, [
+                                    'periode' => $request->periode
+                                ]);
+
+                                // Créer un résultat vide pour cette matière
+                                try {
+                                    // Récupérer le coefficient de la matière pour cette classe
+                                    $coefficient = 1; // Valeur par défaut
+                                    try {
+                                        $pivot = DB::table('esbtp_classe_matiere')
+                                            ->where('classe_id', $classe->id)
+                                            ->where('matiere_id', $matiere->id)
+                                            ->first();
+
+                                        if ($pivot && isset($pivot->coefficient)) {
+                                            $coefficient = $pivot->coefficient;
+                                        }
+                                    } catch (\Exception $e) {
+                                        \Log::error('Erreur lors de la récupération du coefficient: ' . $e->getMessage());
+                                    }
+
+                                    $resultat = new ESBTPResultatMatiere();
+                                    $resultat->bulletin_id = $bulletin->id;
+                                    $resultat->matiere_id = $matiere->id;
+                                    $resultat->moyenne = null; // Pas de moyenne car pas d'évaluations
+                                    $resultat->coefficient = $coefficient;
+                                    $resultat->commentaire = null;
+                                    $resultat->save();
+                                    \Log::info('Résultat vide créé pour la matière: ' . $matiere->id);
+                                } catch (\Exception $e) {
+                                    \Log::error('Erreur lors de la création du résultat vide: ' . $e->getMessage());
+                                }
+
                                 continue; // Passer à la matière suivante s'il n'y a pas d'évaluations
                             }
                         } catch (\Exception $e) {
                             \Log::error('Erreur lors de la récupération des évaluations: ' . $e->getMessage());
                             \Log::error('SQL: ' . $e->getTraceAsString());
-                            throw $e;
+                            continue; // Passer à la matière suivante en cas d'erreur
                         }
 
                         // Récupérer les notes de l'étudiant pour ces évaluations
                         try {
-                            $notes = ESBTPNote::whereIn('evaluation_id', $evaluations->pluck('id'))
-                                ->where('etudiant_id', $etudiant->id)
+                            $notes = ESBTPNote::where('etudiant_id', $etudiant->id)
+                                ->where('classe_id', $request->classe_id)
+                                ->whereHas('evaluation', function($query) use ($request) {
+                                    $query->where('annee_universitaire_id', $request->annee_universitaire_id);
+                                    if ($request->periode != 'annuel') {
+                                        $query->where('periode', $request->periode);
+                                    }
+                                })
                                 ->get();
 
                             \Log::info('Nombre de notes trouvées: ' . $notes->count());
@@ -827,7 +920,7 @@ class ESBTPBulletinController extends Controller
                         $sommeCoefficients = 0;
 
                         foreach ($notes as $note) {
-                            $evaluation = $evaluations->where('id', $note->evaluation_id)->first();
+                            $evaluation = $notes->where('evaluation_id', $note->evaluation_id)->first();
                             $sommeNotes += ($note->valeur / $evaluation->bareme) * 20 * $evaluation->coefficient;
                             $sommeCoefficients += $evaluation->coefficient;
                         }
@@ -922,67 +1015,216 @@ class ESBTPBulletinController extends Controller
      */
     public function resultats(Request $request)
     {
-        // Récupérer les paramètres de filtre
+        // Récupération des filtres
         $classe_id = $request->input('classe_id');
-        $annee_id = $request->input('annee_universitaire_id',
-            ESBTPAnneeUniversitaire::where('is_current', true)->first()->id ?? null);
+
+        // Fix: Safely handling potential null value from first() before accessing ->id
+        $currentAnnee = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        $annee_id = $request->input('annee_universitaire_id', $currentAnnee ? $currentAnnee->id : null);
+
         $periode = $request->input('periode', 'semestre1');
 
-        // Vérifier si les paramètres sont valides
-        if (!$classe_id || !$annee_id) {
-            $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
-            $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
-            return view('esbtp.resultats.index', compact('classes', 'anneesUniversitaires', 'classe_id', 'annee_id', 'periode'));
-        }
+        // Vérifier les années universitaires manquantes avant de récupérer les notes
+        $this->verifierAnneesUniversitaires();
 
-        // Récupérer la classe sélectionnée avec ses étudiants inscrits
-        $classe = ESBTPClasse::with([
-            'inscriptions' => function($query) use ($annee_id) {
-                $query->where('annee_universitaire_id', $annee_id)
-                      ->where('status', 'active');
-            },
-            'inscriptions.etudiant',
-            'matieres'
-        ])->findOrFail($classe_id);
+        // Récupération des classes et années pour le filtre
+        $classes = ESBTPClasse::with(['filiere', 'niveau'])->orderBy('name')->get();
+        $anneesUniversitaires = ESBTPAnneeUniversitaire::orderByDesc('annee_debut')->get();
 
-        // Récupérer l'année universitaire
-        $anneeUniversitaire = ESBTPAnneeUniversitaire::findOrFail($annee_id);
+        // Proceed if we have an academic year (always should have a default)
+        if ($annee_id) {
+            $anneeUniversitaire = ESBTPAnneeUniversitaire::findOrFail($annee_id);
 
-        // Récupérer les bulletins des étudiants pour cette classe, cette année et cette période
-        $bulletins = ESBTPBulletin::with(['etudiant', 'resultats.matiere'])
-            ->where('classe_id', $classe_id)
-            ->where('annee_universitaire_id', $annee_id)
-            ->where('periode', $periode)
-            ->get();
-
-        // Préparer les données pour l'affichage
-        $resultatsEtudiants = [];
-        foreach ($bulletins as $bulletin) {
-            $resultatsEtudiants[$bulletin->etudiant_id] = [
-                'etudiant' => $bulletin->etudiant,
-                'bulletin' => $bulletin,
-                'resultats' => $bulletin->resultats->keyBy('matiere_id'),
-                'moyenne' => $bulletin->moyenne_generale,
-                'rang' => $bulletin->rang
-            ];
-        }
-
-        // Récupérer les étudiants qui n'ont pas encore de bulletin
-        $etudiantsSansBulletin = [];
-        foreach ($classe->inscriptions as $inscription) {
-            if (!isset($resultatsEtudiants[$inscription->etudiant_id])) {
-                $etudiantsSansBulletin[] = $inscription->etudiant;
+            // Get the selected class if specified
+            $classe = null;
+            if ($classe_id) {
+                $classe = ESBTPClasse::with(['filiere', 'niveau'])->findOrFail($classe_id);
             }
+
+            // Query to get students based on filters
+            $studentsQuery = ESBTPEtudiant::query();
+
+            // If a class is selected, get only students from that class
+            if ($classe_id) {
+                $studentsQuery = $studentsQuery->whereHas('inscriptions', function ($query) use ($classe_id, $annee_id) {
+                    $query->where('classe_id', $classe_id)
+                          ->where('annee_universitaire_id', $annee_id)
+                          ->where('statut', 'active');
+                });
+
+                // Fallback: If no students found in inscriptions, try direct class relation
+                if ($studentsQuery->count() === 0) {
+                    $studentsQuery = ESBTPEtudiant::where('classe_id', $classe_id);
+                }
+            } else {
+                // If no class is selected, get all students enrolled in the academic year
+                $studentsQuery = $studentsQuery->whereHas('inscriptions', function ($query) use ($annee_id) {
+                    $query->where('annee_universitaire_id', $annee_id)
+                          ->where('statut', 'active');
+                });
+            }
+
+            $etudiants = $studentsQuery->orderBy('nom')->orderBy('prenoms')->get();
+
+            \Log::info('Requête résultats: Trouvé ' . $etudiants->count() . ' étudiants', [
+                'classe_id' => $classe_id,
+                'annee_id' => $annee_id,
+                'periode' => $periode
+            ]);
+
+            // Récupération des matières enseignées (all matières if no class selected)
+            $matieres = ESBTPMatiere::query();
+            if ($classe_id) {
+                $matieres->whereHas('classes', function($query) use ($classe_id) {
+                    $query->where('classe_id', $classe_id);
+                });
+            }
+            $matieres = $matieres->get();
+
+            // Initialize arrays to store results
+            $moyennes = [];
+            $rangs = [];
+            $bulletins = [];
+            $resultats = []; // Initialize $resultats array
+
+            foreach ($etudiants as $etudiant) {
+                // Initialize $moyenne to null or a default value at the start of each iteration
+                $moyenne = null;
+
+                // Récupération des notes de l'étudiant pour cette période
+                $notesQuery = ESBTPNote::where('etudiant_id', $etudiant->id)
+                    ->whereHas('evaluation', function($query) use ($annee_id) {
+                        $query->where('annee_universitaire_id', $annee_id);
+                    });
+
+                // Filter by class if specified
+                if ($classe_id) {
+                    $notesQuery->where(function($query) use ($classe_id) {
+                        $query->where('classe_id', $classe_id)
+                              ->orWhereHas('evaluation', function($q) use ($classe_id) {
+                                  $q->where('classe_id', $classe_id);
+                              });
+                    });
+                }
+
+                // Filter by period if not 'annuel'
+                if ($periode !== 'annuel') {
+                    $notesQuery->where(function($query) use ($periode) {
+                        $query->where('semestre', $periode)
+                            ->orWhereHas('evaluation', function($q) use ($periode) {
+                                $q->where('periode', $periode);
+                            });
+                    });
+                }
+
+                $notes = $notesQuery->get();
+
+                \Log::info('Notes pour étudiant ' . $etudiant->id . ': ' . $notes->count());
+
+                if ($notes->isNotEmpty()) {
+                    // Vérifier que toutes les notes ont une évaluation valide
+                    $validNotes = $notes->filter(function($note) {
+                        return $note->evaluation && $note->evaluation->coefficient > 0;
+                    });
+
+                    if ($validNotes->isEmpty()) {
+                        continue;
+                    }
+
+                    // Nouveau calcul plus robuste
+                    $totalPondere = $validNotes->sum(function($note) {
+                        return $note->note_vingt * $note->evaluation->coefficient;
+                    });
+
+                    $totalCoefficients = $validNotes->sum('evaluation.coefficient');
+
+                    $moyenne = $totalCoefficients > 0 ? $totalPondere / $totalCoefficients : 0;
+
+                    // Store moyenne for display
+                    $moyennes[$etudiant->id] = $moyenne;
+                }
+
+                // Ajouter les résultats de l'étudiant
+                $resultats[] = [
+                    'etudiant' => $etudiant,
+                    'moyenne' => $moyenne,
+                    'notes_count' => $notes->count()
+                ];
+            }
+
+            // Trier les résultats par moyenne décroissante
+            usort($resultats, function($a, $b) {
+                return ($b['moyenne'] ?? 0) <=> ($a['moyenne'] ?? 0); // Handle null values
+            });
+
+            // Calculate ranks
+            $rank = 1;
+            foreach ($resultats as $index => $result) {
+                if ($result['moyenne'] !== null) {
+                    if ($index > 0 && $resultats[$index-1]['moyenne'] == $result['moyenne']) {
+                        // Same rank for same moyenne
+                        $rangs[$result['etudiant']->id] = $rangs[$resultats[$index-1]['etudiant']->id];
+                    } else {
+                        $rangs[$result['etudiant']->id] = $rank;
+                    }
+                    $rank++;
+                }
+            }
+
+            // Périodes disponibles
+            $periodes = [
+                (object)['id' => 'semestre1', 'nom' => 'Premier Semestre'],
+                (object)['id' => 'semestre2', 'nom' => 'Deuxième Semestre'],
+                (object)['id' => 'annuel', 'nom' => 'Annuel']
+            ];
+
+            // Récupérer tous les bulletins des étudiants
+            $bulletinsCollection = ESBTPBulletin::whereIn('etudiant_id', $etudiants->pluck('id'))
+                ->where('annee_universitaire_id', $annee_id)
+                ->where('periode', $periode)
+                ->get();
+
+            foreach ($bulletinsCollection as $bulletin) {
+                $bulletins[$bulletin->etudiant_id] = $bulletin->id;
+            }
+
+            // Récupérer toutes les notes pour vérifier si elles sont vides
+            $notesQuery = ESBTPNote::whereIn('etudiant_id', $etudiants->pluck('id'))
+                ->where(function($query) use ($periode) {
+                    $query->where('semestre', $periode)
+                        ->orWhereHas('evaluation', function($q) use ($periode) {
+                            $q->where('periode', $periode);
+                        });
+                })
+                ->whereHas('evaluation', function($query) use ($annee_id) {
+                    $query->where('annee_universitaire_id', $annee_id);
+                });
+
+            if ($classe_id) {
+                $notesQuery->where('classe_id', $classe_id);
+            }
+
+            $notes = $notesQuery->get();
+
+            return view('esbtp.resultats.index', compact(
+                'classes',
+                'anneesUniversitaires',
+                'classe',
+                'classe_id',
+                'annee_id',
+                'anneeUniversitaire',
+                'periode',
+                'etudiants',
+                'moyennes',
+                'rangs',
+                'bulletins',
+                'resultats',
+                'notes'
+            ));
         }
 
-        return view('esbtp.resultats.index', compact(
-            'classe',
-            'anneeUniversitaire',
-            'periode',
-            'resultatsEtudiants',
-            'etudiantsSansBulletin',
-            'bulletins'
-        ));
+        // If no academic year is found or selected (shouldn't happen with defaults)
+        return view('esbtp.resultats.index', compact('classes', 'anneesUniversitaires'));
     }
 
     /**
@@ -1188,5 +1430,373 @@ class ESBTPBulletinController extends Controller
             })->count();
 
         return view('esbtp.bulletins.pending', compact('bulletins', 'totalPending', 'totalNonSigned'));
+    }
+
+    /**
+     * Affiche les résultats des étudiants d'une classe spécifique
+     *
+     * @param ESBTPClasse $classe
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function resultatClasse(ESBTPClasse $classe, Request $request)
+    {
+        // Récupérer l'année universitaire
+        // Fix: Safely handling potential null value from first() before accessing ->id
+        $currentAnnee = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        $annee_id = $request->input('annee_universitaire_id', $currentAnnee ? $currentAnnee->id : null);
+
+        // Récupérer la période
+        $periode = $request->input('periode', 'semestre1');
+
+        // Avant de récupérer les notes, vérifiez les années universitaires manquantes
+        $this->verifierAnneesUniversitaires();
+
+        // Log debug info
+        \Log::info('Résultats classe', [
+            'classe_id' => $classe->id,
+            'classe_name' => $classe->name,
+            'annee_id' => $annee_id,
+            'periode' => $periode
+        ]);
+
+        // Récupérer les étudiants inscrits à cette classe pour cette année
+        $studentsQuery = ESBTPEtudiant::query();
+
+        // Try to find students via inscriptions first
+        $studentsQuery->whereHas('inscriptions', function($query) use ($classe, $annee_id) {
+            $query->where('classe_id', $classe->id)
+                ->where('annee_universitaire_id', $annee_id)
+                ->where('statut', 'active');
+        });
+
+        // If no students found via inscriptions, try direct class relationship
+        if ($studentsQuery->count() === 0) {
+            \Log::info('Aucun étudiant trouvé via inscriptions pour la classe '.$classe->id.', essai via relation directe');
+            $studentsQuery = ESBTPEtudiant::where('classe_id', $classe->id);
+        }
+
+        $etudiants = $studentsQuery->get();
+
+        \Log::info('Nombre d\'étudiants trouvés: ' . $etudiants->count());
+
+        // Récupérer les matières enseignées dans cette classe
+        $matieres = ESBTPMatiere::whereHas('classes', function($query) use ($classe) {
+            $query->where('classe_id', $classe->id);
+        })->get();
+
+        // Récupérer les résultats pour chaque étudiant
+        $resultats = [];
+        foreach ($etudiants as $etudiant) {
+            // Récupérer les notes de l'étudiant pour cette période
+            $notesQuery = ESBTPNote::where('etudiant_id', $etudiant->id)
+                ->where(function($query) use ($classe) {
+                    $query->where('classe_id', $classe->id)
+                          ->orWhereHas('evaluation', function($q) use ($classe) {
+                              $q->where('classe_id', $classe->id);
+                          });
+                })
+                ->whereHas('evaluation', function($query) use ($annee_id) {
+                    $query->where('annee_universitaire_id', $annee_id);
+                });
+
+            // FIX: Properly filter by period to get all notes
+            if ($periode !== 'annuel') {
+                $notesQuery->where(function($query) use ($periode) {
+                    $query->where('semestre', $periode)
+                        ->orWhereHas('evaluation', function($q) use ($periode) {
+                            $q->where('periode', $periode);
+                        });
+                });
+            }
+
+            $notes = $notesQuery->with(['evaluation', 'evaluation.matiere'])->get();
+
+            \Log::info('Notes pour étudiant ' . $etudiant->id . ': ' . $notes->count());
+
+            if ($notes->isNotEmpty()) {
+                // Vérifier que toutes les notes ont une évaluation valide
+                $validNotes = $notes->filter(function($note) {
+                    return $note->evaluation && $note->evaluation->matiere && $note->evaluation->coefficient > 0;
+                });
+
+                if ($validNotes->isEmpty()) {
+                    \Log::info('Aucune note valide pour étudiant ' . $etudiant->id);
+                    continue;
+                }
+
+                // Nouveau calcul plus robuste
+                $totalPondere = $validNotes->sum(function($note) {
+                    return $note->note_vingt * $note->evaluation->coefficient;
+                });
+
+                $totalCoefficients = $validNotes->sum('evaluation.coefficient');
+
+                $moyenne = $totalCoefficients > 0 ? $totalPondere / $totalCoefficients : 0;
+            } else {
+                // Si aucune note, définir moyenne à null pour distinguer des 0 réels
+                $moyenne = null;
+            }
+
+            // Ajouter les résultats de l'étudiant
+            $resultats[] = [
+                'etudiant' => $etudiant,
+                'moyenne' => $moyenne,
+                'notes_count' => $notes->count()
+            ];
+        }
+
+        // Trier les résultats par moyenne décroissante
+        usort($resultats, function($a, $b) {
+            return ($b['moyenne'] ?? 0) <=> ($a['moyenne'] ?? 0); // Handle null values
+        });
+
+        // Périodes disponibles
+        $periodes = [
+            (object)['id' => 'semestre1', 'nom' => 'Premier Semestre'],
+            (object)['id' => 'semestre2', 'nom' => 'Deuxième Semestre'],
+            (object)['id' => 'annuel', 'nom' => 'Annuel']
+        ];
+
+        // Années universitaires
+        $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
+
+        return view('esbtp.resultats.classe', compact(
+            'classe',
+            'resultats',
+            'periodes',
+            'periode',
+            'anneesUniversitaires',
+            'annee_id',
+            'matieres'
+        ));
+    }
+
+    /**
+     * Affiche les résultats détaillés d'un étudiant spécifique
+     *
+     * @param ESBTPEtudiant $etudiant
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function resultatEtudiant(ESBTPEtudiant $etudiant, Request $request)
+    {
+        // Récupérer les paramètres
+        $classe_id = $request->input('classe_id');
+
+        // Fix: Safely handling potential null value from first() before accessing ->id
+        $currentAnnee = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+        $annee_id = $request->input('annee_universitaire_id', $currentAnnee ? $currentAnnee->id : null);
+
+        $periode = $request->input('periode', 'semestre1');
+
+        // Vérifier les années universitaires manquantes avant de récupérer les notes
+        $this->verifierAnneesUniversitaires();
+
+        \Log::info('Résultat étudiant', [
+            'etudiant_id' => $etudiant->id,
+            'etudiant_nom' => $etudiant->nom_complet,
+            'classe_id' => $classe_id,
+            'annee_id' => $annee_id,
+            'periode' => $periode
+        ]);
+
+        // Vérifier si une classe est spécifiée, sinon prendre la classe actuelle de l'étudiant
+        if (!$classe_id) {
+            $inscription = $etudiant->inscriptions()
+                ->where('annee_universitaire_id', $annee_id)
+                ->where('statut', 'active')
+                ->first();
+
+            if ($inscription) {
+                $classe_id = $inscription->classe_id;
+                \Log::info('Classe trouvée via inscription: ' . $classe_id);
+            } else {
+                // If no inscription found, try to get the student's direct class
+                if ($etudiant->classe_id) {
+                    $classe_id = $etudiant->classe_id;
+                    \Log::info('Classe trouvée via relation directe: ' . $classe_id);
+                } else {
+                    // If no class found at all, return with error
+                    return redirect()->route('esbtp.resultats.index')
+                        ->with('error', 'Aucune classe trouvée pour cet étudiant pour l\'année universitaire sélectionnée.');
+                }
+            }
+        }
+
+        // Récupérer la classe
+        try {
+            $classe = ESBTPClasse::findOrFail($classe_id);
+        } catch (\Exception $e) {
+            return redirect()->route('esbtp.resultats.index')
+                ->with('error', 'La classe spécifiée n\'existe pas.');
+        }
+
+        // Récupérer les notes de l'étudiant pour cette classe, année et période
+        $notesQuery = ESBTPNote::where('etudiant_id', $etudiant->id)
+            ->where(function($query) use ($classe_id) {
+                $query->where('classe_id', $classe_id)
+                    ->orWhereHas('evaluation', function($q) use ($classe_id) {
+                        $q->where('classe_id', $classe_id);
+                    });
+            })
+            ->whereHas('evaluation', function($query) use ($annee_id) {
+                $query->where('annee_universitaire_id', $annee_id);
+            });
+
+        // Filter by period if not 'annuel'
+        if ($periode !== 'annuel') {
+            $notesQuery->where(function($query) use ($periode) {
+                $query->where('semestre', $periode)
+                    ->orWhereHas('evaluation', function($q) use ($periode) {
+                        $q->where('periode', $periode);
+                    });
+            });
+        }
+
+        $notes = $notesQuery->with(['evaluation.matiere'])->get();
+
+        \Log::info('Nombre de notes trouvées: ' . $notes->count());
+
+        // Regrouper les notes par matière
+        $notesByMatiere = [];
+        foreach ($notes as $note) {
+            if (!$note->evaluation || !$note->evaluation->matiere) {
+                \Log::warning('Note sans évaluation ou matière valide', ['note_id' => $note->id]);
+                continue; // Skip notes without evaluations or matières
+            }
+
+            $matiere_id = $note->evaluation->matiere_id;
+            if (!isset($notesByMatiere[$matiere_id])) {
+                $notesByMatiere[$matiere_id] = [
+                    'matiere' => $note->evaluation->matiere,
+                    'notes' => [],
+                    'total_coefficients' => 0,
+                    'total_pondere' => 0
+                ];
+            }
+
+            $notesByMatiere[$matiere_id]['notes'][] = $note;
+            $notesByMatiere[$matiere_id]['total_coefficients'] += $note->evaluation->coefficient;
+            $notesByMatiere[$matiere_id]['total_pondere'] += $note->note_vingt * $note->evaluation->coefficient;
+        }
+
+        // Calculer la moyenne par matière
+        foreach ($notesByMatiere as &$matiereData) {
+            if ($matiereData['total_coefficients'] > 0) {
+                $matiereData['moyenne'] = $matiereData['total_pondere'] / $matiereData['total_coefficients'];
+            } else {
+                $matiereData['moyenne'] = 0;
+            }
+        }
+
+        // Calculer la moyenne générale
+        $totalCoefficients = array_sum(array_column($notesByMatiere, 'total_coefficients'));
+        $totalPondere = array_sum(array_column($notesByMatiere, 'total_pondere'));
+        $moyenneGenerale = $totalCoefficients > 0 ? $totalPondere / $totalCoefficients : 0;
+
+        \Log::info('Moyenne générale calculée: ' . $moyenneGenerale);
+
+        // Périodes disponibles
+        $periodes = [
+            (object)['id' => 'semestre1', 'nom' => 'Premier Semestre'],
+            (object)['id' => 'semestre2', 'nom' => 'Deuxième Semestre'],
+            (object)['id' => 'annuel', 'nom' => 'Annuel']
+        ];
+
+        // Années universitaires
+        $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
+
+        // Classes où l'étudiant est inscrit
+        $classes = ESBTPClasse::whereHas('inscriptions', function($query) use ($etudiant, $annee_id) {
+            $query->where('etudiant_id', $etudiant->id)
+                ->where('annee_universitaire_id', $annee_id);
+        })->get();
+
+        // If no classes found via inscriptions, try direct class relation
+        if ($classes->isEmpty() && $etudiant->classe_id) {
+            $classes = ESBTPClasse::where('id', $etudiant->classe_id)->get();
+        }
+
+        return view('esbtp.resultats.etudiant', compact(
+            'etudiant',
+            'classe',
+            'notes',
+            'notesByMatiere',
+            'moyenneGenerale',
+            'periodes',
+            'periode',
+            'anneesUniversitaires',
+            'annee_id',
+            'classes',
+            'classe_id'
+        ));
+    }
+
+    // Ajouter cette méthode pour vérifier et corriger les années universitaires manquantes dans les évaluations
+    public function verifierAnneesUniversitaires()
+    {
+        try {
+            $evaluationsSansAnnee = ESBTPEvaluation::whereNull('annee_universitaire_id')->get();
+            $count = $evaluationsSansAnnee->count();
+
+            if ($count === 0) {
+                \Log::info('Toutes les évaluations ont une année universitaire assignée.');
+                return [
+                    'success' => true,
+                    'message' => 'Toutes les évaluations ont une année universitaire assignée.'
+                ];
+            }
+
+            \Log::info("Trouvé {$count} évaluations sans année universitaire. Correction en cours...");
+
+            // Récupérer l'année universitaire actuelle
+            $anneeActuelle = ESBTPAnneeUniversitaire::where('is_current', true)->first();
+
+            if (!$anneeActuelle) {
+                \Log::error("Impossible de corriger les évaluations sans année universitaire. Aucune année actuelle n'est définie.");
+                return [
+                    'success' => false,
+                    'message' => 'Impossible de corriger les évaluations sans année universitaire. Aucune année actuelle n\'est définie.'
+                ];
+            }
+
+            $updatedFromClass = 0;
+            $updatedFromDefault = 0;
+
+            // Mettre à jour les évaluations sans année universitaire
+            foreach ($evaluationsSansAnnee as $eval) {
+                // D'abord essayer d'obtenir l'année universitaire à partir de la classe
+                if ($eval->classe_id) {
+                    $classe = ESBTPClasse::find($eval->classe_id);
+                    if ($classe && $classe->annee_universitaire_id) {
+                        $eval->annee_universitaire_id = $classe->annee_universitaire_id;
+                        $updatedFromClass++;
+                        \Log::info("Évaluation ID {$eval->id} mise à jour avec l'année universitaire de sa classe: {$classe->annee_universitaire_id}");
+                    } else {
+                        $eval->annee_universitaire_id = $anneeActuelle->id;
+                        $updatedFromDefault++;
+                        \Log::info("Évaluation ID {$eval->id} mise à jour avec l'année universitaire par défaut: {$anneeActuelle->id}");
+                    }
+                } else {
+                    $eval->annee_universitaire_id = $anneeActuelle->id;
+                    $updatedFromDefault++;
+                    \Log::info("Évaluation ID {$eval->id} sans classe mise à jour avec l'année universitaire par défaut: {$anneeActuelle->id}");
+                }
+                $eval->save();
+            }
+
+            \Log::info("Mise à jour effectuée: {$updatedFromClass} évaluations mises à jour via classe, {$updatedFromDefault} via année par défaut");
+            return [
+                'success' => true,
+                'message' => "Mise à jour effectuée: {$count} évaluations ont été assignées à l'année universitaire correspondante."
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la vérification des années universitaires: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Une erreur est survenue: ' . $e->getMessage()
+            ];
+        }
     }
 }

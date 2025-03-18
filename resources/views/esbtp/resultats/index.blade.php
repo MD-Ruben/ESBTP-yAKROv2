@@ -9,9 +9,11 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Résultats des étudiants</h5>
-                    <a href="{{ route('esbtp.bulletins.select') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Retour à la sélection
-                    </a>
+                    <div>
+                        <a href="{{ route('esbtp.bulletins.select') }}" class="btn btn-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i>Retour à la sélection
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
@@ -79,10 +81,19 @@
                         </div>
                     </div>
 
-                    @if(isset($classe) && isset($etudiants) && $etudiants->count() > 0)
-                        <div class="mb-4">
-                            <h4>Résultats : {{ $classe->name }} - {{ $periode == 'semestre1' ? 'Semestre 1' : ($periode == 'semestre2' ? 'Semestre 2' : 'Année complète') }}</h4>
-                            <p>Année universitaire : {{ $anneeUniversitaire->annee_debut ?? '' }}-{{ $anneeUniversitaire->annee_fin ?? '' }}</p>
+                    @if(isset($etudiants) && $etudiants->count() > 0)
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4>Résultats : {{ $classe->name ?? 'Tous les étudiants' }} - {{ $periode == 'semestre1' ? 'Semestre 1' : ($periode == 'semestre2' ? 'Semestre 2' : 'Année complète') }}</h4>
+                                <p>Année universitaire : {{ $anneeUniversitaire->annee_debut ?? '' }}-{{ $anneeUniversitaire->annee_fin ?? '' }}</p>
+                            </div>
+                            @if(isset($classe))
+                            <div>
+                                <a href="{{ route('esbtp.resultats.classe', ['classe' => $classe->id, 'annee_universitaire_id' => $annee_id, 'periode' => $periode]) }}" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar me-1"></i> Résultats détaillés de la classe
+                                </a>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="table-responsive">
@@ -91,6 +102,9 @@
                                     <tr>
                                         <th>Matricule</th>
                                         <th>Nom et prénom</th>
+                                        @if(!isset($classe))
+                                        <th>Classe</th>
+                                        @endif
                                         <th>Moyenne</th>
                                         <th>Rang</th>
                                         <th>Actions</th>
@@ -100,7 +114,16 @@
                                     @foreach($etudiants as $etudiant)
                                         <tr>
                                             <td>{{ $etudiant->matricule }}</td>
-                                            <td>{{ $etudiant->nom }} {{ $etudiant->prenom }}</td>
+                                            <td>{{ $etudiant->nom }} {{ $etudiant->prenoms }}</td>
+                                            @if(!isset($classe))
+                                            <td>
+                                                @php
+                                                    $inscription = $etudiant->inscriptions->where('annee_universitaire_id', $annee_id)->first();
+                                                    $etudiantClasse = $inscription ? $inscription->classe : null;
+                                                @endphp
+                                                {{ $etudiantClasse ? $etudiantClasse->name : 'N/A' }}
+                                            </td>
+                                            @endif
                                             <td>
                                                 @if(isset($moyennes[$etudiant->id]))
                                                     <span class="badge bg-{{ $moyennes[$etudiant->id] >= 10 ? 'success' : 'danger' }}">
@@ -118,9 +141,17 @@
                                                 @endif
                                             </td>
                                             <td>
+                                                @php
+                                                    $inscription = $etudiant->inscriptions->where('annee_universitaire_id', $annee_id)->first();
+                                                    $studentClasseId = $inscription ? $inscription->classe_id : null;
+                                                    $actualClasseId = $classe_id ?? $studentClasseId;
+                                                @endphp
+                                                <a href="{{ route('esbtp.resultats.etudiant', ['etudiant' => $etudiant->id, 'classe_id' => $actualClasseId, 'annee_universitaire_id' => $annee_id, 'periode' => $periode]) }}" class="btn btn-sm btn-info me-1">
+                                                    <i class="fas fa-chart-line me-1"></i>Détails
+                                                </a>
                                                 @if(isset($bulletins[$etudiant->id]))
-                                                    <a href="{{ route('esbtp.bulletins.show', $bulletins[$etudiant->id]) }}" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-eye me-1"></i>Voir
+                                                    <a href="{{ route('esbtp.bulletins.show', $bulletins[$etudiant->id]) }}" class="btn btn-sm btn-secondary me-1">
+                                                        <i class="fas fa-eye me-1"></i>Bulletin
                                                     </a>
                                                     <a href="{{ route('esbtp.bulletins.pdf', $bulletins[$etudiant->id]) }}" class="btn btn-sm btn-danger" target="_blank">
                                                         <i class="fas fa-file-pdf me-1"></i>PDF
@@ -134,6 +165,17 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        @if(isset($notes) && $notes->isEmpty())
+                            <div class="alert alert-warning">
+                                Aucune note trouvée. Vérifiez que :
+                                <ul>
+                                    <li>Les évaluations sont bien créées pour cette période</li>
+                                    <li>Les notes sont saisies et liées aux évaluations</li>
+                                    <li>Les coefficients des évaluations sont > 0</li>
+                                </ul>
+                            </div>
+                        @endif
                     @elseif(isset($classe))
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>Aucun étudiant trouvé pour cette classe et cette période.
@@ -158,4 +200,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

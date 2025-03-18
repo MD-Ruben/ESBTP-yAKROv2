@@ -27,6 +27,41 @@
                         </div>
                     @endif
 
+                    <!-- Filtering area -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="matiere_id" class="form-label">Matière</label>
+                            <select name="matiere_id" id="matiere_id" class="form-select">
+                                <option value="">Toutes les matières</option>
+                                @foreach($matieres as $matiere)
+                                    <option value="{{ $matiere->id }}" {{ request('matiere_id') == $matiere->id ? 'selected' : '' }}>
+                                        {{ $matiere->nom }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="classe_id" class="form-label">Classe</label>
+                            <select name="classe_id" id="classe_id" class="form-select">
+                                <option value="">Toutes les classes</option>
+                                @foreach($classes as $classe)
+                                    <option value="{{ $classe->id }}" {{ request('classe_id') == $classe->id ? 'selected' : '' }}>
+                                        {{ $classe->niveau->code }} {{ $classe->filiere->code }} {{ $classe->nom }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="periode" class="form-label">Période</label>
+                            <select name="periode" id="periode" class="form-select">
+                                <option value="">Toutes les périodes</option>
+                                <option value="semestre1" {{ request('periode') == 'semestre1' ? 'selected' : '' }}>Semestre 1</option>
+                                <option value="semestre2" {{ request('periode') == 'semestre2' ? 'selected' : '' }}>Semestre 2</option>
+                                <option value="annuel" {{ request('periode') == 'annuel' ? 'selected' : '' }}>Annuel</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>

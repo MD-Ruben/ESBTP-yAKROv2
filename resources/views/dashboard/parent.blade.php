@@ -105,7 +105,7 @@
                                 @foreach($etudiants as $etudiant)
                                 <tr>
                                     <td>{{ $etudiant->nom }}</td>
-                                    <td>{{ $etudiant->prenom }}</td>
+                                    <td>{{ $etudiant->prenoms }}</td>
                                     <td>{{ $etudiant->matricule }}</td>
                                     <td>{{ $etudiant->classe->nom ?? 'Non assigné' }}</td>
                                     <td>
@@ -270,26 +270,26 @@
         justify-content: center;
         font-size: 1.5rem;
     }
-    
+
     .bg-light-green {
         background-color: rgba(25, 135, 84, 0.1);
     }
-    
+
     .bg-light-orange {
         background-color: rgba(255, 193, 7, 0.1);
     }
-    
+
     .bg-light-blue {
         background-color: rgba(13, 110, 253, 0.1);
     }
-    
+
     .bg-light-purple {
         background-color: rgba(111, 66, 193, 0.1);
     }
-    
+
     .hover-shadow:hover {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         transition: box-shadow 0.3s ease-in-out;
     }
 </style>
-@endsection 
+@endsection

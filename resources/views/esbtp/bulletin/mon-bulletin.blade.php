@@ -23,10 +23,9 @@
                 <div class="col-md-4 mb-2">
                     <label for="periode">Période</label>
                     <select name="periode" id="periode" class="form-control">
-                        <option value="">Toutes les périodes</option>
-                        <option value="S1" {{ $periode == 'S1' ? 'selected' : '' }}>Semestre 1</option>
-                        <option value="S2" {{ $periode == 'S2' ? 'selected' : '' }}>Semestre 2</option>
-                        <option value="Annuel" {{ $periode == 'Annuel' ? 'selected' : '' }}>Annuel</option>
+                        <option value="semestre1" {{ $periode == 'semestre1' ? 'selected' : '' }}>Semestre 1</option>
+                        <option value="semestre2" {{ $periode == 'semestre2' ? 'selected' : '' }}>Semestre 2</option>
+                        <option value="annuel" {{ $periode == 'annuel' ? 'selected' : '' }}>Annuel</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-2 d-flex align-items-end">
@@ -140,7 +139,7 @@
                                         <td colspan="7"></td>
                                     </tr>
                                 @endif
-                                
+
                                 @foreach($data['details'] as $detail)
                                     <tr>
                                         <td>{{ $detail->matiere->code ?? 'N/A' }}</td>
@@ -176,15 +175,15 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                
+
                                 <!-- Moyenne de l'UE -->
                                 @if($data['ue'])
                                     <tr class="bg-light">
                                         <td colspan="6" class="text-right"><strong>Moyenne UE</strong></td>
                                         <td class="text-center font-weight-bold">
                                             @php
-                                                $moyenneUE = $data['details']->sum(function($detail) { 
-                                                    return $detail->moyenne * $detail->coefficient; 
+                                                $moyenneUE = $data['details']->sum(function($detail) {
+                                                    return $detail->moyenne * $detail->coefficient;
                                                 }) / $data['details']->sum('coefficient');
                                             @endphp
                                             {{ number_format($moyenneUE, 2) }}
@@ -226,7 +225,7 @@
                     @endif
                 </p>
             </div>
-            
+
             @if($bulletin->observations)
                 <div class="mt-3">
                     <h6>Observations:</h6>
@@ -241,7 +240,7 @@
         <button onclick="window.print()" class="btn btn-primary">
             <i class="fas fa-print mr-2"></i> Imprimer le bulletin
         </button>
-        
+
         <a href="{{ route('dashboard') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-2"></i> Retour au tableau de bord
         </a>
@@ -262,33 +261,33 @@
         .sidebar, header, footer, .card-header, form, .btn, nav {
             display: none !important;
         }
-        
+
         body {
             padding: 0;
             margin: 0;
         }
-        
+
         .container-fluid {
             width: 100%;
             padding: 0;
             margin: 0;
         }
-        
+
         .card {
             border: 1px solid #ddd;
             margin-bottom: 15px;
         }
-        
+
         .table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .table th, .table td {
             border: 1px solid #ddd;
             padding: 8px;
         }
-        
+
         .alert {
             border: 1px solid #ddd;
             padding: 15px;
@@ -296,4 +295,4 @@
         }
     }
 </style>
-@endsection 
+@endsection

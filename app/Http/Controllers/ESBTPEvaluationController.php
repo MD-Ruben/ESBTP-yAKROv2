@@ -145,6 +145,7 @@ class ESBTPEvaluationController extends Controller
             'bareme' => 'required|numeric|min:0',
             'duree_minutes' => 'nullable|integer|min:0',
             'is_published' => 'nullable|boolean',
+            'periode' => 'required|string|max:50',
         ], [
             'titre.required' => 'Le titre est obligatoire',
             'type.required' => 'Le type d\'évaluation est obligatoire',
@@ -293,6 +294,7 @@ class ESBTPEvaluationController extends Controller
             'coefficient' => 'required|numeric|min:0',
             'bareme' => 'required|numeric|min:0',
             'duree_minutes' => 'nullable|integer|min:0',
+            'periode' => 'required|string|max:50',
         ], [
             'titre.required' => 'Le titre est obligatoire',
             'type.required' => 'Le type d\'évaluation est obligatoire',

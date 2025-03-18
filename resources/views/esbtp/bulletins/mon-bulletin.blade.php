@@ -100,12 +100,11 @@
                                 </select>
                             </div>
                             <div class="col-md-5">
-                                <label for="periode" class="form-label">Période</label>
-                                <select class="form-select" id="periode" name="periode">
-                                    <option value="">Toutes les périodes</option>
-                                    <option value="Premier Semestre" {{ $periode == 'Premier Semestre' ? 'selected' : '' }}>Premier Semestre</option>
-                                    <option value="Deuxième Semestre" {{ $periode == 'Deuxième Semestre' ? 'selected' : '' }}>Deuxième Semestre</option>
-                                    <option value="Annuel" {{ $periode == 'Annuel' ? 'selected' : '' }}>Annuel</option>
+                                <label for="periode">Période</label>
+                                <select name="periode" id="periode" class="form-control">
+                                    <option value="semestre1" {{ $periode == 'semestre1' ? 'selected' : '' }}>Premier Semestre</option>
+                                    <option value="semestre2" {{ $periode == 'semestre2' ? 'selected' : '' }}>Deuxième Semestre</option>
+                                    <option value="annuel" {{ $periode == 'annuel' ? 'selected' : '' }}>Annuel</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
@@ -204,4 +203,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

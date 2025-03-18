@@ -156,6 +156,40 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::put('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'update'])
                 ->name('emploi-temps.update')
                 ->middleware(['permission:edit_timetables']);
+
+            // Routes pour les résultats
+            Route::get('resultats', [ESBTPBulletinController::class, 'resultats'])->name('resultats.index')
+                ->middleware(['permission:view own bulletin|view_bulletins']);
+            Route::get('resultats/classe/{classe}', [ESBTPBulletinController::class, 'resultatClasse'])->name('resultats.classe')
+                ->middleware(['permission:view own bulletin|view_bulletins']);
+            Route::get('resultats/etudiant/{etudiant}', [ESBTPBulletinController::class, 'resultatEtudiant'])->name('resultats.etudiant')
+                ->middleware(['permission:view own bulletin|view_bulletins']);
+
+            // Routes pour les annonces
+            Route::resource('annonces', ESBTPAnnonceController::class)
+                ->middleware(['permission:send_messages']);
+
+            // Routes pour les séances de cours
+            Route::resource('seances-cours', ESBTPSeanceCoursController::class)
+                ->parameters(['seances-cours' => 'seance']);
+
+            // Routes pour les présences
+            Route::resource('attendances', ESBTPAttendanceController::class)
+                ->middleware(['permission:view_attendances|create_attendance|edit_attendances|delete_attendances']);
+            Route::get('/attendances-rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])->name('attendances.rapport-form');
+            Route::post('/attendances-rapport', [ESBTPAttendanceController::class, 'rapport'])->name('attendances.rapport');
+
+            // Paiements
+            Route::get('/paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'index'])->name('paiements.index');
+            Route::get('/paiements/create', [App\Http\Controllers\ESBTPPaiementController::class, 'create'])->name('paiements.create');
+            Route::post('/paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'store'])->name('paiements.store');
+            Route::get('/paiements/{paiement}', [App\Http\Controllers\ESBTPPaiementController::class, 'show'])->name('paiements.show');
+            Route::get('/paiements/{paiement}/edit', [App\Http\Controllers\ESBTPPaiementController::class, 'edit'])->name('paiements.edit');
+            Route::put('/paiements/{paiement}', [App\Http\Controllers\ESBTPPaiementController::class, 'update'])->name('paiements.update');
+            Route::get('/paiements/{paiement}/valider', [App\Http\Controllers\ESBTPPaiementController::class, 'valider'])->name('paiements.valider');
+            Route::post('/paiements/{paiement}/rejeter', [App\Http\Controllers\ESBTPPaiementController::class, 'rejeter'])->name('paiements.rejeter');
+            Route::get('/paiements/{paiement}/recu', [App\Http\Controllers\ESBTPPaiementController::class, 'genererRecu'])->name('paiements.recu');
+            Route::get('/paiements/etudiant/{etudiant}', [App\Http\Controllers\ESBTPPaiementController::class, 'paiementsEtudiant'])->name('paiements.etudiant');
         });
 
         // Routes accessibles pour les secrétaires et super-admins
@@ -252,35 +286,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
 
             // Route for today's timetable
             Route::get('timetables/today', [ESBTPEmploiTempsController::class, 'today'])->name('timetables.today');
-
-            // Route pour les résultats
-            Route::get('resultats', [ESBTPBulletinController::class, 'resultats'])->name('resultats.index');
-
-            // Routes pour les annonces
-            Route::resource('annonces', ESBTPAnnonceController::class)
-                ->middleware(['permission:send_messages']);
-
-            // Routes pour les séances de cours
-            Route::resource('seances-cours', ESBTPSeanceCoursController::class)
-                ->parameters(['seances-cours' => 'seance']);
-
-            // Routes pour les présences
-            Route::resource('attendances', ESBTPAttendanceController::class)
-                ->middleware(['permission:view_attendances|create_attendance|edit_attendances|delete_attendances']);
-            Route::get('/attendances-rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])->name('attendances.rapport-form');
-            Route::post('/attendances-rapport', [ESBTPAttendanceController::class, 'rapport'])->name('attendances.rapport');
-
-            // Paiements
-            Route::get('/paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'index'])->name('paiements.index');
-            Route::get('/paiements/create', [App\Http\Controllers\ESBTPPaiementController::class, 'create'])->name('paiements.create');
-            Route::post('/paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'store'])->name('paiements.store');
-            Route::get('/paiements/{paiement}', [App\Http\Controllers\ESBTPPaiementController::class, 'show'])->name('paiements.show');
-            Route::get('/paiements/{paiement}/edit', [App\Http\Controllers\ESBTPPaiementController::class, 'edit'])->name('paiements.edit');
-            Route::put('/paiements/{paiement}', [App\Http\Controllers\ESBTPPaiementController::class, 'update'])->name('paiements.update');
-            Route::get('/paiements/{paiement}/valider', [App\Http\Controllers\ESBTPPaiementController::class, 'valider'])->name('paiements.valider');
-            Route::post('/paiements/{paiement}/rejeter', [App\Http\Controllers\ESBTPPaiementController::class, 'rejeter'])->name('paiements.rejeter');
-            Route::get('/paiements/{paiement}/recu', [App\Http\Controllers\ESBTPPaiementController::class, 'genererRecu'])->name('paiements.recu');
-            Route::get('/paiements/etudiant/{etudiant}', [App\Http\Controllers\ESBTPPaiementController::class, 'paiementsEtudiant'])->name('paiements.etudiant');
         });
 
         // Espace étudiant - routes accessibles pour les étudiants

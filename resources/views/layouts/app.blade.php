@@ -422,8 +422,10 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
+            <!--<img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
             <div class="sidebar-brand">ESBTP-yAKRO</div>
+            <div class="sidebar-subtitle">Gestion Universitaire</div>-->
+            <div class="sidebar-brand">KLASSCI</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>
         </div>
 

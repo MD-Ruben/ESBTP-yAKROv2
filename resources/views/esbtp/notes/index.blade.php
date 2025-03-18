@@ -92,14 +92,14 @@
                                 @forelse($notes as $note)
                                     <tr>
                                         <td>{{ $note->etudiant->nom }} {{ $note->etudiant->prenoms }}</td>
-                                        <td>{{ $note->evaluation->classe ? $note->evaluation->classe->name : 'N/A' }}</td>
-                                        <td>{{ $note->evaluation->matiere ? $note->evaluation->matiere->name : 'N/A' }}</td>
-                                        <td>{{ $note->evaluation->titre }}</td>
+                                        <td>{{ $note->evaluation && $note->evaluation->classe ? $note->evaluation->classe->name : 'N/A' }}</td>
+                                        <td>{{ $note->evaluation && $note->evaluation->matiere ? $note->evaluation->matiere->name : 'N/A' }}</td>
+                                        <td>{{ $note->evaluation ? $note->evaluation->titre : 'N/A' }}</td>
                                         <td>
                                             @if($note->is_absent)
                                                 <span class="badge badge-danger">Absent</span>
                                             @else
-                                                {{ $note->note }}/{{ $note->evaluation->bareme }}
+                                                {{ $note->formatted_note }}
                                             @endif
                                         </td>
                                         <td>{{ $note->created_at->format('d/m/Y') }}</td>
