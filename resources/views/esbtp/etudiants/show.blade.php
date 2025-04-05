@@ -74,6 +74,20 @@
                                             <td>{{ $etudiant->date_naissance ? $etudiant->date_naissance->format('d/m/Y') : 'Non renseigné' }}</td>
                                         </tr>
                                         <tr>
+                                            <th>Lieu de naissance</th>
+                                            <td>{{ $etudiant->lieu_naissance ?: 'Non renseigné' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Ville/Commune de naissance</th>
+                                            <td>
+                                                @if($etudiant->ville_naissance || $etudiant->commune_naissance)
+                                                    {{ $etudiant->ville_naissance }} {{ $etudiant->commune_naissance ? ', '.$etudiant->commune_naissance : '' }}
+                                                @else
+                                                    Non renseigné
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th>Téléphone</th>
                                             <td>{{ $etudiant->telephone }}</td>
                                         </tr>
@@ -108,6 +122,9 @@
                                         <div class="d-flex align-items-center mb-3">
                                             <span class="badge bg-success me-2">Actif</span>
                                             <span>{{ $etudiant->user->email }}</span>
+                                        </div>
+                                        <div>
+                                            <p><strong>Nom d'utilisateur:</strong> {{ $etudiant->user->username ?: $etudiant->user->email }}</p>
                                         </div>
                                         <div class="d-grid gap-2">
                                             <a href="{{ route('esbtp.etudiants.reset-password', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?')">
@@ -231,6 +248,7 @@
                                                         <th>Classe</th>
                                                         <th>Date d'inscription</th>
                                                         <th>Statut</th>
+                                                        <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -242,11 +260,54 @@
                                                             <td>{{ $inscription->classe ? $inscription->classe->name : 'Non assigné' }}</td>
                                                             <td>{{ $inscription->created_at->format('d/m/Y') }}</td>
                                                             <td>
-                                                                @if($inscription->is_active)
+                                                                @if($inscription->status == 'active')
                                                                     <span class="badge bg-success">Active</span>
+                                                                @elseif($inscription->status == 'pending')
+                                                                    <span class="badge bg-warning">En attente</span>
+                                                                @elseif($inscription->status == 'annulée')
+                                                                    <span class="badge bg-danger">Annulée</span>
                                                                 @else
-                                                                    <span class="badge bg-secondary">Archivée</span>
+                                                                    <span class="badge bg-secondary">{{ $inscription->status }}</span>
                                                                 @endif
+                                                            </td>
+                                                            <td>
+                                                                <div class="btn-group" role="group">
+                                                                    <a href="{{ route('esbtp.inscriptions.show', $inscription->id) }}" class="btn btn-sm btn-info" title="Voir les détails">
+                                                                        <i class="fas fa-eye"></i>
+                                                                    </a>
+
+                                                                    @if($inscription->status == 'pending')
+                                                                        @can('inscriptions.validate')
+                                                                        <button type="button" class="btn btn-sm btn-success valider-btn" data-bs-toggle="modal" data-bs-target="#validationModal{{ $inscription->id }}" title="Valider l'inscription">
+                                                                            <i class="fas fa-check"></i>
+                                                                        </button>
+
+                                                                        <!-- Modal de validation -->
+                                                                        <div class="modal fade" id="validationModal{{ $inscription->id }}" tabindex="-1" aria-labelledby="validationModalLabel{{ $inscription->id }}" aria-hidden="true">
+                                                                            <div class="modal-dialog">
+                                                                                <div class="modal-content">
+                                                                                    <div class="modal-header">
+                                                                                        <h5 class="modal-title" id="validationModalLabel{{ $inscription->id }}">Valider l'inscription</h5>
+                                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                                    </div>
+                                                                                    <form action="{{ route('esbtp.inscriptions.valider', $inscription->id) }}" method="POST">
+                                                                                        @csrf
+                                                                                        @method('PUT')
+                                                                                        <div class="modal-body">
+                                                                                            <p>Êtes-vous sûr de vouloir valider cette inscription ?</p>
+                                                                                            <p>L'étudiant sera automatiquement activé et pourra accéder à son compte.</p>
+                                                                                        </div>
+                                                                                        <div class="modal-footer">
+                                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                                                            <button type="submit" class="btn btn-success">Valider l'inscription</button>
+                                                                                        </div>
+                                                                                    </form>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        @endcan
+                                                                    @endif
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     @endforeach

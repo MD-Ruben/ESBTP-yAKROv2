@@ -78,7 +78,7 @@
                                     <h6 class="mb-0">Informations générales du bulletin</h6>
                                 </div>
                                 <div class="card-body">
-                                    <form action="{{ route('esbtp.bulletins.update-general', $bulletin) }}" method="POST">
+                                    <form action="{{ route('bulletins.update', $bulletin) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -138,7 +138,7 @@
                             <h6 class="mb-0">Assiduité et appréciation générale</h6>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('esbtp.bulletins.update-appreciation', $bulletin) }}" method="POST">
+                            <form action="{{ route('bulletins.update', $bulletin) }}" method="POST">
                                 @csrf
                                 @method('PUT')
 
@@ -202,7 +202,7 @@
                             <h6 class="mb-0">Résultats par matière</h6>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('esbtp.bulletins.update-details', $bulletin) }}" method="POST">
+                            <form action="{{ route('bulletins.update', $bulletin) }}" method="POST">
                                 @csrf
                                 @method('PUT')
 
@@ -219,33 +219,33 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($bulletin->details as $detail)
+                                            @forelse($bulletin->resultats as $resultat)
                                                 <tr>
                                                     <td>
-                                                        {{ $detail->id }}
-                                                        <input type="hidden" name="details[{{ $detail->id }}][id]" value="{{ $detail->id }}">
+                                                        {{ $resultat->id }}
+                                                        <input type="hidden" name="resultats[{{ $resultat->id }}][id]" value="{{ $resultat->id }}">
                                                     </td>
-                                                    <td>{{ $detail->matiere->code }}</td>
-                                                    <td>{{ $detail->matiere->name }}</td>
+                                                    <td>{{ $resultat->matiere->code }}</td>
+                                                    <td>{{ $resultat->matiere->name }}</td>
                                                     <td>
-                                                        <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.coefficient') is-invalid @enderror"
-                                                               name="details[{{ $detail->id }}][coefficient]"
-                                                               value="{{ old('details.' . $detail->id . '.coefficient', $detail->coefficient) }}"
+                                                        <input type="number" class="form-control form-control-sm @error('resultats.' . $resultat->id . '.coefficient') is-invalid @enderror"
+                                                               name="resultats[{{ $resultat->id }}][coefficient]"
+                                                               value="{{ old('resultats.' . $resultat->id . '.coefficient', $resultat->coefficient) }}"
                                                                step="0.1" min="0.1" max="20">
                                                     </td>
                                                     <td>
                                                         <div class="input-group input-group-sm">
-                                                            <input type="number" class="form-control form-control-sm @error('details.' . $detail->id . '.moyenne') is-invalid @enderror"
-                                                                   name="details[{{ $detail->id }}][moyenne]"
-                                                                   value="{{ old('details.' . $detail->id . '.moyenne', $detail->moyenne) }}"
+                                                            <input type="number" class="form-control form-control-sm @error('resultats.' . $resultat->id . '.moyenne') is-invalid @enderror"
+                                                                   name="resultats[{{ $resultat->id }}][moyenne]"
+                                                                   value="{{ old('resultats.' . $resultat->id . '.moyenne', $resultat->moyenne) }}"
                                                                    step="0.01" min="0" max="20">
                                                             <span class="input-group-text">/20</span>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <input type="text" class="form-control form-control-sm @error('details.' . $detail->id . '.appreciation') is-invalid @enderror"
-                                                               name="details[{{ $detail->id }}][appreciation]"
-                                                               value="{{ old('details.' . $detail->id . '.appreciation', $detail->appreciation) }}"
+                                                        <input type="text" class="form-control form-control-sm @error('resultats.' . $resultat->id . '.appreciation') is-invalid @enderror"
+                                                               name="resultats[{{ $resultat->id }}][appreciation]"
+                                                               value="{{ old('resultats.' . $resultat->id . '.appreciation', $resultat->commentaire) }}"
                                                                maxlength="255">
                                                     </td>
                                                 </tr>

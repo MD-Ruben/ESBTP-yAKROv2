@@ -16,6 +16,11 @@ if (file_exists(__DIR__.'/environment_setup.php')) {
 |
 */
 
+// Charger explicitement le fichier helpers.php
+if (file_exists(__DIR__ . '/../app/Helpers/helpers.php')) {
+    require_once __DIR__ . '/../app/Helpers/helpers.php';
+}
+
 $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );

@@ -16,7 +16,7 @@ class User extends Authenticatable
 
     /**
      * La table associée au modèle.
-     * 
+     *
      * @var string
      */
     protected $table = 'users';
@@ -41,6 +41,12 @@ class User extends Authenticatable
         'last_login_at',
         'created_by',
         'updated_by',
+        'position',
+        'department',
+        'office_location',
+        'employee_id',
+        'appointment_date',
+        'birth_date',
     ];
 
     /**
@@ -63,6 +69,7 @@ class User extends Authenticatable
         'birth_date' => 'date',
         'last_login_at' => 'datetime',
         'is_active' => 'boolean',
+        'appointment_date' => 'date',
     ];
 
     /**
@@ -298,4 +305,4 @@ class User extends Authenticatable
     {
         return $query->where('user_type', $type);
     }
-} 
+}

@@ -10,6 +10,8 @@ use App\Models\ESBTPEtudiant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ESBTPAnneeUniversitaire;
+use App\Services\ESBTPPDFService;
+use Illuminate\Support\Str;
 
 class ESBTPEvaluationController extends Controller
 {
@@ -246,7 +248,7 @@ class ESBTPEvaluationController extends Controller
      */
     public function show(ESBTPEvaluation $evaluation)
     {
-        $evaluation->load(['classe', 'matiere', 'createdBy', 'notes.etudiant']);
+        $evaluation->load(['classe', 'matiere', 'createdBy', 'updatedBy', 'notes.etudiant']);
 
         // Récupérer les étudiants qui n'ont pas encore de note pour cette évaluation
         $etudiantsAvecNote = $evaluation->notes->pluck('etudiant_id')->toArray();
@@ -556,6 +558,34 @@ class ESBTPEvaluationController extends Controller
             return back()->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', 'Une erreur est survenue lors de la modification de la publication des notes.');
+        }
+    }
+
+    /**
+     * Génère un PDF de l'évaluation avec les notes des étudiants
+     *
+     * @param  \App\Models\ESBTPEvaluation  $evaluation
+     * @return \Illuminate\Http\Response
+     */
+    public function generatePdf(ESBTPEvaluation $evaluation)
+    {
+        try {
+            // Vérifier les autorisations
+            $this->authorize('view', $evaluation);
+
+            // Récupérer le service PDF
+            $pdfService = app(ESBTPPDFService::class);
+
+            // Générer le PDF
+            $pdf = $pdfService->genererEvaluationPDF($evaluation);
+
+            // Générer un nom de fichier basé sur le titre de l'évaluation
+            $filename = 'evaluation_' . Str::slug($evaluation->titre) . '_' . $evaluation->date_evaluation->format('d-m-Y') . '.pdf';
+
+            // Retourner le PDF en téléchargement
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
         }
     }
 }

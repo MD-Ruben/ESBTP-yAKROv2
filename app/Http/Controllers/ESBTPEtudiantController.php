@@ -144,7 +144,7 @@ class ESBTPEtudiantController extends Controller
             'genre' => 'required|in:M,F',
             'date_naissance' => 'nullable|date',
             'telephone' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
+            'email_personnel' => 'required|email|max:255',
             'ville' => 'nullable|string|max:255',
             'commune' => 'nullable|string|max:255',
             'photo' => 'nullable|image|max:2048',
@@ -185,7 +185,7 @@ class ESBTPEtudiantController extends Controller
                 'sexe' => $request->genre,
                 'date_naissance' => $request->date_naissance,
                 'telephone' => $request->telephone,
-                'email_personnel' => $request->email,
+                'email_personnel' => $request->email_personnel,
                 'adresse' => ($request->ville && $request->commune) ? $request->ville . ', ' . $request->commune : null,
                 'statut' => $request->statut ?? 'actif',
                 'creer_compte_utilisateur' => $request->create_account ? true : false,
@@ -360,6 +360,17 @@ class ESBTPEtudiantController extends Controller
         $classes = ESBTPClasse::where('is_active', true)->get();
         $annees = ESBTPAnneeUniversitaire::orderBy('start_date', 'desc')->get();
 
+        // Logging pour debug
+        \Log::info('Étudiant chargé pour édition', [
+            'id' => $etudiant->id,
+            'email_personnel' => $etudiant->email_personnel,
+            'email_personnelArray' => $etudiant['email_personnel'] ?? null,
+            'sexe' => $etudiant->sexe,
+            'sexeArray' => $etudiant['sexe'] ?? null,
+            'genre' => $etudiant->genre,
+            'all_attributes' => $etudiant->getAttributes(),
+        ]);
+
         return view('esbtp.etudiants.edit', compact(
             'etudiant',
             'filieres',
@@ -374,6 +385,46 @@ class ESBTPEtudiantController extends Controller
      */
     public function update(Request $request, ESBTPEtudiant $etudiant)
     {
+        // Vérifier le token de prévention de double soumission
+        $submittedToken = $request->input('form_submit_token');
+        $sessionToken = session('form_submit_token');
+
+        if ($sessionToken && $submittedToken === $sessionToken) {
+            \Log::warning('Tentative de double soumission détectée', [
+                'session_id' => session()->getId(),
+                'etudiant_id' => $etudiant->id
+            ]);
+            return redirect()
+                ->back()
+                ->with('warning', 'Cette mise à jour a déjà été soumise. Veuillez rafraîchir la page pour effectuer une nouvelle modification.');
+        }
+
+        // Stocker le token en session
+        session(['form_submit_token' => $submittedToken]);
+
+        // Logging des données reçues pour debug
+        \Log::info('Début de la requête de mise à jour', [
+            'request_method' => $request->method(),
+            'request_url' => $request->url(),
+            'request_headers' => $request->headers->all(),
+            'session_id' => session()->getId(),
+            'input_size' => strlen(json_encode($request->all())),
+            'has_file' => $request->hasFile('photo'),
+            'file_size' => $request->hasFile('photo') ? $request->file('photo')->getSize() : 0
+        ]);
+
+        \Log::info('Données reçues pour mise à jour étudiant', [
+            'id' => $etudiant->id,
+            'requestData' => $request->all(),
+            'currentEmail' => $etudiant->email_personnel,
+            'currentSexe' => $etudiant->sexe,
+            'currentGenre' => $etudiant->genre,
+            'ville' => $request->input('ville'),
+            'commune' => $request->input('commune'),
+            'etudiantVille' => $etudiant->ville,
+            'etudiantCommune' => $etudiant->commune,
+        ]);
+
         // Validation des données
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255',
@@ -381,15 +432,24 @@ class ESBTPEtudiantController extends Controller
             'sexe' => 'required|in:M,F',
             'date_naissance' => 'nullable|date',
             'lieu_naissance' => 'nullable|string|max:255',
+            'ville_naissance' => 'nullable|string|max:255',
+            'commune_naissance' => 'nullable|string|max:255',
             'nationalite' => 'nullable|string|max:255',
             'adresse' => 'nullable|string',
             'telephone' => 'nullable|string|max:20',
             'email_personnel' => 'nullable|email|max:255',
             'photo' => 'nullable|image|max:2048',
             'statut' => 'required|in:actif,inactif,diplômé,abandon,exclu',
+            'ville' => 'nullable|string|max:255',
+            'commune' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validation échouée lors de la mise à jour de l\'étudiant', [
+                'errors' => $validator->errors()->toArray(),
+                'session_id' => session()->getId()
+            ]);
+
             return redirect()
                 ->back()
                 ->withErrors($validator)
@@ -398,15 +458,38 @@ class ESBTPEtudiantController extends Controller
 
         try {
             DB::beginTransaction();
+            \Log::info('Début de la transaction de mise à jour pour l\'étudiant ' . $etudiant->id);
 
-            // Mettre à jour les données de l'étudiant
+            // Extraire les données ville et commune spécifiquement pour s'assurer qu'elles sont correctement définies
+            $ville = $request->input('ville');
+            $commune = $request->input('commune');
+
+            // Mettre à jour les champs ville et commune explicitement pour s'assurer qu'ils sont correctement enregistrés
+            $etudiant->ville = !empty($ville) ? (string)$ville : null;
+            $etudiant->commune = !empty($commune) ? (string)$commune : null;
+
+            // Mettre à jour les autres données de l'étudiant
             $etudiantData = $request->only([
                 'nom', 'prenoms', 'sexe', 'date_naissance', 'lieu_naissance',
+                'ville_naissance', 'commune_naissance',
                 'nationalite', 'adresse', 'telephone', 'email_personnel', 'statut'
+            ]);
+
+            \Log::info('Données à mettre à jour', [
+                'etudiantData' => $etudiantData,
+                'ville' => $etudiant->ville,
+                'commune' => $etudiant->commune,
+                'session_id' => session()->getId()
             ]);
 
             // Gérer la photo si présente
             if ($request->hasFile('photo')) {
+                \Log::info('Traitement de la photo', [
+                    'original_name' => $request->file('photo')->getClientOriginalName(),
+                    'size' => $request->file('photo')->getSize(),
+                    'mime_type' => $request->file('photo')->getMimeType()
+                ]);
+
                 // Supprimer l'ancienne photo si elle existe
                 if ($etudiant->photo && Storage::exists(str_replace('/storage', 'public', $etudiant->photo))) {
                     Storage::delete(str_replace('/storage', 'public', $etudiant->photo));
@@ -419,7 +502,31 @@ class ESBTPEtudiantController extends Controller
             // Mettre à jour l'étudiant
             $etudiant->fill($etudiantData);
             $etudiant->updated_by = Auth::id();
-            $etudiant->save();
+
+            \Log::info('État de l\'étudiant avant sauvegarde', [
+                'ville' => $etudiant->ville,
+                'commune' => $etudiant->commune,
+                'nom' => $etudiant->nom,
+                'prenoms' => $etudiant->prenoms,
+                'attributes' => $etudiant->getAttributes(),
+                'session_id' => session()->getId()
+            ]);
+
+            // Forcer un update sans détection de modification
+            $result = $etudiant->save(['timestamps' => true]);
+            \Log::info('Résultat de la sauvegarde', [
+                'success' => $result,
+                'session_id' => session()->getId()
+            ]);
+
+            // Vérification post-sauvegarde
+            $updatedEtudiant = ESBTPEtudiant::find($etudiant->id);
+            \Log::info('État de l\'étudiant après sauvegarde', [
+                'ville' => $updatedEtudiant->ville,
+                'commune' => $updatedEtudiant->commune,
+                'attributes' => $updatedEtudiant->getAttributes(),
+                'session_id' => session()->getId()
+            ]);
 
             // Mettre à jour l'utilisateur associé
             if ($etudiant->user_id) {
@@ -433,6 +540,11 @@ class ESBTPEtudiantController extends Controller
             }
 
             DB::commit();
+            \Log::info('Transaction de mise à jour terminée avec succès', [
+                'etudiant_id' => $etudiant->id,
+                'session_id' => session()->getId(),
+                'redirect_to' => route('esbtp.etudiants.show', $etudiant->id)
+            ]);
 
             return redirect()
                 ->route('esbtp.etudiants.show', $etudiant->id)
@@ -440,6 +552,12 @@ class ESBTPEtudiantController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Erreur lors de la mise à jour de l\'étudiant', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'session_id' => session()->getId()
+            ]);
+
             return redirect()
                 ->back()
                 ->with('error', 'Erreur lors de la mise à jour: ' . $e->getMessage())
@@ -510,8 +628,20 @@ class ESBTPEtudiantController extends Controller
                     ->with('error', 'Compte utilisateur introuvable.');
             }
 
-            // Générer un nouveau mot de passe
-            $newPassword = ESBTPEtudiant::genererMotDePasse();
+            // Générer un nouveau mot de passe simple
+            // 6 caractères: 4 lettres majuscules + 2 chiffres
+            $lettres = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Lettres sans I et O pour éviter la confusion
+            $chiffres = '23456789'; // Chiffres sans 0 et 1 pour éviter la confusion
+
+            $newPassword = '';
+            // Ajouter 4 lettres aléatoires
+            for ($i = 0; $i < 4; $i++) {
+                $newPassword .= $lettres[rand(0, strlen($lettres) - 1)];
+            }
+            // Ajouter 2 chiffres aléatoires
+            for ($i = 0; $i < 2; $i++) {
+                $newPassword .= $chiffres[rand(0, strlen($chiffres) - 1)];
+            }
 
             // Mettre à jour le mot de passe
             $user->password = Hash::make($newPassword);
@@ -716,7 +846,21 @@ class ESBTPEtudiantController extends Controller
      */
     public function profile()
     {
-        $etudiant = auth()->user()->etudiant;
+        // Vérifier si l'utilisateur est un étudiant
+        $user = auth()->user();
+
+        // Rediriger les non-étudiants vers leur profil approprié
+        if (!$user->hasRole('etudiant')) {
+            // Pour les administrateurs et secrétaires
+            return redirect()->route('dashboard')->with('warning', 'Vous n\'avez pas accès au profil étudiant.');
+        }
+
+        $etudiant = $user->etudiant;
+
+        // Si l'étudiant n'existe pas, afficher une erreur
+        if (!$etudiant) {
+            return redirect()->route('dashboard')->with('error', 'Profil étudiant non trouvé.');
+        }
 
         // Charger l'inscription active en premier
         $inscription = ESBTPInscription::with(['filiere', 'niveau', 'classe', 'anneeUniversitaire', 'paiements'])
@@ -789,66 +933,6 @@ class ESBTPEtudiantController extends Controller
             'items' => $formattedParents,
             'pagination' => ['more' => $hasMorePages]
         ]);
-    }
-
-    /**
-     * Met à jour le profil de l'administrateur
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function updateAdminProfile(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $user = Auth::user();
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        if ($request->hasFile('profile_photo')) {
-            // Supprimer l'ancienne photo de profil si elle existe
-            if ($user->profile_photo_path) {
-                Storage::delete($user->profile_photo_path);
-            }
-
-            // Sauvegarder la nouvelle photo
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $user->profile_photo_path = $path;
-        }
-
-        $user->save();
-
-        return redirect()->route('esbtp.mon-profil.index')->with('success', 'Profil mis à jour avec succès');
-    }
-
-    /**
-     * Met à jour le mot de passe de l'administrateur
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function updateAdminPassword(Request $request)
-    {
-        $request->validate([
-            'current_password' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = Auth::user();
-
-        // Vérifier si le mot de passe actuel est correct
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Le mot de passe actuel est incorrect']);
-        }
-
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return redirect()->route('esbtp.mon-profil.index')->with('success', 'Mot de passe mis à jour avec succès');
     }
 
     /**

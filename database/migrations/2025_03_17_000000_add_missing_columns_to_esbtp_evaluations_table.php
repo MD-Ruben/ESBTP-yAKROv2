@@ -13,12 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('esbtp_evaluations', function (Blueprint $table) {
-            // Ajouter les colonnes manquantes
-            $table->string('titre')->after('id');
-            $table->text('description')->nullable()->after('titre');
-            $table->integer('duree_minutes')->nullable()->after('bareme');
-        });
+        if (Schema::hasTable('esbtp_evaluations')) {
+            Schema::table('esbtp_evaluations', function (Blueprint $table) {
+                // Vérifier si chaque colonne existe avant de l'ajouter
+                if (!Schema::hasColumn('esbtp_evaluations', 'titre')) {
+                    $table->string('titre')->after('id');
+                }
+                if (!Schema::hasColumn('esbtp_evaluations', 'description')) {
+                    $table->text('description')->nullable()->after('titre');
+                }
+                if (!Schema::hasColumn('esbtp_evaluations', 'duree_minutes')) {
+                    $table->integer('duree_minutes')->nullable()->after('bareme');
+                }
+            });
+        }
     }
 
     /**
@@ -28,9 +36,24 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('esbtp_evaluations', function (Blueprint $table) {
-            // Supprimer les colonnes ajoutées
-            $table->dropColumn(['titre', 'description', 'duree_minutes']);
-        });
+        if (Schema::hasTable('esbtp_evaluations')) {
+            Schema::table('esbtp_evaluations', function (Blueprint $table) {
+                // Vérifier si chaque colonne existe avant de la supprimer
+                $columns = [];
+                if (Schema::hasColumn('esbtp_evaluations', 'titre')) {
+                    $columns[] = 'titre';
+                }
+                if (Schema::hasColumn('esbtp_evaluations', 'description')) {
+                    $columns[] = 'description';
+                }
+                if (Schema::hasColumn('esbtp_evaluations', 'duree_minutes')) {
+                    $columns[] = 'duree_minutes';
+                }
+
+                if (!empty($columns)) {
+                    $table->dropColumn($columns);
+                }
+            });
+        }
     }
 };

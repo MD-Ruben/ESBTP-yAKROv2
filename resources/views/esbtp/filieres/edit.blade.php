@@ -29,14 +29,14 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('esbtp.filieres.update', $filiere) }}" method="POST">
+                    <form action="{{ route('esbtp.filieres.update', $filiere->id) }}" method="POST">
                         @csrf
                         @method('PUT')
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name" class="form-label">Nom de la filière *</label>
+                                    <label for="name">Nom de la filière</label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $filiere->name) }}" required>
                                     @error('name')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -46,7 +46,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="code" class="form-label">Code de la filière *</label>
+                                    <label for="code">Code</label>
                                     <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $filiere->code) }}" required>
                                     @error('code')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -58,28 +58,23 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="parent_id" class="form-label">Filière parente (pour une option)</label>
+                                    <label for="parent_id">Filière parente (optionnel)</label>
                                     <select class="form-select @error('parent_id') is-invalid @enderror" id="parent_id" name="parent_id">
-                                        <option value="">Aucune (filière principale)</option>
-                                        @foreach($filieres as $parentFiliere)
-                                            @if($parentFiliere && $parentFiliere->id != $filiere->id && !$parentFiliere->isDescendantOf($filiere))
-                                                <option value="{{ $parentFiliere->id }}" {{ old('parent_id', $filiere->parent_id) == $parentFiliere->id ? 'selected' : '' }}>
-                                                    {{ $parentFiliere->name }} ({{ $parentFiliere->code }})
-                                                </option>
-                                            @endif
+                                        <option value="">Aucune (Filière principale)</option>
+                                        @foreach($filieres as $f)
+                                            <option value="{{ $f->id }}" {{ old('parent_id', $filiere->parent_id) == $f->id ? 'selected' : '' }}>{{ $f->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('parent_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted">Sélectionnez une filière parente si celle-ci est une option</small>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description', $filiere->description) }}</textarea>
+                            <label for="description">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description">{{ old('description', $filiere->description) }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -88,30 +83,42 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="niveau_etude_ids" class="form-label">Niveaux d'études associés</label>
-                                    <select class="form-select @error('niveau_etude_ids') is-invalid @enderror" id="niveau_etude_ids" name="niveau_etude_ids[]" multiple>
-                                        @foreach($niveauxEtudes as $niveau)
-                                            <option value="{{ $niveau->id }}" {{ in_array($niveau->id, old('niveau_etude_ids', $filiere->niveauxEtudes->pluck('id')->toArray())) ? 'selected' : '' }}>
-                                                {{ $niveau->name }} ({{ $niveau->code }})
+                                    <label for="niveau_ids">Niveaux d'études associés</label>
+                                    <select class="form-select @error('niveau_ids') is-invalid @enderror" id="niveau_ids" name="niveau_ids[]" multiple>
+                                        @foreach($niveaux as $niveau)
+                                            <option value="{{ $niveau->id }}" {{ in_array($niveau->id, old('niveau_ids', $filiere->niveaux->pluck('id')->toArray())) ? 'selected' : '' }}>
+                                                {{ $niveau->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('niveau_etude_ids')
+                                    @error('niveau_ids')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="form-text text-muted">Sélectionnez les niveaux d'études associés à cette filière</small>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $filiere->is_active) == 1 ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                Filière active
-                            </label>
-                            <div class="form-text">
-                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span>
-                                Une filière inactive ne sera pas disponible lors de la création de classes.
+                        <div class="form-group">
+                            <label for="matiere_ids">Matières associées</label>
+                            <select class="form-select @error('matiere_ids') is-invalid @enderror" id="matiere_ids" name="matiere_ids[]" multiple>
+                                @foreach($matieres as $matiere)
+                                    <option value="{{ $matiere->id }}" {{ in_array($matiere->id, old('matiere_ids', $filiere->matieres->pluck('id')->toArray())) ? 'selected' : '' }}>
+                                        {{ $matiere->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('matiere_ids')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input @error('is_active') is-invalid @enderror" id="is_active" name="is_active" value="1" {{ old('is_active', $filiere->is_active) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="is_active">Active</label>
+                                @error('is_active')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -139,7 +146,7 @@
                             </button>
                             <div>
                                 <button type="reset" class="btn btn-secondary me-2">Annuler les modifications</button>
-                                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                                <button type="submit" class="btn btn-primary">Mettre à jour</button>
                             </div>
                         </div>
                     </form>
@@ -194,7 +201,7 @@
 <script>
     $(document).ready(function() {
         // Amélioration des listes déroulantes avec Select2
-        $('#parent_id, #niveau_etude_ids').select2({
+        $('#parent_id, #niveau_ids').select2({
             theme: 'bootstrap-5',
             width: '100%'
         });

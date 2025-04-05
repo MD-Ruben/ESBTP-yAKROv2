@@ -29,9 +29,23 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('esbtp.etudiants.update', $etudiant) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('esbtp.etudiants.update', $etudiant) }}" method="POST" enctype="multipart/form-data" id="editEtudiantForm">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="id" value="{{ $etudiant->id }}">
+                        <input type="hidden" name="form_submit_token" value="{{ md5(uniqid(mt_rand(), true)) }}">
+
+                        <!-- Debugger temporaire pour vérifier les valeurs -->
+                        <!--<div class="mb-4 p-3 bg-light">
+                            <h6>Valeurs actuelles pour le debugging (À supprimer après résolution du problème)</h6>
+                            <ul>
+                                <li><strong>Email personnel (direct) :</strong> {{ $etudiant->email_personnel }}</li>
+                                <li><strong>Email personnel (from array) :</strong> {{ $etudiant['email_personnel'] }}</li>
+                                <li><strong>Genre/Sexe (direct) :</strong> {{ $etudiant->genre }} / {{ $etudiant->sexe }}</li>
+                                <li><strong>Genre/Sexe (from array) :</strong> {{ $etudiant['genre'] ?? 'Non défini' }} / {{ $etudiant['sexe'] ?? 'Non défini' }}</li>
+                                <li><strong>Toutes les propriétés :</strong> <pre>{{ print_r($etudiant->toArray(), true) }}</pre></li>
+                            </ul>
+                        </div>-->
 
                         <div class="row mb-4">
                             <div class="col-12">
@@ -63,12 +77,12 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
-                                                <label for="genre" class="form-label">Genre <span class="text-danger">*</span></label>
-                                                <select class="form-select @error('genre') is-invalid @enderror" id="genre" name="genre" required>
-                                                    <option value="M" {{ old('genre', $etudiant->genre) == 'M' ? 'selected' : '' }}>Masculin</option>
-                                                    <option value="F" {{ old('genre', $etudiant->genre) == 'F' ? 'selected' : '' }}>Féminin</option>
+                                                <label for="sexe" class="form-label">Genre <span class="text-danger">*</span></label>
+                                                <select class="form-select @error('sexe') is-invalid @enderror" id="sexe" name="sexe" required>
+                                                    <option value="M" {{ old('sexe', $etudiant->sexe) == 'M' ? 'selected' : '' }}>Masculin</option>
+                                                    <option value="F" {{ old('sexe', $etudiant->sexe) == 'F' ? 'selected' : '' }}>Féminin</option>
                                                 </select>
-                                                @error('genre')
+                                                @error('sexe')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
@@ -80,6 +94,25 @@
                                                 @enderror
                                             </div>
                                             <div class="col-md-4 mb-3">
+                                                <label for="lieu_naissance" class="form-label">Lieu de naissance</label>
+                                                <input type="text" class="form-control @error('lieu_naissance') is-invalid @enderror" id="lieu_naissance" name="lieu_naissance" value="{{ old('lieu_naissance', $etudiant->lieu_naissance) }}">
+                                                @error('lieu_naissance')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="row">
+
+                                            <div class="col-md-4 mb-3">
+                                                <label for="nationalite" class="form-label">Nationalité</label>
+                                                <input type="text" class="form-control @error('nationalite') is-invalid @enderror" id="nationalite" name="nationalite" value="{{ old('nationalite', $etudiant->nationalite) }}">
+                                                @error('nationalite')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
                                                 <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control @error('telephone') is-invalid @enderror" id="telephone" name="telephone" value="{{ old('telephone', $etudiant->telephone) }}" required>
                                                 @error('telephone')
@@ -89,28 +122,37 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
-                                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email', $etudiant->email) }}" required>
-                                                @error('email')
+                                                <label for="email_personnel" class="form-label">Email</label>
+                                                <input type="email" class="form-control @error('email_personnel') is-invalid @enderror" id="email_personnel" name="email_personnel" value="{{ old('email_personnel', $etudiant->email_personnel) }}">
+                                                @error('email_personnel')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label for="ville" class="form-label">Ville</label>
+                                                <label for="ville" class="form-label">Ville de résidence</label>
                                                 <input type="text" class="form-control @error('ville') is-invalid @enderror" id="ville" name="ville" value="{{ old('ville', $etudiant->ville) }}">
                                                 @error('ville')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
+                                                <!-- Debug info: {{ $etudiant->ville ?? 'Non défini' }} -->
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label for="commune" class="form-label">Commune</label>
+                                                <label for="commune" class="form-label">Commune de résidence</label>
                                                 <input type="text" class="form-control @error('commune') is-invalid @enderror" id="commune" name="commune" value="{{ old('commune', $etudiant->commune) }}">
                                                 @error('commune')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
+                                                <!-- Debug info: {{ $etudiant->commune ?? 'Non défini' }} -->
                                             </div>
                                         </div>
                                         <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label for="adresse" class="form-label">Adresse complète</label>
+                                                <input type="text" class="form-control @error('adresse') is-invalid @enderror" id="adresse" name="adresse" value="{{ old('adresse', $etudiant->adresse) }}">
+                                                @error('adresse')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                             <div class="col-md-4 mb-3">
                                                 <label for="photo" class="form-label">Photo de profil</label>
                                                 <input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*">
@@ -168,9 +210,9 @@
                                                             </button>
                                                         @endif
                                                     </div>
-                                                    
+
                                                     <input type="hidden" name="parents[{{ $index }}][id]" value="{{ $parent->id }}">
-                                                    
+
                                                     <div class="row">
                                                         <div class="col-md-4 mb-3">
                                                             <label for="parent_nom_{{ $index }}" class="form-label">Nom <span class="text-danger">*</span></label>
@@ -229,14 +271,23 @@
                                         <h6 class="mb-0">Compte utilisateur</h6>
                                     </div>
                                     <div class="card-body">
+                                        @if(session('new_password'))
+                                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                <strong>Mot de passe réinitialisé avec succès!</strong>
+                                                <p>Le nouveau mot de passe est : <span class="font-weight-bold">{{ session('new_password') }}</span></p>
+                                                <p>Veuillez communiquer ce mot de passe à l'étudiant.</p>
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                        @endif
+
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Compte utilisateur</label>
                                                 @if($etudiant->user)
                                                     <div class="d-flex align-items-center">
                                                         <span class="badge bg-success me-2">Actif</span>
-                                                        <span>{{ $etudiant->user->email }}</span>
-                                                        <a href="{{ route('esbtp.etudiants.reset-password', $etudiant) }}" class="btn btn-sm btn-outline-secondary ms-2" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?')">
+                                                        <span><strong>Nom d'utilisateur:</strong> {{ $etudiant->user->username ?: $etudiant->user->email }}</span>
+                                                        <a href="{{ route('esbtp.etudiants.reset-password', $etudiant) }}" class="btn btn-sm btn-outline-secondary ms-2" onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ? Un nouveau mot de passe simple sera généré.')">
                                                             <i class="fas fa-key me-1"></i>Réinitialiser le mot de passe
                                                         </a>
                                                     </div>
@@ -251,7 +302,7 @@
                                                         </div>
                                                     </div>
                                                     <small class="form-text text-muted">
-                                                        Un compte sera créé avec l'email fourni ci-dessus. Le mot de passe sera généré automatiquement et envoyé par email à l'étudiant.
+                                                        Un compte sera créé avec un nom d'utilisateur basé sur le nom et prénom de l'étudiant. Un mot de passe temporaire sera généré.
                                                     </small>
                                                 @endif
                                             </div>
@@ -277,14 +328,34 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        // Prévention de double soumission
+        let formSubmitted = false;
+        $('#editEtudiantForm').on('submit', function(e) {
+            if (formSubmitted) {
+                e.preventDefault();
+                return false;
+            }
+            formSubmitted = true;
+            $(this).find('button[type="submit"]').prop('disabled', true);
+        });
+
+        // Validation de la taille de la photo avant soumission
+        $('input[type="file"]').on('change', function() {
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if (this.files[0] && this.files[0].size > maxSize) {
+                alert('La taille de la photo ne doit pas dépasser 2MB');
+                this.value = '';
+            }
+        });
+
         // Initialisation de Select2 pour les sélecteurs si disponible
         if (typeof $.fn.select2 !== 'undefined') {
-            $('#genre, #statut').select2({
+            $('#sexe, #statut').select2({
                 theme: 'bootstrap4',
                 minimumResultsForSearch: Infinity
             });
         }
-        
+
         // Ajout de parents
         let parentCount = {{ $etudiant->parents->count() }};
         $('#add-parent').on('click', function() {
@@ -292,7 +363,7 @@
                 alert('Vous ne pouvez ajouter que 2 parents maximum.');
                 return;
             }
-            
+
             const parentHtml = `
                 <div class="parent-item mb-4 p-3 border rounded">
                     <div class="d-flex justify-content-between mb-3">
@@ -301,7 +372,7 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="parent_nom_new" class="form-label">Nom <span class="text-danger">*</span></label>
@@ -344,29 +415,29 @@
                     </div>
                 </div>
             `;
-            
+
             $('#parents-container').append(parentHtml);
             parentCount++;
-            
+
             // Masquer le bouton d'ajout si on a atteint 2 parents
             if (parentCount >= 2) {
                 $('#add-parent').hide();
             }
         });
-        
+
         // Suppression de parents
         $(document).on('click', '.remove-parent', function() {
             const parentItem = $(this).closest('.parent-item');
             const parentId = $(this).data('parent-id');
-            
+
             if (parentId) {
                 // Si c'est un parent existant, ajouter un champ hidden pour la suppression
                 $('form').append(`<input type="hidden" name="delete_parents[]" value="${parentId}">`);
             }
-            
+
             parentItem.remove();
             parentCount--;
-            
+
             // Afficher le bouton d'ajout si on a moins de 2 parents
             if (parentCount < 2) {
                 $('#add-parent').show();
@@ -374,4 +445,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

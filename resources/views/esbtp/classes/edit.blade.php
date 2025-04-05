@@ -13,7 +13,7 @@
                         <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-info me-2">
                             <i class="fas fa-eye me-1"></i>Voir les détails
                         </a>
-                        <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('esbtp.student.classes.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
                     </div>

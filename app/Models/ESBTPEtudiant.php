@@ -30,6 +30,8 @@ class ESBTPEtudiant extends Model
         'sexe',
         'date_naissance',
         'lieu_naissance',
+        'ville_naissance',
+        'commune_naissance',
         'nationalite',
         'adresse',
         'telephone',
@@ -43,7 +45,9 @@ class ESBTPEtudiant extends Model
         'urgence_contact_telephone',
         'urgence_contact_relation',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'ville',
+        'commune'
     ];
 
     /**
@@ -125,17 +129,12 @@ class ESBTPEtudiant extends Model
      */
     public function getInscriptionActiveAttribute()
     {
-        // Récupérer l'année universitaire en cours
-        $anneeEnCours = ESBTPAnneeUniversitaire::where('is_current', true)->first();
-
-        if (!$anneeEnCours) {
-            return null;
-        }
-
         return $this->inscriptions()
-                    ->where('annee_universitaire_id', $anneeEnCours->id)
-                    ->where('status', 'active')
-                    ->first();
+            ->whereHas('anneeUniversitaire', function($query) {
+                $query->where('is_current', true);
+            })
+            ->where('status', 'active')
+            ->first();
     }
 
     /**
@@ -376,5 +375,82 @@ class ESBTPEtudiant extends Model
     public function setGenreAttribute($value)
     {
         $this->attributes['sexe'] = $value;
+    }
+
+    /**
+     * Accesseur pour le champ 'email_personnel' qui retourne l'email de l'utilisateur si celui-ci est vide
+     *
+     * @return string|null
+     */
+    public function getEmailPersonnelAttribute($value)
+    {
+        // Si email_personnel n'est pas vide, le retourner
+        if (!empty($value)) {
+            return $value;
+        }
+
+        // Sinon, retourner l'email de l'utilisateur associé si disponible
+        if ($this->user_id && $this->user) {
+            return $this->user->email;
+        }
+
+        // Si aucun des deux n'est disponible, retourner null
+        return null;
+    }
+
+    /**
+     * Relation avec la classe (à travers l'inscription active).
+     * Cette relation est ajoutée pour compatibilité avec le code utilisant
+     * la relation 'classe' directement sur l'étudiant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOneThrough
+     */
+    public function classe()
+    {
+        return $this->hasOneThrough(
+            ESBTPClasse::class,
+            ESBTPInscription::class,
+            'etudiant_id', // Clé étrangère sur la table intermédiaire (inscriptions)
+            'id', // Clé primaire sur la table cible (classes)
+            'id', // Clé primaire sur la table source (etudiants)
+            'classe_id' // Clé étrangère sur la table intermédiaire (inscriptions)
+        )->whereHas('anneeUniversitaire', function($query) {
+            $query->where('is_current', true);
+        });
+    }
+
+    /**
+     * Relation avec l'inscription (uniquement l'inscription active).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function inscription()
+    {
+        return $this->hasOne(ESBTPInscription::class, 'etudiant_id')
+            ->whereHas('anneeUniversitaire', function($query) {
+                $query->where('is_current', true);
+            })
+            ->where('status', 'active')
+            ->latest();
+    }
+
+    /**
+     * Récupère les inscriptions en attente de validation.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getPendingInscriptionsAttribute()
+    {
+        return $this->inscriptions()->where('status', 'pending')->get();
+    }
+
+    /**
+     * Vérifie si l'étudiant a au moins une inscription en attente.
+     *
+     * @return bool
+     */
+    public function getHasPendingInscriptionAttribute()
+    {
+        return $this->inscriptions()->where('status', 'pending')->exists();
     }
 }

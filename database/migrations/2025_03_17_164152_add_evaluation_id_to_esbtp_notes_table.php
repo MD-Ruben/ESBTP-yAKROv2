@@ -13,9 +13,11 @@ class AddEvaluationIdToEsbtpNotesTable extends Migration
      */
     public function up()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->foreignId('evaluation_id')->after('id')->nullable()->constrained('esbtp_evaluations')->onDelete('cascade');
-        });
+        if (Schema::hasTable('esbtp_notes') && !Schema::hasColumn('esbtp_notes', 'evaluation_id')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->foreignId('evaluation_id')->after('id')->nullable()->constrained('esbtp_evaluations')->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -25,9 +27,11 @@ class AddEvaluationIdToEsbtpNotesTable extends Migration
      */
     public function down()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->dropForeign(['evaluation_id']);
-            $table->dropColumn('evaluation_id');
-        });
+        if (Schema::hasTable('esbtp_notes') && Schema::hasColumn('esbtp_notes', 'evaluation_id')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->dropForeign(['evaluation_id']);
+                $table->dropColumn('evaluation_id');
+            });
+        }
     }
 }

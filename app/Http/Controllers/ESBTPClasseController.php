@@ -19,9 +19,17 @@ class ESBTPClasseController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
         $classes = ESBTPClasse::with(['filiere', 'niveau', 'annee'])->get();
 
-        return view('esbtp.classes.index', compact('classes'));
+        // Different view rendering based on user role
+        if ($user->hasRole('etudiant')) {
+            // For students - read-only view
+            return view('esbtp.classes.student_index', compact('classes'));
+        } else {
+            // For admin and secretary - full functionality view
+            return view('esbtp.classes.index', compact('classes'));
+        }
     }
 
     /**
@@ -93,9 +101,17 @@ class ESBTPClasseController extends Controller
      */
     public function show(ESBTPClasse $classe)
     {
+        $user = Auth::user();
         $classe->load(['filiere', 'niveau', 'annee', 'matieres', 'etudiants', 'inscriptions', 'emploisDuTemps']);
 
-        return view('esbtp.classes.show', compact('classe'));
+        // Different view rendering based on user role
+        if ($user->hasRole('etudiant')) {
+            // For students - read-only view
+            return view('esbtp.classes.student_show', compact('classe'));
+        } else {
+            // For admin and secretary - full functionality view
+            return view('esbtp.classes.show', compact('classe'));
+        }
     }
 
     /**
@@ -334,6 +350,25 @@ class ESBTPClasseController extends Controller
             return response()->json($matieres);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erreur lors de la récupération des matières'], 500);
+        }
+    }
+
+    /**
+     * Récupère les détails d'une classe pour l'API JavaScript.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getClasseById($id)
+    {
+        try {
+            $classe = ESBTPClasse::with(['filiere', 'niveau', 'anneeUniversitaire'])
+                ->findOrFail($id);
+
+            return response()->json($classe);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération de la classe: ' . $e->getMessage());
+            return response()->json(['error' => 'Classe non trouvée'], 404);
         }
     }
 }

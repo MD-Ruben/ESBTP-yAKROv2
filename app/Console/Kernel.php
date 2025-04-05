@@ -39,5 +39,6 @@ class Kernel extends ConsoleKernel
         Commands\CleanupInstallation::class,
         Commands\ActivateAllTimetables::class,
         Commands\FixTimetablesCommand::class,
+        Commands\SyncStudentEmailsCommand::class,
     ];
 }

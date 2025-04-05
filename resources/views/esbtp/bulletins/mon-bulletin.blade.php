@@ -170,8 +170,8 @@
                                                     <a href="{{ route('esbtp.bulletins.show', $bulletin->id) }}" class="btn btn-sm btn-info" title="Voir">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('esbtp.bulletins.pdf', $bulletin->id) }}" class="btn btn-sm btn-danger" title="Télécharger PDF">
-                                                        <i class="fas fa-file-pdf"></i>
+                                                    <a href="{{ route('esbtp.bulletins.pdf-params', ['bulletin' => $bulletin->etudiant_id, 'classe_id' => $bulletin->classe_id, 'periode' => $bulletin->periode, 'annee_universitaire_id' => $bulletin->annee_universitaire_id]) }}" class="btn btn-sm btn-danger" title="Télécharger PDF">
+                                                        <i class="fas fa-file-pdf"></i> PDF
                                                     </a>
                                                 </div>
                                             </td>

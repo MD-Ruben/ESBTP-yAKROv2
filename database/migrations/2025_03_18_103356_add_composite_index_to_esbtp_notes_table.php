@@ -4,28 +4,53 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class AddCompositeIndexToEsbtpNotesTable extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void
      */
-    public function up(): void
+    public function up()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            // Add composite indexes for better performance in querying notes
-            $table->index(['etudiant_id', 'semestre', 'classe_id'], 'idx_notes_etudiant_semestre_classe');
-            $table->index(['evaluation_id', 'etudiant_id'], 'idx_notes_evaluation_etudiant');
-        });
+        if (Schema::hasTable('esbtp_notes')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                if (!$this->hasIndex('esbtp_notes', 'idx_notes_etudiant_semestre_classe')) {
+                    $table->index(['etudiant_id', 'semestre', 'classe_id'], 'idx_notes_etudiant_semestre_classe');
+                }
+            });
+        }
     }
 
     /**
      * Reverse the migrations.
+     *
+     * @return void
      */
-    public function down(): void
+    public function down()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->dropIndex('idx_notes_etudiant_semestre_classe');
-            $table->dropIndex('idx_notes_evaluation_etudiant');
-        });
+        if (Schema::hasTable('esbtp_notes')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                if ($this->hasIndex('esbtp_notes', 'idx_notes_etudiant_semestre_classe')) {
+                    $table->dropIndex('idx_notes_etudiant_semestre_classe');
+                }
+            });
+        }
     }
-};
+
+    /**
+     * Vérifie si un index existe dans une table
+     *
+     * @param string $table
+     * @param string $index
+     * @return bool
+     */
+    private function hasIndex($table, $index)
+    {
+        $conn = Schema::getConnection();
+        $dbSchemaManager = $conn->getDoctrineSchemaManager();
+        $doctrineTable = $dbSchemaManager->listTableDetails($table);
+
+        return $doctrineTable->hasIndex($index);
+    }
+}

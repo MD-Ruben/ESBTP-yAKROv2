@@ -9,7 +9,7 @@
     <!-- Filtres -->
     <div class="card mb-4">
         <div class="card-body">
-            <form action="{{ route('mes-absences.index') }}" method="GET" class="row">
+            <form action="{{ route('esbtp.mes-absences.index') }}" method="GET" class="row">
                 <div class="col-md-3 mb-2">
                     <label for="annee_universitaire_id">Année Universitaire</label>
                     <select name="annee_universitaire_id" id="annee_universitaire_id" class="form-control">
@@ -41,7 +41,7 @@
                 </div>
                 <div class="col-md-3 mb-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary">Filtrer</button>
-                    <a href="{{ route('mes-absences.index') }}" class="btn btn-secondary ml-2">Réinitialiser</a>
+                    <a href="{{ route('esbtp.mes-absences.index') }}" class="btn btn-secondary ml-2">Réinitialiser</a>
                 </div>
             </form>
         </div>
@@ -134,14 +134,14 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="d-flex justify-content-center mt-4">
                         {{ $absences->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4">
             <div class="card mb-4">
                 <div class="card-header">
@@ -151,7 +151,7 @@
                     <canvas id="absencesChart" width="100%" height="300"></canvas>
                 </div>
             </div>
-            
+
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Règlement des absences</h5>
@@ -187,7 +187,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form action="{{ route('esbtp.absence-justification.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('esbtp.esbtp.mes-absences.justify', $absence->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="attendance_id" value="{{ $absence->id }}">
                         <div class="modal-body">
@@ -256,4 +256,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

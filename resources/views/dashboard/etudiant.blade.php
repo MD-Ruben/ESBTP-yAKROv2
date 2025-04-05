@@ -2,6 +2,26 @@
 
 @section('title', 'Tableau de bord Étudiant')
 
+@push('styles')
+<style>
+    .bg-success-light {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    .bg-info-light {
+        background-color: rgba(23, 162, 184, 0.1);
+    }
+    .progress {
+        background-color: #f8f9fa;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid px-4">
     <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
@@ -40,7 +60,7 @@
                             <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
+                    <a href="{{ route('student.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
                 </div>
             </div>
         </div>
@@ -89,19 +109,40 @@
 
         @if(isset($attendancePercentage))
         <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Taux de présence</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $attendancePercentage }}%</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-semibold text-muted mb-0">Présences</h6>
+                        <div class="stat-icon bg-primary-light rounded-circle p-2">
+                            <i class="fas fa-clipboard-check text-primary"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.mes-absences.index') }}" class="btn btn-sm btn-danger mt-3">Voir mes présences</a>
+
+                    <div class="attendance-stats">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar {{ $attendancePercentage >= 75 ? 'bg-success' : ($attendancePercentage >= 50 ? 'bg-warning' : 'bg-danger') }}"
+                                     role="progressbar"
+                                     style="width: {{ $attendancePercentage }}%"
+                                     aria-valuenow="{{ $attendancePercentage }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <span class="fw-bold">{{ $attendancePercentage }}%</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>Présences</span>
+                            <span>Objectif: 100%</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{{ route('esbtp.mes-absences.index') }}" class="btn btn-sm btn-primary w-100">
+                            <i class="fas fa-eye me-1"></i> Voir mes présences
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -235,7 +276,7 @@
                         </table>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{{ route('notes.student', $etudiant->id) }}" class="btn btn-primary">Voir toutes mes notes</a>
+                        <a href="{{ route('esbtp.mes-notes.index') }}" class="btn btn-primary">Voir toutes mes notes</a>
                     </div>
                 </div>
             </div>
@@ -332,6 +373,82 @@
                 </small>
             </div>
         @endif
+    </div>
+
+    <!-- Statistiques de présence -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold">Statistiques de présence</h5>
+                    <div class="rounded-circle bg-light p-2">
+                        <i class="fas fa-chart-pie text-primary"></i>
+                    </div>
+                </div>
+
+                @php
+                    // Calculer le taux de présence en utilisant les données du contrôleur
+                    $totalAttendances = isset($presences) && isset($absences) ?
+                        $presences->count() + $absences->count() +
+                        (isset($retards) ? $retards->count() : 0) +
+                        (isset($excuses) ? $excuses->count() : 0) : 0;
+
+                    $present = isset($presences) ? $presences->count() : 0;
+                    $retard = isset($retards) ? $retards->count() : 0;
+                    $excuse = isset($excuses) ? $excuses->count() : 0;
+
+                    $presenceRate = $totalAttendances > 0 ?
+                        round((($present + $retard + $excuse) / $totalAttendances) * 100) : 100;
+
+                    // Couleur basée sur le taux de présence
+                    $progressColor = $presenceRate >= 75 ? 'success' : ($presenceRate >= 50 ? 'warning' : 'danger');
+                @endphp
+
+                <div class="attendance-stats mb-3">
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Taux de présence</span>
+                        <span class="fw-bold">{{ $presenceRate }}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-{{ $progressColor }}"
+                             role="progressbar"
+                             style="width: {{ $presenceRate }}%"
+                             aria-valuenow="{{ $presenceRate }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-3 text-center">
+                    <div class="col-4">
+                        <div class="p-2 bg-success-light rounded mb-2">
+                            <i class="fas fa-check text-success"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0">{{ $present }}</h6>
+                        <small class="text-muted">Présences</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-danger-light rounded mb-2">
+                            <i class="fas fa-times text-danger"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0">{{ isset($absences) ? $absences->count() : 0 }}</h6>
+                        <small class="text-muted">Absences</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-warning-light rounded mb-2">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0">{{ $retard }}</h6>
+                        <small class="text-muted">Retards</small>
+                    </div>
+                </div>
+
+                <a href="{{ route('esbtp.mes-absences.index') }}" class="btn btn-primary mt-auto">
+                    <i class="fas fa-calendar-check me-2"></i>Voir toutes mes absences
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

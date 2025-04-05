@@ -13,9 +13,11 @@ class AddCommentaireToEsbtpNotesTable extends Migration
      */
     public function up()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->text('commentaire')->nullable()->after('is_absent');
-        });
+        if (Schema::hasTable('esbtp_notes') && !Schema::hasColumn('esbtp_notes', 'commentaire')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->text('commentaire')->nullable()->after('is_absent');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddCommentaireToEsbtpNotesTable extends Migration
      */
     public function down()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->dropColumn('commentaire');
-        });
+        if (Schema::hasTable('esbtp_notes') && Schema::hasColumn('esbtp_notes', 'commentaire')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->dropColumn('commentaire');
+            });
+        }
     }
 }

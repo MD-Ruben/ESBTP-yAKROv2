@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('esbtp_evaluations', function (Blueprint $table) {
-            // Ajouter la colonne periode pour identifier à quelle période appartient l'évaluation
-            $table->string('periode')->default('semestre1')->after('description');
-        });
+        if (Schema::hasTable('esbtp_evaluations') && !Schema::hasColumn('esbtp_evaluations', 'periode')) {
+            Schema::table('esbtp_evaluations', function (Blueprint $table) {
+                // Ajouter la colonne periode pour identifier à quelle période appartient l'évaluation
+                $table->string('periode')->default('semestre1')->after('description');
+            });
+        }
     }
 
     /**
@@ -22,8 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('esbtp_evaluations', function (Blueprint $table) {
-            $table->dropColumn('periode');
-        });
+        if (Schema::hasTable('esbtp_evaluations') && Schema::hasColumn('esbtp_evaluations', 'periode')) {
+            Schema::table('esbtp_evaluations', function (Blueprint $table) {
+                $table->dropColumn('periode');
+            });
+        }
     }
 };

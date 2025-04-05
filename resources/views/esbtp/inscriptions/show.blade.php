@@ -41,10 +41,18 @@
 
                     @if(session('account_info'))
                         <div class="alert alert-info">
-                            <h6 class="alert-heading">Informations de connexion</h6>
-                            <p class="mb-1"><strong>Nom d'utilisateur:</strong> {{ session('account_info')['username'] }}</p>
-                            <p class="mb-1"><strong>Mot de passe:</strong> {{ session('account_info')['password'] }}</p>
-                            <p class="mb-0"><strong>Rôle:</strong> {{ session('account_info')['role'] }}</p>
+                            <h6 class="alert-heading"><i class="fas fa-user-check me-2"></i>Informations de connexion générées</h6>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Nom d'utilisateur:</strong> {{ session('account_info')['username'] }}</p>
+                                    <p class="mb-1"><strong>Rôle:</strong> {{ session('account_info')['role'] }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Mot de passe temporaire:</strong> <span class="badge bg-light text-dark p-2 font-monospace">{{ session('account_info')['password'] }}</span></p>
+                                    <p class="mb-0 text-muted"><small>Veuillez communiquer ces informations à l'étudiant. Le mot de passe devra être changé à la première connexion.</small></p>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
@@ -60,13 +68,17 @@
                         </div>
                         <div class="col-md-4">
                             <p><strong>Date de naissance:</strong> {{ $inscription->etudiant->date_naissance }}</p>
+                            <p><strong>Lieu de naissance:</strong> {{ $inscription->etudiant->lieu_naissance ?? 'Non renseigné' }}</p>
                             <p><strong>Genre:</strong> {{ $inscription->etudiant->sexe === 'M' ? 'Homme' : 'Femme' }}</p>
-                            <p><strong>Téléphone:</strong> {{ $inscription->etudiant->telephone }}</p>
                         </div>
                         <div class="col-md-4">
-                            <p><strong>Email:</strong> {{ $inscription->etudiant->email }}</p>
+                            <p><strong>Téléphone:</strong> {{ $inscription->etudiant->telephone }}</p>
+                            <p><strong>Email:</strong> {{ $inscription->etudiant->email_personnel }}</p>
                             <p><strong>Adresse:</strong> {{ $inscription->etudiant->adresse }}</p>
-                            <p><strong>Ville:</strong> {{ $inscription->etudiant->ville }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Ville de résidence:</strong> {{ $inscription->etudiant->ville ?? 'Non renseigné' }}</p>
+                            <p><strong>Commune de résidence:</strong> {{ $inscription->etudiant->commune ?? 'Non renseigné' }}</p>
                         </div>
                     </div>
 

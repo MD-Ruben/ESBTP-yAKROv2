@@ -14,6 +14,7 @@ use App\Models\ESBTPNiveauEtude;
 use App\Models\ESBTPAnneeUniversitaire;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ESBTPPDFService;
 
 class ESBTPEmploiTempsController extends Controller
 {
@@ -727,5 +728,33 @@ class ESBTPEmploiTempsController extends Controller
             return redirect()->back()
                 ->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Générer un PDF de l'emploi du temps.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function generatePdf($id)
+    {
+        // Récupérer l'emploi du temps avec ses relations
+        $emploiTemps = ESBTPEmploiTemps::with([
+            'seances.matiere',
+            'classe',
+            'classe.filiere',
+            'classe.niveau',
+            'annee'
+        ])->findOrFail($id);
+
+        // Utiliser le service PDF pour générer le document
+        $pdfService = app(ESBTPPDFService::class);
+        $pdf = $pdfService->genererEmploiTempsPDF($emploiTemps);
+
+        // Définir le nom du fichier
+        $filename = 'Emploi_du_temps_' . $emploiTemps->classe->name . '_' . $emploiTemps->semestre . '.pdf';
+
+        // Retourner le PDF pour téléchargement
+        return $pdf->download($filename);
     }
 }

@@ -163,15 +163,19 @@ class ESBTPInscriptionController extends Controller
      */
     public function store(Request $request)
     {
-        // Valider la requête
+        // Validation des données
         $validator = Validator::make($request->all(), [
-            'classe_id' => 'required|exists:esbtp_classes,id',
             'nom' => 'required|string|max:100',
-            'prenoms' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'prenoms' => 'required|string|max:100',
+            'sexe' => 'required|in:M,F',
+            'date_naissance' => 'nullable|date',
+            'lieu_naissance' => 'nullable|string|max:100',
             'telephone' => 'required|string|max:20',
-            'date_naissance' => 'required|date',
-            'genre' => 'required|in:Homme,Femme',
+            'email_personnel' => 'nullable|email|max:100',
+            'ville' => 'nullable|string|max:100',
+            'commune' => 'nullable|string|max:100',
+            'photo' => 'nullable|image|max:2048',
+            'matricule' => 'nullable|string|max:20|unique:esbtp_etudiants,matricule',
         ]);
 
         if ($validator->fails()) {
@@ -191,17 +195,35 @@ class ESBTPInscriptionController extends Controller
                 ->findOrFail($request->classe_id);
 
             // Préparer les données de l'étudiant
-            $etudiantData = $request->only([
-                'nom', 'prenoms', 'email', 'telephone', 'date_naissance',
-                'lieu_naissance', 'genre', 'adresse', 'ville', 'commune'
+            $etudiantData = [
+                'nom' => $request->nom,
+                'prenoms' => $request->prenoms,
+                'sexe' => $request->sexe,
+                'date_naissance' => $request->date_naissance,
+                'lieu_naissance' => $request->lieu_naissance,
+                'email_personnel' => $request->email_personnel,
+                'telephone' => $request->telephone,
+                'adresse' => $request->adresse,
+                'ville' => $request->ville,
+                'commune' => $request->commune,
+                'statut' => 'actif',
+                'creer_compte_utilisateur' => true,
+                'matricule' => $request->matricule,
+            ];
+
+            // Ajouter un log pour déboguer
+            \Log::info('Données de l\'étudiant', [
+                'etudiantData' => $etudiantData,
+                'matriculeFromRequest' => $request->matricule
             ]);
 
-            // Conversion du genre pour correspondre à la colonne sexe de la table esbtp_etudiants
-            $etudiantData['sexe'] = $etudiantData['genre'] === 'Homme' ? 'M' : 'F';
-            unset($etudiantData['genre']); // Supprimer la clé 'genre' qui n'existe pas dans la table
-
-            // Définir le statut comme 'actif' au lieu de 'en_attente' pour l'étudiant
-            $etudiantData['statut'] = 'actif';
+            // Ajouter un log supplémentaire pour les champs ville et commune
+            \Log::info('Champs de résidence', [
+                'ville' => $request->ville,
+                'commune' => $request->commune,
+                'lieu_naissance' => $request->lieu_naissance,
+                'adresse' => $request->adresse
+            ]);
 
             // Traiter la photo si fournie
             if ($request->hasFile('photo')) {
@@ -474,6 +496,21 @@ class ESBTPInscriptionController extends Controller
                     }
                 }
 
+                // Vérifier si c'est une redirection depuis une autre page (étudiants ou autre)
+                $referer = $request->headers->get('referer');
+                if ($referer) {
+                    // Extraire l'URL de base et le chemin
+                    $url = parse_url($referer);
+                    $path = $url['path'] ?? '';
+
+                    // Si la redirection vient d'une page d'étudiant, retourner à cette page
+                    if (str_contains($path, '/esbtp/etudiants')) {
+                        return redirect($referer)
+                            ->with('success', 'Inscription validée avec succès.');
+                    }
+                }
+
+                // Par défaut, rediriger vers la page de détails de l'inscription
                 return redirect()
                     ->route('esbtp.inscriptions.show', $inscription->id)
                     ->with('success', 'Inscription validée avec succès.');

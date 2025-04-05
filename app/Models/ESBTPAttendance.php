@@ -30,6 +30,8 @@ class ESBTPAttendance extends Model
         'heure_fin',
         'statut', // 'present', 'absent', 'retard', 'excuse'
         'commentaire',
+        'document_path',
+        'justified_at',
         'created_by',
         'updated_by'
     ];
@@ -41,6 +43,7 @@ class ESBTPAttendance extends Model
      */
     protected $casts = [
         'date' => 'date',
+        'justified_at' => 'datetime',
     ];
 
     /**

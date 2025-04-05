@@ -56,25 +56,25 @@ class LoginController extends Controller
         // Vérifier si l'application est installée
         $installationStatus = InstallationHelper::getInstallationStatus();
         $hasAdminUser = InstallationHelper::hasAdminUser();
-        
+
         // Journaliser l'état pour le débogage
-        \Log::info("LoginController: Installation status: " . 
-                  ($installationStatus['installed'] ? "Installed" : "Not installed") . 
-                  ", Match: {$installationStatus['match_percentage']}%, Admin user: " . 
+        \Log::info("LoginController: Installation status: " .
+                  ($installationStatus['installed'] ? "Installed" : "Not installed") .
+                  ", Match: {$installationStatus['match_percentage']}%, Admin user: " .
                   ($hasAdminUser ? "Yes" : "No"));
-        
+
         // Si l'application n'est pas installée du tout, rediriger vers l'installation
         if (!$installationStatus['installed']) {
             \Log::info("LoginController: Application not installed, redirecting to installation");
             return redirect()->route('install.index');
         }
-        
+
         // Vérifier s'il existe au moins un utilisateur admin
         if (!$hasAdminUser) {
             \Log::info("LoginController: No admin user found, redirecting to installation");
             return redirect()->route('install.index');
         }
-        
+
         // Même si les migrations ne correspondent pas à 100%, permettre l'accès à la page de connexion
         return view('auth.login');
     }
@@ -147,7 +147,7 @@ class LoginController extends Controller
         $field = filter_var($request->username, FILTER_VALIDATE_EMAIL)
             ? 'email'
             : 'username';
-            
+
         return [
             $field => $request->username,
             'password' => $request->password,
@@ -216,4 +216,4 @@ class LoginController extends Controller
     {
         return InstallationHelper::isInstalled();
     }
-} 
+}

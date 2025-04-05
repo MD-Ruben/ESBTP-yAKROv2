@@ -103,6 +103,16 @@ class ESBTPCours extends Model
     }
 
     /**
+     * Relation avec les présences associées à ce cours.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function attendances()
+    {
+        return $this->hasMany(ESBTPAttendance::class, 'seance_cours_id');
+    }
+
+    /**
      * Obtenir le jour de la semaine en texte.
      *
      * @return string
@@ -132,10 +142,10 @@ class ESBTPCours extends Model
         if (!$this->heure_debut || !$this->heure_fin) {
             return 0;
         }
-        
+
         $debut = $this->heure_debut;
         $fin = $this->heure_fin;
-        
+
         return round($fin->diffInMinutes($debut) / 60, 2);
     }
 
@@ -149,7 +159,7 @@ class ESBTPCours extends Model
         if (!$this->heure_debut || !$this->heure_fin) {
             return 'Horaire non défini';
         }
-        
+
         return $this->heure_debut->format('H:i') . ' - ' . $this->heure_fin->format('H:i');
     }
-} 
+}

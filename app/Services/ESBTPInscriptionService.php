@@ -35,10 +35,18 @@ class ESBTPInscriptionService
         try {
             DB::beginTransaction();
 
-            // Ajout de logs pour déboguer
+            // Ajouter des logs pour déboguer
             Log::info('Début de création de l\'inscription', [
                 'etudiantData' => $etudiantData,
                 'inscriptionData' => $inscriptionData
+            ]);
+
+            // Ajouter un log supplémentaire pour vérifier les champs ville et commune
+            Log::info('Champs de résidence dans le service', [
+                'ville' => $etudiantData['ville'] ?? 'non défini',
+                'commune' => $etudiantData['commune'] ?? 'non défini',
+                'lieu_naissance' => $etudiantData['lieu_naissance'] ?? 'non défini',
+                'adresse' => $etudiantData['adresse'] ?? 'non défini'
             ]);
 
             // 1. Vérification des données minimales requises
@@ -170,6 +178,14 @@ class ESBTPInscriptionService
      */
     private function createEtudiant(array $etudiantData, int $userId)
     {
+        // Ajouter un log pour déboguer la valeur du matricule reçue
+        Log::info('Matricule reçu dans createEtudiant:', [
+            'matricule' => $etudiantData['matricule'] ?? 'Non fourni',
+            'matricule_empty' => empty($etudiantData['matricule']),
+            'matricule_null' => $etudiantData['matricule'] === null,
+            'matricule_length' => isset($etudiantData['matricule']) ? strlen($etudiantData['matricule']) : 0
+        ]);
+
         // Générer un username unique basé sur le prénom et le nom
         $prenoms = explode(' ', $etudiantData['prenoms']);
         $prenom = strtolower($prenoms[0] ?? '');
@@ -220,8 +236,10 @@ class ESBTPInscriptionService
 
         $etudiantData['user_id'] = $user->id;
 
-        // Générer un matricule unique pour l'étudiant si ce n'est pas déjà fait
-        if (empty($etudiantData['matricule'])) {
+        // Ne pas générer de matricule s'il est déjà fourni et non vide
+        if (!isset($etudiantData['matricule']) || trim($etudiantData['matricule']) === '') {
+            Log::info('Génération automatique d\'un matricule car aucun matricule n\'a été fourni ou le matricule est vide');
+
             // Récupérer les références nécessaires pour générer le matricule
             $filiereId = $etudiantData['filiere_id'] ?? null;
             $niveauId = $etudiantData['niveau_etude_id'] ?? null;
@@ -248,38 +266,40 @@ class ESBTPInscriptionService
             // Construire le préfixe du matricule
             $matriculePrefix = strtoupper($filiereCode . $niveauCode . $anneeCode);
 
-            // Trouver le dernier numéro séquentiel pour cette combinaison
-            $lastMatricule = ESBTPEtudiant::where('matricule', 'LIKE', $matriculePrefix . '%')
-                                        ->orderBy('matricule', 'desc')
-                                        ->first();
+            // Rechercher le dernier numéro séquentiel pour ce préfixe
+            $lastMatricule = ESBTPEtudiant::where('matricule', 'like', "{$matriculePrefix}%")
+                ->orderByRaw('CAST(SUBSTRING(matricule, ' . (strlen($matriculePrefix) + 1) . ') AS UNSIGNED) DESC')
+                ->first();
 
-            $sequence = 1;
+            // Déterminer le prochain numéro séquentiel
+            $seq = 1;
             if ($lastMatricule) {
-                $lastSequence = (int) substr($lastMatricule->matricule, strlen($matriculePrefix));
-                $sequence = $lastSequence + 1;
+                $seqStr = substr($lastMatricule->matricule, strlen($matriculePrefix));
+                $seq = (int)$seqStr + 1;
             }
 
-            // Générer le matricule final
-            $matricule = $matriculePrefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            // Formater le numéro séquentiel
+            $seqFormatted = str_pad($seq, 6, '0', STR_PAD_LEFT);
 
-            // Journaliser la génération du matricule
-            Log::info('Matricule généré pour l\'étudiant', [
-                'nom' => $etudiantData['nom'],
-                'prenoms' => $etudiantData['prenoms'],
-                'matricule' => $matricule
+            // Construire le matricule complet
+            $etudiantData['matricule'] = $matriculePrefix . $seqFormatted;
+
+            Log::info('Matricule généré automatiquement:', [
+                'matricule' => $etudiantData['matricule']
             ]);
-
-            $etudiantData['matricule'] = $matricule;
+        } else {
+            Log::info('Utilisation du matricule fourni:', [
+                'matricule' => $etudiantData['matricule']
+            ]);
         }
-
-        // Assurer que toutes les données requises sont présentes
-        $etudiantData['statut'] = $etudiantData['statut'] ?? 'en_attente';
 
         // Créer l'étudiant
         $etudiant = ESBTPEtudiant::create($etudiantData);
 
-        // Journaliser la création de l'étudiant
-        Log::info('Étudiant créé', ['etudiant' => $etudiant]);
+        Log::info('Étudiant créé avec le matricule:', [
+            'matricule' => $etudiant->matricule,
+            'id' => $etudiant->id
+        ]);
 
         return $etudiant;
     }

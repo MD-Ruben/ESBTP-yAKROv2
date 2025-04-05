@@ -231,6 +231,29 @@ class ESBTPNote extends Model
     }
 
     /**
+     * Scope pour filtrer les notes par année universitaire, incluant aussi l'année précédente
+     * Utile pour gérer la transition entre les années académiques
+     */
+    public function scopeByAnneeUniversitaireWithPrevious($query, $anneeId)
+    {
+        return $query->whereHas('evaluation', function($q) use ($anneeId) {
+            $q->where('annee_universitaire_id', $anneeId)
+              ->orWhere('annee_universitaire_id', $anneeId - 1);
+        });
+    }
+
+    /**
+     * Scope pour filtrer les notes par classe
+     * Filtre les notes en fonction de la classe associée à leur évaluation
+     */
+    public function scopeByClasse($query, $classeId)
+    {
+        return $query->whereHas('evaluation', function($q) use ($classeId) {
+            $q->where('classe_id', $classeId);
+        });
+    }
+
+    /**
      * Synchroniser le semestre de la note avec la période de l'évaluation
      *
      * @return bool
@@ -247,6 +270,27 @@ class ESBTPNote extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Accesseur pour l'attribut valeur (alias de note).
+     *
+     * @return mixed
+     */
+    public function getValeurAttribute()
+    {
+        return $this->note;
+    }
+
+    /**
+     * Mutateur pour l'attribut valeur (alias de note).
+     *
+     * @param mixed $value
+     * @return void
+     */
+    public function setValeurAttribute($value)
+    {
+        $this->attributes['note'] = $value;
     }
 
     /**
@@ -280,5 +324,14 @@ class ESBTPNote extends Model
             'updated' => $updated,
             'missing_evaluations' => $missingEval
         ];
+    }
+
+    protected static function booted()
+    {
+        static::saving(function ($note) {
+            if ($note->evaluation) {
+                $note->semestre = (int) str_replace('semestre', '', $note->evaluation->periode);
+            }
+        });
     }
 }

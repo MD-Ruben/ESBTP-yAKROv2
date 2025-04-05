@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\ESBTPMatiere;
 use App\Models\ESBTPFiliere;
+use App\Models\ESBTPClasse;
 
 class ESBTPMatiereSeeder extends Seeder
 {
@@ -380,12 +381,12 @@ class ESBTPMatiereSeeder extends Seeder
                 [
                     'name' => 'Métré et Etude de Prix',
                     'description' => 'Matière : Métré et Etude de Prix',
-                    'code' => 'METRE_PRIX',
+                    'code' => 'METRE_PRIX_1',
                 ],
                 [
                     'name' => 'OGC',
                     'description' => 'Matière : OGC',
-                    'code' => 'OGC',
+                    'code' => 'OGC_1',
                 ],
                 [
                     'name' => 'Optique',
@@ -395,17 +396,17 @@ class ESBTPMatiereSeeder extends Seeder
                 [
                     'name' => 'Projet',
                     'description' => 'Matière : Projet',
-                    'code' => 'PROJET',
+                    'code' => 'PROJET_1',
                 ],
                 [
                     'name' => 'Statique RDM',
                     'description' => 'Matière : Statique RDM',
-                    'code' => 'STATIQUE_RDM',
+                    'code' => 'STATIQUE_RDM_1',
                 ],
                 [
                     'name' => 'Technique de Recherche d\'emploi',
                     'description' => 'Matière : Technique de Recherche d\'emploi',
-                    'code' => 'TRE',
+                    'code' => 'TRE_1',
                 ],
                 [
                     'name' => 'Technique d\'expression',
@@ -537,17 +538,17 @@ class ESBTPMatiereSeeder extends Seeder
                 [
                     'name' => 'Métré et étude de Prix',
                     'description' => 'Matière : Métré et étude de Prix',
-                    'code' => 'METRE_PRIX',
+                    'code' => 'METRE_PRIX_2',
                 ],
                 [
                     'name' => 'OGC',
                     'description' => 'Matière : OGC',
-                    'code' => 'OGC',
+                    'code' => 'OGC_2',
                 ],
                 [
                     'name' => 'Projet',
                     'description' => 'Matière : Projet',
-                    'code' => 'PROJET',
+                    'code' => 'PROJET_2',
                 ],
                 [
                     'name' => 'Qualité et Traitement des Eaux',
@@ -562,12 +563,12 @@ class ESBTPMatiereSeeder extends Seeder
                 [
                     'name' => 'Statique RDM',
                     'description' => 'Matière : Statique RDM',
-                    'code' => 'STATIQUE_RDM',
+                    'code' => 'STATIQUE_RDM_2',
                 ],
                 [
                     'name' => 'Technique de Recherche d\'emploi',
                     'description' => 'Matière : Technique de Recherche d\'emploi',
-                    'code' => 'TRE',
+                    'code' => 'TRE_2',
                 ],
                 [
                     'name' => 'Technique d\'expression',
@@ -604,6 +605,66 @@ class ESBTPMatiereSeeder extends Seeder
                     if (!$filiere->matieres()->where('esbtp_matieres.id', $matiere->id)->exists()) {
                         $filiere->matieres()->attach($matiere->id);
                     }
+                }
+            }
+        }
+
+        // Create some basic subjects
+        $basicSubjects = [
+            [
+                'name' => 'Mathématiques',
+                'code' => 'MATH',
+                'description' => 'Cours de mathématiques générales',
+                'coefficient' => 3,
+                'heures_cm' => 30,
+                'heures_td' => 20,
+            ],
+            [
+                'name' => 'Physique',
+                'code' => 'PHYS',
+                'description' => 'Cours de physique générale',
+                'coefficient' => 3,
+                'heures_cm' => 30,
+                'heures_td' => 20,
+            ],
+            [
+                'name' => 'Français',
+                'code' => 'FR',
+                'description' => 'Cours de français technique',
+                'coefficient' => 2,
+                'heures_cm' => 20,
+                'heures_td' => 10,
+            ],
+            [
+                'name' => 'Anglais Technique',
+                'code' => 'ANG',
+                'description' => 'Cours d\'anglais technique',
+                'coefficient' => 2,
+                'heures_cm' => 20,
+                'heures_td' => 10,
+            ],
+        ];
+
+        $classes = ESBTPClasse::where('is_active', true)->get();
+
+        foreach ($basicSubjects as $subjectData) {
+            $subjectData['is_active'] = true;
+            $matiere = ESBTPMatiere::create($subjectData);
+
+            // Associate with all active classes
+            foreach ($classes as $classe) {
+                $matiere->classes()->attach($classe->id, [
+                    'coefficient' => $subjectData['coefficient'],
+                    'total_heures' => $subjectData['heures_cm'] + $subjectData['heures_td'],
+                    'is_active' => true,
+                ]);
+
+                // Also associate with filiere and niveau
+                if ($classe->filiere_id) {
+                    $matiere->filieres()->syncWithoutDetaching([$classe->filiere_id => ['is_active' => true]]);
+                }
+                if ($classe->niveau_etude_id) {
+                    $matiere->niveaux()->syncWithoutDetaching([$classe->niveau_etude_id]);
                 }
             }
         }

@@ -26,6 +26,11 @@ use App\Models\ESBTPAttendance;
 use App\Models\ESBTPNote;
 use App\Models\ESBTPAnneeUniversitaire;
 use App\Models\ESBTPMessage;
+use App\Models\ESBTPStudent;
+use App\Models\ESBTPAcademicYear;
+use App\Models\ESBTPExam;
+use App\Models\ESBTPGrade;
+use App\Models\ESBTPSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,6 +77,9 @@ class DashboardController extends Controller
             'user' => $user,
             'totalUsers' => User::count()
         ];
+
+        // Inscriptions en attente
+        $data['pendingInscriptionsCount'] = \App\Models\ESBTPInscription::where('status', 'pending')->count();
 
         // Sections selon les permissions
 
@@ -221,11 +229,20 @@ class DashboardController extends Controller
             'user' => $user
         ];
 
-        // Étudiants - Les secrétaires peuvent voir et créer des étudiants
+        // Inscriptions en attente
+        $data['pendingInscriptionsCount'] = \App\Models\ESBTPInscription::where('status', 'pending')->count();
+
+        // Étudiants
         if ($user->can('view students')) {
             try {
                 $data['totalStudents'] = ESBTPEtudiant::count();
-                $data['recentStudents'] = ESBTPEtudiant::orderBy('created_at', 'desc')->take(5)->get();
+                $data['recentStudents'] = ESBTPEtudiant::with(['inscriptions' => function($q) {
+                        $q->orderBy('created_at', 'desc');
+                    }])
+                    ->whereHas('inscriptions')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
             } catch (\Exception $e) {
                 $data['totalStudents'] = 0;
                 $data['recentStudents'] = collect();
@@ -535,5 +552,82 @@ class DashboardController extends Controller
         }
 
         return view('dashboard.parent', $data);
+    }
+
+    /**
+     * Affiche le tableau de bord de l'étudiant
+     */
+    public function studentDashboard()
+    {
+        $user = auth()->user();
+        $student = $user->student;
+
+        if (!$student) {
+            abort(403, 'Vous n\'êtes pas un étudiant');
+        }
+
+        // Récupérer l'année académique actuelle ou la plus récente
+        $academicYear = ESBTPAcademicYear::where('is_current', true)->first()
+            ?? ESBTPAcademicYear::orderBy('end_date', 'desc')->first();
+
+        // Définir les dates par défaut (toute l'année académique)
+        $defaultStartDate = $academicYear ? $academicYear->start_date : now()->startOfYear();
+        $defaultEndDate = $academicYear ? $academicYear->end_date : now()->endOfYear();
+
+        // Récupérer les présences/absences de l'étudiant
+        $allAttendances = ESBTPAttendance::with(['seanceCours.matiere', 'seanceCours.schedule'])
+            ->where('student_id', $student->id)
+            ->whereBetween('date', [$defaultStartDate, $defaultEndDate])
+            ->get();
+
+        $absences = $allAttendances->where('statut', 'absent');
+        $presences = $allAttendances->where('statut', 'present');
+        $retards = $allAttendances->where('statut', 'retard');
+        $excuses = $allAttendances->where('statut', 'excuse');
+
+        // Récupérer les dernières absences pour affichage
+        $recentAbsences = $absences->sortByDesc('date')->take(5);
+
+        // Récupérer les prochains examens
+        $upcomingExams = ESBTPExam::whereHas('course', function ($query) use ($student) {
+            $query->whereHas('classe', function ($q) use ($student) {
+                $q->where('id', $student->classe_id);
+            });
+        })
+        ->where('date', '>=', now())
+        ->orderBy('date', 'asc')
+        ->take(5)
+        ->get();
+
+        // Récupérer les dernières notes
+        $recentGrades = ESBTPGrade::where('student_id', $student->id)
+            ->with(['exam.course'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        // Récupérer l'emploi du temps pour aujourd'hui
+        $today = now()->format('Y-m-d');
+        $dayOfWeek = now()->dayOfWeek;
+
+        $todaySchedule = ESBTPSchedule::whereHas('classe', function ($query) use ($student) {
+            $query->where('id', $student->classe_id);
+        })
+        ->where('day_of_week', $dayOfWeek)
+        ->with(['course.teacher', 'course.subject'])
+        ->orderBy('start_time')
+        ->get();
+
+        return view('dashboard.etudiant', compact(
+            'student',
+            'presences',
+            'absences',
+            'retards',
+            'excuses',
+            'recentAbsences',
+            'upcomingExams',
+            'recentGrades',
+            'todaySchedule'
+        ));
     }
 }

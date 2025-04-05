@@ -72,6 +72,7 @@ class ESBTPMatiere extends Model
     /**
      * Relation avec la filière.
      *
+     * @deprecated Use filieres() instead for a many-to-many relationship
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function filiere()
@@ -80,13 +81,15 @@ class ESBTPMatiere extends Model
     }
 
     /**
-     * Relation avec les filières (alias de filiere pour la compatibilité).
+     * Relation avec les filières.
+     * Une matière peut être associée à plusieurs filières (relation many-to-many).
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function filieres()
     {
         return $this->belongsToMany(ESBTPFiliere::class, 'esbtp_matiere_filiere', 'matiere_id', 'filiere_id')
+                    ->withPivot('is_active')
                     ->withTimestamps();
     }
 

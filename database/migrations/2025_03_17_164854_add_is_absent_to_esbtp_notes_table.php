@@ -13,9 +13,11 @@ class AddIsAbsentToEsbtpNotesTable extends Migration
      */
     public function up()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->boolean('is_absent')->default(false)->after('note');
-        });
+        if (Schema::hasTable('esbtp_notes') && !Schema::hasColumn('esbtp_notes', 'is_absent')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->boolean('is_absent')->default(false)->after('note');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddIsAbsentToEsbtpNotesTable extends Migration
      */
     public function down()
     {
-        Schema::table('esbtp_notes', function (Blueprint $table) {
-            $table->dropColumn('is_absent');
-        });
+        if (Schema::hasTable('esbtp_notes') && Schema::hasColumn('esbtp_notes', 'is_absent')) {
+            Schema::table('esbtp_notes', function (Blueprint $table) {
+                $table->dropColumn('is_absent');
+            });
+        }
     }
 }

@@ -46,7 +46,7 @@
                         <div class="form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Matière</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="{{ $attendance->seanceCours->matiere->nom }}" disabled>
+                                <input type="text" class="form-control" value="{{ $attendance->seanceCours->matiere->name }}" disabled>
                             </div>
                         </div>
 

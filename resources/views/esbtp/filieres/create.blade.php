@@ -27,83 +27,80 @@
                     <form action="{{ route('esbtp.filieres.store') }}" method="POST">
                         @csrf
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="name" class="form-label">Nom de la filière *</label>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                                    @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">Ex: Génie Civil, Mine - Géologie - Pétrole, etc.</small>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="code" class="form-label">Code de la filière *</label>
-                                    <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required>
-                                    @error('code')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">Ex: GC, MGP, etc.</small>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label for="name">Nom de la filière</label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="option_filiere" class="form-label">Option de la filière</label>
-                                    <input type="text" class="form-control @error('option_filiere') is-invalid @enderror" id="option_filiere" name="option_filiere" value="{{ old('option_filiere') }}">
-                                    @error('option_filiere')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">Indiquez si cette filière est une option (ex: BATIMENT est une option de Génie Civil)</small>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="niveau_etude_ids" class="form-label">Niveaux d'études associés</label>
-                                    <select class="form-select select2-niveaux @error('niveau_etude_ids') is-invalid @enderror" id="niveau_etude_ids" name="niveau_etude_ids[]" multiple>
-                                        @foreach($niveauxEtudes as $niveau)
-                                            <option value="{{ $niveau->id }}" {{ in_array($niveau->id, old('niveau_etude_ids', [])) ? 'selected' : '' }}>
-                                                {{ $niveau->name }} ({{ $niveau->code }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('niveau_etude_ids')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">Sélectionnez les niveaux d'études associés à cette filière (BTS 1ère année, BTS 2ème année, etc.)</small>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label for="code">Code</label>
+                            <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required>
+                            @error('code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description') }}</textarea>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description">{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Une brève description de la filière.</small>
                         </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                Filière active
-                            </label>
-                            <div class="form-text">
-                                <span class="text-info"><i class="fas fa-info-circle me-1"></i>Info :</span>
-                                Une filière inactive ne sera pas disponible lors de la création de classes.
+                        <div class="form-group">
+                            <label for="parent_id">Filière parente (optionnel)</label>
+                            <select class="form-control @error('parent_id') is-invalid @enderror" id="parent_id" name="parent_id">
+                                <option value="">Aucune (Filière principale)</option>
+                                @foreach($filieres as $f)
+                                    <option value="{{ $f->id }}" {{ old('parent_id') == $f->id ? 'selected' : '' }}>{{ $f->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('parent_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="niveau_ids">Niveaux d'études associés</label>
+                            <select class="form-control select2 @error('niveau_ids') is-invalid @enderror" id="niveau_ids" name="niveau_ids[]" multiple>
+                                @foreach($niveaux as $niveau)
+                                    <option value="{{ $niveau->id }}" {{ in_array($niveau->id, old('niveau_ids', [])) ? 'selected' : '' }}>{{ $niveau->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('niveau_ids')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="matiere_ids">Matières associées</label>
+                            <select class="form-control select2 @error('matiere_ids') is-invalid @enderror" id="matiere_ids" name="matiere_ids[]" multiple>
+                                @foreach($matieres as $matiere)
+                                    <option value="{{ $matiere->id }}" {{ in_array($matiere->id, old('matiere_ids', [])) ? 'selected' : '' }}>{{ $matiere->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('matiere_ids')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input @error('is_active') is-invalid @enderror" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="is_active">Active</label>
+                                @error('is_active')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end">
                             <button type="reset" class="btn btn-secondary me-2">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <button type="submit" class="btn btn-primary">Créer</button>
                         </div>
                     </form>
                 </div>
@@ -117,7 +114,7 @@
 <script>
     $(document).ready(function() {
         // Configuration améliorée pour la sélection des niveaux d'études
-        $('.select2-niveaux').select2({
+        $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: 'Sélectionnez les niveaux d\'études',

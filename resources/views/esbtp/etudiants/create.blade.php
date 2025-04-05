@@ -68,6 +68,27 @@
                                                 @enderror
                                             </div>
                                             <div class="col-md-4 mb-3">
+                                                <label for="lieu_naissance" class="form-label">Lieu de naissance</label>
+                                                <input type="text" class="form-control @error('lieu_naissance') is-invalid @enderror" id="lieu_naissance" name="lieu_naissance" value="{{ old('lieu_naissance') }}">
+                                                @error('lieu_naissance')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="ville_naissance" class="form-label">Ville de naissance</label>
+                                                <input type="text" class="form-control @error('ville_naissance') is-invalid @enderror" id="ville_naissance" name="ville_naissance" value="{{ old('ville_naissance') }}">
+                                                @error('ville_naissance')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="commune_naissance" class="form-label">Commune de naissance</label>
+                                                <input type="text" class="form-control @error('commune_naissance') is-invalid @enderror" id="commune_naissance" name="commune_naissance" value="{{ old('commune_naissance') }}">
+                                                @error('commune_naissance')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="col-md-4 mb-3">
                                                 <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control @error('telephone') is-invalid @enderror" id="telephone" name="telephone" value="{{ old('telephone') }}" placeholder="+225 XX XX XXX XXX" required>
                                                 @error('telephone')
@@ -75,9 +96,9 @@
                                                 @enderror
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required>
-                                                @error('email')
+                                                <label for="email_personnel" class="form-label">Email <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control @error('email_personnel') is-invalid @enderror" id="email_personnel" name="email_personnel" value="{{ old('email_personnel') }}" required>
+                                                @error('email_personnel')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
@@ -137,7 +158,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        
+
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
                                                 <label for="filiere_id" class="form-label">Filière <span class="text-danger">*</span></label>
@@ -182,7 +203,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        
+
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label for="classe_id" class="form-label">Classe</label>
@@ -225,7 +246,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div class="parent-nouveau {{ old('parent_existant.0') ? 'd-none' : '' }}">
                                                     <div class="row">
                                                         <div class="col-md-4 mb-3">
@@ -283,7 +304,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div class="parent-existant {{ old('parent_existant.0') ? '' : 'd-none' }}">
                                                     <div class="row">
                                                         <div class="col-12 mb-3">
@@ -351,12 +372,12 @@
 <script>
     $(document).ready(function() {
         console.log('Document ready - initializing student form');
-        
+
         // Afficher les informations de débogage
         console.log('Routes API disponibles:');
         console.log('- Search Parents: {{ route("esbtp.api.search-parents") }}');
         console.log('- Get Classes: {{ route("esbtp.api.get-classes") }}');
-        
+
         // Initialiser Select2 pour les parents existants
         $('.select-parent').select2({
             ajax: {
@@ -373,7 +394,7 @@
                 processResults: function (data, params) {
                     params.page = params.page || 1;
                     console.log('Résultats de recherche parents:', data);
-                    
+
                     // Formatage des données pour Select2
                     const items = data.items.map(function(parent) {
                         return {
@@ -381,7 +402,7 @@
                             text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
                         };
                     });
-                    
+
                     return {
                         results: items,
                         pagination: {
@@ -396,7 +417,7 @@
             templateResult: formatParent,
             templateSelection: formatParentSelection
         });
-        
+
         // Fonctions de formatage pour Select2
         function formatParent(parent) {
             if (parent.loading) {
@@ -404,20 +425,20 @@
             }
             return $('<span>' + parent.text + '</span>');
         }
-        
+
         function formatParentSelection(parent) {
             return parent.text || parent.id;
         }
-        
+
         // Initialiser le compteur de parents (1 parent déjà présent)
         let parentCount = 1;
         console.log('Nombre initial de parents:', parentCount);
-        
+
         // Toggle between existing and new parent inputs - avec debug
         $(document).on('change', 'input[id^="parent_existant_"]', function() {
             const index = this.id.split('_').pop();
             console.log('Toggle parent existant pour index:', index, 'Checked:', $(this).is(':checked'));
-            
+
             if ($(this).is(':checked')) {
                 // Afficher le sélecteur de parent existant
                 $(this).closest('.parent-item').find('.parent-existant').removeClass('d-none');
@@ -430,24 +451,24 @@
                 console.log('Mode nouveau parent activé');
             }
         });
-        
+
         // Initialiser Select2 pour les autres champs
         $('.select2').select2();
-        
+
         // AJAX pour charger les classes en fonction de la filière, du niveau et de l'année
         $('#filiere_id, #niveau_etude_id, #annee_universitaire_id').change(function() {
             var filiereId = $('#filiere_id').val();
             var niveauId = $('#niveau_etude_id').val();
             var anneeId = $('#annee_universitaire_id').val();
-            
+
             console.log('Changement détecté - Filière:', filiereId, 'Niveau:', niveauId, 'Année:', anneeId);
-            
+
             if (filiereId && niveauId && anneeId) {
                 console.log('Toutes les données sont présentes, appel AJAX pour les classes');
-                
+
                 // Afficher un indicateur de chargement
                 $('#classe_id').html('<option value="">Chargement des classes...</option>');
-                
+
                 $.ajax({
                     url: '{{ route("esbtp.api.get-classes") }}',
                     type: 'GET',
@@ -458,18 +479,18 @@
                     },
                     success: function(data) {
                         console.log('Classes reçues:', data);
-                        
+
                         if (data.length === 0) {
                             $('#classe_id').html('<option value="">Aucune classe disponible</option>');
                             return;
                         }
-                        
+
                         var options = '<option value="">Sélectionner une classe</option>';
                         $.each(data, function(index, classe) {
                             options += '<option value="' + classe.id + '">' + classe.name + ' (' + classe.code + ')</option>';
                         });
                         $('#classe_id').html(options);
-                        
+
                         // Si une seule classe est disponible, la sélectionner automatiquement
                         if (data.length === 1) {
                             $('#classe_id').val(data[0].id);
@@ -486,21 +507,21 @@
                 console.log('Données manquantes pour récupérer les classes');
             }
         });
-        
+
         // Ajouter un parent (limité à 2 parents maximum)
         $('#add-parent').on('click', function(e) {
             console.log('Bouton Ajouter parent cliqué');
-            
+
             if (parentCount >= 2) {
                 alert('Un maximum de 2 parents est autorisé.');
                 return;
             }
-            
+
             const index = parentCount;
             parentCount++;
-            
+
             console.log('Ajout d\'un nouveau parent avec index:', index);
-            
+
             const parentHtml = `
                 <div class="parent-item mb-4 p-3 border rounded">
                     <div class="d-flex justify-content-between mb-3">
@@ -517,7 +538,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="parent-nouveau">
                         <div class="row">
                             <div class="col-md-4 mb-3">
@@ -558,7 +579,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="parent-existant d-none">
                         <div class="row">
                             <div class="col-12 mb-3">
@@ -572,9 +593,9 @@
                     </div>
                 </div>
             `;
-            
+
             $('#parents-container').append(parentHtml);
-            
+
             // Réinitialiser Select2 pour le nouveau parent
             $('#parent_id_' + index).select2({
                 ajax: {
@@ -589,7 +610,7 @@
                     },
                     processResults: function (data, params) {
                         params.page = params.page || 1;
-                        
+
                         // Formatage des données pour Select2
                         const items = data.items.map(function(parent) {
                             return {
@@ -597,7 +618,7 @@
                                 text: parent.nom + ' ' + parent.prenoms + ' (' + parent.telephone + ')'
                             };
                         });
-                        
+
                         return {
                             results: items,
                             pagination: {
@@ -613,18 +634,18 @@
                 templateSelection: formatParentSelection
             });
         });
-        
+
         // Supprimer un parent
         $(document).on('click', '.remove-parent', function() {
             console.log('Bouton Supprimer parent cliqué');
             $(this).closest('.parent-item').remove();
             parentCount--;
         });
-        
+
         // Déclencher le chargement initial des classes si toutes les valeurs sont définies
         if ($('#filiere_id').val() && $('#niveau_etude_id').val() && $('#annee_universitaire_id').val()) {
             $('#annee_universitaire_id').trigger('change');
         }
     });
 </script>
-@endsection 
+@endsection

@@ -7,7 +7,49 @@
     <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
     <p class="text-muted">Gestion administrative ESBTP-yAKRO</p>
 
+    @php
+        $pendingInscriptionsCount = \App\Models\ESBTPInscription::where('status', 'pending')->count();
+    @endphp
+
+    @if($pendingInscriptionsCount > 0)
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+            <div>
+                <strong>Attention!</strong> Il y a {{ $pendingInscriptionsCount }} inscription(s) en attente de validation.
+                <p class="mb-0">Ces inscriptions nécessitent votre vérification pour finaliser le processus d'admission des étudiants.</p>
+                <a href="{{ route('esbtp.inscriptions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning mt-2">
+                    <i class="fas fa-check-circle me-1"></i> Consulter et valider
+                </a>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="row">
+        @if($pendingInscriptionsCount > 0)
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2" style="border-left: 5px solid #f6c23e;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Inscriptions en attente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingInscriptionsCount }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-clock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('esbtp.inscriptions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning mt-3">
+                        <i class="fas fa-check me-1"></i>Valider les inscriptions
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if(isset($totalStudents))
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -124,7 +166,7 @@
                             <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.classes.index') }}" class="btn btn-sm btn-success mt-3">Gérer les classes</a>
+                    <a href="{{ route('esbtp.student.classes.index') }}" class="btn btn-sm btn-success mt-3">Gérer les classes</a>
                 </div>
             </div>
         </div>

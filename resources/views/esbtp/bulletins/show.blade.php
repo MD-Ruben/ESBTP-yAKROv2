@@ -10,9 +10,14 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Bulletin de {{ $bulletin->etudiant->nom }} {{ $bulletin->etudiant->prenom }}</h5>
                     <div>
-                        <a href="{{ route('esbtp.bulletins.pdf', $bulletin) }}" class="btn btn-secondary me-2" target="_blank">
-                            <i class="fas fa-print me-1"></i>Imprimer
+                        <a href="{{ route('esbtp.bulletins.pdf-params', ['bulletin' => $bulletin->etudiant_id, 'classe_id' => $bulletin->classe_id, 'periode' => $bulletin->periode, 'annee_universitaire_id' => $bulletin->annee_universitaire_id]) }}" class="btn btn-secondary me-2" target="_blank">
+                            <i class="fas fa-file-pdf me-1"></i>Télécharger PDF
                         </a>
+                        @if(auth()->user()->hasRole('superAdmin'))
+                        <a href="{{ route('esbtp.bulletins.config-matieres', ['bulletin' => $bulletin->etudiant_id, 'classe_id' => $bulletin->classe_id, 'periode' => $bulletin->periode, 'annee_universitaire_id' => $bulletin->annee_universitaire_id]) }}" class="btn btn-info me-2">
+                            <i class="fas fa-cog me-1"></i>Configurer Matières
+                        </a>
+                        @endif
                         <a href="{{ route('esbtp.bulletins.edit', $bulletin) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
@@ -98,7 +103,7 @@
                                             </tr>
                                             <tr>
                                                 <th>Année scolaire</th>
-                                                <td>{{ $bulletin->periode->annee_scolaire }}</td>
+                                                <td>{{ $bulletin->anneeUniversitaire ? $bulletin->anneeUniversitaire->annee_debut . '-' . $bulletin->anneeUniversitaire->annee_fin : date('Y') . '-' . (date('Y') + 1) }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Moyenne générale</th>
@@ -181,39 +186,39 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse($bulletin->details as $detail)
+                                        @forelse($bulletin->resultats as $resultat)
                                             <tr>
-                                                <td>{{ $detail->matiere->code }}</td>
-                                                <td>{{ $detail->matiere->name }}</td>
+                                                <td>{{ $resultat->matiere->code }}</td>
+                                                <td>{{ $resultat->matiere->name }}</td>
                                                 <td>
-                                                    @if($detail->matiere->enseignants->count() > 0)
-                                                        {{ $detail->matiere->enseignants->first()->nom }} {{ $detail->matiere->enseignants->first()->prenom }}
+                                                    @if($resultat->matiere->enseignants->count() > 0)
+                                                        {{ $resultat->matiere->enseignants->first()->nom }} {{ $resultat->matiere->enseignants->first()->prenom }}
                                                     @else
                                                         <span class="text-muted">Non assigné</span>
                                                     @endif
                                                 </td>
-                                                <td class="text-center">{{ $detail->coefficient }}</td>
+                                                <td class="text-center">{{ $resultat->coefficient }}</td>
                                                 <td class="text-center">
-                                                    <span class="badge {{ $detail->moyenne >= 10 ? 'bg-success' : 'bg-danger' }} p-2">
-                                                        {{ number_format($detail->moyenne, 2) }}/20
+                                                    <span class="badge {{ $resultat->moyenne >= 10 ? 'bg-success' : 'bg-danger' }} p-2">
+                                                        {{ number_format($resultat->moyenne, 2) }}/20
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
-                                                    @if($detail->moyenne >= 16)
+                                                    @if($resultat->moyenne >= 16)
                                                         <span class="badge bg-success">Excellent</span>
-                                                    @elseif($detail->moyenne >= 14)
+                                                    @elseif($resultat->moyenne >= 14)
                                                         <span class="badge bg-info">Très bien</span>
-                                                    @elseif($detail->moyenne >= 12)
+                                                    @elseif($resultat->moyenne >= 12)
                                                         <span class="badge bg-primary">Bien</span>
-                                                    @elseif($detail->moyenne >= 10)
+                                                    @elseif($resultat->moyenne >= 10)
                                                         <span class="badge bg-secondary">Passable</span>
-                                                    @elseif($detail->moyenne >= 8)
+                                                    @elseif($resultat->moyenne >= 8)
                                                         <span class="badge bg-warning">Insuffisant</span>
                                                     @else
                                                         <span class="badge bg-danger">Faible</span>
                                                     @endif
                                                 </td>
-                                                <td>{{ $detail->appreciation ?? 'Aucune appréciation' }}</td>
+                                                <td>{{ $resultat->commentaire ?? 'Aucune appréciation' }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -374,6 +379,31 @@
                                 </button>
                             @endif
                         </form>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <a href="{{ route('esbtp.bulletins.edit', $bulletin) }}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            @if(auth()->user()->hasRole('superAdmin'))
+                                <a href="{{ route('esbtp.bulletins.migrate-resultats-to-details', $bulletin) }}" class="btn btn-info ml-2">
+                                    <i class="fas fa-sync"></i> Migrer résultats vers détails
+                                </a>
+                                <a href="{{ route('esbtp.bulletins.edit-professeurs') }}?bulletin={{ $bulletin->etudiant_id }}&classe_id={{ $bulletin->classe_id }}&periode={{ $bulletin->periode }}&annee_universitaire_id={{ $bulletin->annee_universitaire_id }}" class="btn btn-info ml-2">
+                                    <i class="fas fa-chalkboard-teacher"></i> Éditer professeurs
+                                </a>
+                                <a href="{{ route('esbtp.bulletins.config-matieres') }}?classe_id={{ $bulletin->classe_id }}&periode={{ $bulletin->periode }}&annee_universitaire_id={{ $bulletin->annee_universitaire_id }}&bulletin_id={{ $bulletin->id }}&bulletin={{ $bulletin->etudiant_id }}" class="btn btn-warning ml-2">
+                                    <i class="fas fa-cogs"></i> Configurer matières
+                                </a>
+                            @endif
+                        </div>
+                        <div>
+                            <a href="{{ route('esbtp.bulletins.pdf', $bulletin) }}" class="btn btn-success" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Générer PDF
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

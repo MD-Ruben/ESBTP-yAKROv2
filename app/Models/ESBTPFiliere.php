@@ -86,14 +86,38 @@ class ESBTPFiliere extends Model
     }
 
     /**
-     * Relation avec les niveaux d'études associés à cette filière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * Get the study levels associated with this filière.
+     */
+    public function niveaux()
+    {
+        return $this->belongsToMany(ESBTPNiveauEtude::class, 'esbtp_filiere_niveau', 'filiere_id', 'niveau_etude_id');
+    }
+
+    /**
+     * Alias for niveaux() for backward compatibility.
+     * @deprecated Use niveaux() instead
      */
     public function niveauxEtudes()
     {
-        return $this->belongsToMany(ESBTPNiveauEtude::class, 'esbtp_filiere_niveau', 'filiere_id', 'niveau_etude_id')
-                    ->withTimestamps();
+        return $this->niveaux();
+    }
+
+    /**
+     * Get the subjects associated with this filière.
+     */
+    public function matieres()
+    {
+        return $this->belongsToMany(ESBTPMatiere::class, 'esbtp_matiere_filiere', 'filiere_id', 'matiere_id')
+            ->withPivot('is_active')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the classes associated with this filière.
+     */
+    public function classes()
+    {
+        return $this->hasMany(ESBTPClasse::class, 'filiere_id');
     }
 
     /**
@@ -104,27 +128,6 @@ class ESBTPFiliere extends Model
     public function inscriptions()
     {
         return $this->hasMany(ESBTPInscription::class, 'filiere_id');
-    }
-
-    /**
-     * Relation avec les matières associées à cette filière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function matieres()
-    {
-        return $this->belongsToMany(ESBTPMatiere::class, 'esbtp_matiere_filiere', 'filiere_id', 'matiere_id')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Relation avec les classes associées à cette filière.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function classes()
-    {
-        return $this->hasMany(ESBTPClasse::class, 'filiere_id');
     }
 
     /**

@@ -30,16 +30,16 @@ class MessageController extends Controller
     public function inbox()
     {
         $user = Auth::user();
-        
+
         // Récupérer les messages directs
         $directMessages = Message::where('recipient_id', $user->id)
             ->whereNull('parent_id')
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         // Récupérer les messages de groupe selon le rôle de l'utilisateur
         $groupMessages = collect();
-        
+
         if ($user->role === 'student') {
             $student = Student::where('user_id', $user->id)->first();
             if ($student) {
@@ -83,10 +83,10 @@ class MessageController extends Controller
               ->orderBy('created_at', 'desc')
               ->get();
         }
-        
+
         // Fusionner les messages directs et de groupe
         $messages = $directMessages->merge($groupMessages)->sortByDesc('created_at');
-        
+
         return view('messages.inbox', compact('messages'));
     }
 
@@ -101,7 +101,7 @@ class MessageController extends Controller
             ->whereNull('parent_id')
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return view('messages.sent', compact('messages'));
     }
 
@@ -129,7 +129,7 @@ class MessageController extends Controller
             'subject' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
-        
+
         $message = Message::create([
             'sender_id' => Auth::id(),
             'recipient_id' => $request->recipient_id,
@@ -137,7 +137,7 @@ class MessageController extends Controller
             'content' => $request->content,
             'recipient_type' => 'user',
         ]);
-        
+
         return redirect()->route('messages.show', $message)
             ->with('success', 'Message envoyé avec succès.');
     }
@@ -157,7 +157,7 @@ class MessageController extends Controller
             'subject' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
-        
+
         // Traitement selon le type de destinataire
         if ($request->recipient_type === 'all_students') {
             // Envoyer à tous les étudiants
@@ -179,7 +179,7 @@ class MessageController extends Controller
                     'recipient_group' => $classId,
                 ]);
             }
-            
+
             // Rediriger vers la boîte d'envoi après avoir envoyé à plusieurs classes
             return redirect()->route('messages.sent')
                 ->with('success', 'Messages envoyés avec succès aux classes sélectionnées.');
@@ -197,12 +197,12 @@ class MessageController extends Controller
                     ]);
                 }
             }
-            
+
             // Rediriger vers la boîte d'envoi après avoir envoyé à plusieurs étudiants
             return redirect()->route('messages.sent')
                 ->with('success', 'Messages envoyés avec succès aux étudiants sélectionnés.');
         }
-        
+
         return redirect()->route('messages.sent')
             ->with('success', 'Message de groupe envoyé avec succès.');
     }
@@ -217,7 +217,7 @@ class MessageController extends Controller
     {
         // Vérifier si l'utilisateur a le droit de voir ce message
         $user = Auth::user();
-        
+
         if ($message->recipient_id === $user->id || $message->sender_id === $user->id) {
             // Message direct
             if ($message->recipient_id === $user->id && !$message->is_read) {
@@ -226,7 +226,7 @@ class MessageController extends Controller
         } elseif ($message->isGroupMessage()) {
             // Message de groupe - vérifier si l'utilisateur fait partie du groupe
             $canView = false;
-            
+
             if ($message->recipient_type === 'all') {
                 $canView = true;
             } elseif ($message->recipient_type === 'students' && $user->role === 'student') {
@@ -242,7 +242,7 @@ class MessageController extends Controller
                 $teacher = Teacher::where('user_id', $user->id)->first();
                 $canView = $teacher && $teacher->department_id == $message->recipient_group;
             }
-            
+
             if (!$canView) {
                 return redirect()->route('messages.index')
                     ->with('error', 'Vous n\'avez pas accès à ce message.');
@@ -251,10 +251,10 @@ class MessageController extends Controller
             return redirect()->route('messages.index')
                 ->with('error', 'Vous n\'avez pas accès à ce message.');
         }
-        
+
         // Récupérer les réponses au message
         $replies = $message->replies()->orderBy('created_at', 'asc')->get();
-        
+
         return view('messages.show', compact('message', 'replies'));
     }
 
@@ -270,7 +270,7 @@ class MessageController extends Controller
         $request->validate([
             'content' => 'required|string',
         ]);
-        
+
         $reply = Message::create([
             'sender_id' => Auth::id(),
             'recipient_id' => $message->sender_id,
@@ -279,7 +279,7 @@ class MessageController extends Controller
             'recipient_type' => 'user',
             'parent_id' => $message->id,
         ]);
-        
+
         return redirect()->route('messages.show', $message)
             ->with('success', 'Réponse envoyée avec succès.');
     }
@@ -296,7 +296,7 @@ class MessageController extends Controller
             $message->markAsRead();
             return response()->json(['success' => true]);
         }
-        
+
         return response()->json(['success' => false], 403);
     }
 
@@ -314,7 +314,7 @@ class MessageController extends Controller
             return redirect()->route('messages.index')
                 ->with('success', 'Message supprimé avec succès.');
         }
-        
+
         return redirect()->route('messages.index')
             ->with('error', 'Vous n\'avez pas le droit de supprimer ce message.');
     }

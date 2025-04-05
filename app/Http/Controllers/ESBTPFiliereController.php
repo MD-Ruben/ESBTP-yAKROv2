@@ -4,22 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\ESBTPFiliere;
 use App\Models\ESBTPNiveauEtude;
+use App\Models\ESBTPMatiere;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ESBTPFiliereController extends Controller
 {
     /**
-     * Affiche la liste des filières.
-     *
-     * Cette méthode récupère toutes les filières principales (sans parent)
-     * et leurs options (filières enfants) pour les afficher dans une liste.
+     * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $filieres = ESBTPFiliere::with(['parent', 'options', 'niveauxEtudes'])->get();
+        $filieres = ESBTPFiliere::with(['niveaux', 'matieres', 'parent', 'options'])
+            ->orderBy('name')
+            ->get();
+
         return view('esbtp.filieres.index', compact('filieres'));
     }
 
@@ -30,13 +31,11 @@ class ESBTPFiliereController extends Controller
      */
     public function create()
     {
-        // Récupérer toutes les filières pour le select de filière parente
-        $filieres = ESBTPFiliere::all();
+        $filieres = ESBTPFiliere::where('is_active', true)->get();
+        $niveaux = ESBTPNiveauEtude::all();
+        $matieres = ESBTPMatiere::where('is_active', true)->get();
 
-        // Récupérer tous les niveaux d'études
-        $niveauxEtudes = ESBTPNiveauEtude::all();
-
-        return view('esbtp.filieres.create', compact('filieres', 'niveauxEtudes'));
+        return view('esbtp.filieres.create', compact('filieres', 'niveaux', 'matieres'));
     }
 
     /**
@@ -47,28 +46,37 @@ class ESBTPFiliereController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Validate input
+        $this->validate($request, [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:esbtp_filieres,code',
+            'code' => 'required|string|max:50|unique:esbtp_filieres,code',
             'description' => 'nullable|string',
-            'option_filiere' => 'nullable|string|max:255',
-            'is_active' => 'sometimes|boolean',
-            'niveau_etude_ids' => 'nullable|array',
-            'niveau_etude_ids.*' => 'exists:esbtp_niveau_etudes,id'
+            'is_active' => 'required|boolean',
+            'parent_id' => 'nullable|exists:esbtp_filieres,id',
+            'niveau_ids' => 'nullable|array',
+            'niveau_ids.*' => 'exists:esbtp_niveau_etudes,id',
+            'matiere_ids' => 'nullable|array',
+            'matiere_ids.*' => 'exists:esbtp_matieres,id',
         ]);
 
-        // Créer la filière
-        $filiere = ESBTPFiliere::create([
-            'name' => $validated['name'],
-            'code' => $validated['code'],
-            'description' => $validated['description'] ?? null,
-            'option_filiere' => $validated['option_filiere'] ?? null,
-            'is_active' => isset($validated['is_active']) ? true : false,
-        ]);
+        // Create record
+        $filiere = new ESBTPFiliere();
+        $filiere->name = $request->name;
+        $filiere->code = $request->code;
+        $filiere->description = $request->description;
+        $filiere->is_active = $request->is_active;
+        $filiere->parent_id = $request->parent_id;
+        $filiere->save();
 
-        // Associer les niveaux d'études si spécifiés
-        if (isset($validated['niveau_etude_ids']) && is_array($validated['niveau_etude_ids'])) {
-            $filiere->niveauxEtudes()->attach($validated['niveau_etude_ids']);
+        // Handle relations
+        if ($request->has('niveau_ids')) {
+            $filiere->niveaux()->sync($request->niveau_ids);
+        }
+
+        if ($request->has('matiere_ids')) {
+            $filiere->matieres()->sync(collect($request->matiere_ids)->mapWithKeys(function ($id) {
+                return [$id => ['is_active' => true]];
+            }));
         }
 
         return redirect()->route('esbtp.filieres.index')
@@ -76,15 +84,22 @@ class ESBTPFiliereController extends Controller
     }
 
     /**
-     * Affiche les détails d'une filière spécifique.
+     * Display the specified resource.
      *
-     * @param  \App\Models\ESBTPFiliere  $filiere
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(ESBTPFiliere $filiere)
+    public function show($id)
     {
-        // Charger les relations
-        $filiere->load(['parent', 'options', 'niveauxEtudes']);
+        $filiere = ESBTPFiliere::with([
+            'niveaux',
+            'matieres',
+            'options',
+            'parent',
+            'classes' => function($query) {
+                $query->withCount('inscriptions');
+            }
+        ])->findOrFail($id);
 
         return view('esbtp.filieres.show', compact('filiere'));
     }
@@ -95,18 +110,16 @@ class ESBTPFiliereController extends Controller
      * @param  \App\Models\ESBTPFiliere  $filiere
      * @return \Illuminate\Http\Response
      */
-    public function edit(ESBTPFiliere $filiere)
+    public function edit($id)
     {
-        // Récupérer toutes les filières sauf celle en cours d'édition
-        $filieres = ESBTPFiliere::where('id', '!=', $filiere->id)->get();
+        $filiere = ESBTPFiliere::with(['niveaux', 'matieres'])->findOrFail($id);
+        $filieres = ESBTPFiliere::where('id', '!=', $id)
+            ->where('is_active', true)
+            ->get();
+        $niveaux = ESBTPNiveauEtude::all();
+        $matieres = ESBTPMatiere::where('is_active', true)->get();
 
-        // Récupérer tous les niveaux d'études
-        $niveauxEtudes = ESBTPNiveauEtude::all();
-
-        // Charger les relations nécessaires
-        $filiere->load(['niveauxEtudes', 'options', 'classes']);
-
-        return view('esbtp.filieres.edit', compact('filiere', 'filieres', 'niveauxEtudes'));
+        return view('esbtp.filieres.edit', compact('filiere', 'filieres', 'niveaux', 'matieres'));
     }
 
     /**
@@ -116,32 +129,40 @@ class ESBTPFiliereController extends Controller
      * @param  \App\Models\ESBTPFiliere  $filiere
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ESBTPFiliere $filiere)
+    public function update(Request $request, $id)
     {
-        $validated = $request->validate([
+        // Validate input
+        $this->validate($request, [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:esbtp_filieres,code,' . $filiere->id,
+            'code' => 'required|string|max:50',
             'description' => 'nullable|string',
+            'is_active' => 'required|boolean',
             'parent_id' => 'nullable|exists:esbtp_filieres,id',
-            'is_active' => 'sometimes|boolean',
-            'niveau_etude_ids' => 'nullable|array',
-            'niveau_etude_ids.*' => 'exists:esbtp_niveau_etudes,id'
+            'niveau_ids' => 'nullable|array',
+            'niveau_ids.*' => 'exists:esbtp_niveau_etudes,id',
+            'matiere_ids' => 'nullable|array',
+            'matiere_ids.*' => 'exists:esbtp_matieres,id',
         ]);
 
-        // Mettre à jour la filière
-        $filiere->update([
-            'name' => $validated['name'],
-            'code' => $validated['code'],
-            'description' => $validated['description'] ?? null,
-            'parent_id' => $validated['parent_id'] ?? null,
-            'is_active' => isset($validated['is_active']) ? true : false,
-        ]);
+        $filiere = ESBTPFiliere::findOrFail($id);
 
-        // Mettre à jour les niveaux d'études associés
-        if (isset($validated['niveau_etude_ids'])) {
-            $filiere->niveauxEtudes()->sync($validated['niveau_etude_ids']);
-        } else {
-            $filiere->niveauxEtudes()->detach();
+        // Update attributes
+        $filiere->name = $request->name;
+        $filiere->code = $request->code;
+        $filiere->description = $request->description;
+        $filiere->is_active = $request->is_active;
+        $filiere->parent_id = $request->parent_id;
+        $filiere->save();
+
+        // Update relations
+        if ($request->has('niveau_ids')) {
+            $filiere->niveaux()->sync($request->niveau_ids);
+        }
+
+        if ($request->has('matiere_ids')) {
+            $filiere->matieres()->sync(collect($request->matiere_ids)->mapWithKeys(function ($id) {
+                return [$id => ['is_active' => true]];
+            }));
         }
 
         return redirect()->route('esbtp.filieres.index')

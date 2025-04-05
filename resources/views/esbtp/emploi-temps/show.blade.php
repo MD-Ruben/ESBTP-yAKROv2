@@ -177,7 +177,10 @@
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
                         <div class="btn-group">
-                            <a href="{{ route('esbtp.emploi-temps.edit', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-warning">
+                            <a href="{{ route('esbtp.emploi-temps.export-pdf', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-danger me-2" target="_blank">
+                                <i class="fas fa-file-pdf me-1"></i>Générer PDF
+                            </a>
+                            <a href="{{ route('esbtp.emploi-temps.edit', ['emploi_temp' => $emploiTemps->id]) }}" class="btn btn-warning me-2">
                                 <i class="fas fa-edit me-1"></i>Modifier
                             </a>
                             <a href="{{ route('esbtp.seances-cours.create', ['emploi_temps_id' => $emploiTemps->id]) }}" class="btn btn-primary">

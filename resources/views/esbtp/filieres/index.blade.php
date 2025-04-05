@@ -29,15 +29,14 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped datatable">
+                        <table class="table table-striped" id="filieres-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Nom</th>
                                     <th>Code</th>
                                     <th>Type</th>
-                                    <th>Niveaux d'études</th>
-                                    <th>Classes</th>
+                                    <th>Niveaux</th>
+                                    <th>Matières</th>
                                     <th>Statut</th>
                                     <th>Actions</th>
                                 </tr>
@@ -45,31 +44,26 @@
                             <tbody>
                                 @forelse($filieres as $filiere)
                                     <tr>
-                                        <td>{{ $filiere->id }}</td>
                                         <td>{{ $filiere->name }}</td>
                                         <td>{{ $filiere->code }}</td>
                                         <td>
-                                            @if($filiere->parent)
-                                                <span class="badge bg-info">Option de {{ $filiere->parent->name }}</span>
+                                            @if($filiere->parent_id)
+                                                <span class="badge bg-info">Option</span>
                                             @else
-                                                <span class="badge bg-primary">Filière principale</span>
+                                                <span class="badge bg-primary">Principale</span>
                                             @endif
                                         </td>
                                         <td>
-                                            @forelse($filiere->niveauxEtudes as $niveau)
-                                                <span class="badge bg-success">{{ $niveau->name }}</span>
-                                            @empty
-                                                <span class="text-muted">Aucun niveau associé</span>
-                                            @endforelse
+                                            <span class="badge bg-secondary">{{ $filiere->niveaux->count() }}</span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-dark">{{ $filiere->classes ? $filiere->classes->count() : 0 }} classe(s)</span>
+                                            <span class="badge bg-secondary">{{ $filiere->matieres->count() }}</span>
                                         </td>
                                         <td>
                                             @if($filiere->is_active)
-                                                <span class="badge bg-success">Actif</span>
+                                                <span class="badge bg-success">Active</span>
                                             @else
-                                                <span class="badge bg-danger">Inactif</span>
+                                                <span class="badge bg-danger">Inactive</span>
                                             @endif
                                         </td>
                                         <td class="text-end">

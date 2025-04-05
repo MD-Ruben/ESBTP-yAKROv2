@@ -89,7 +89,7 @@ class ESBTPClasse extends Model
      */
     public function anneeUniversitaire()
     {
-        return $this->belongsTo(ESBTPAnneeUniversitaire::class, 'annee_universitaire_id');
+        return $this->annee();
     }
 
     /**
@@ -144,10 +144,10 @@ class ESBTPClasse extends Model
         return $this->hasManyThrough(
             ESBTPEtudiant::class,
             ESBTPInscription::class,
-            'classe_id', // Clé étrangère sur la table inscriptions     
+            'classe_id', // Clé étrangère sur la table inscriptions
             'id', // Clé primaire sur la table etudiants
             'id', // Clé primaire sur la table classes
-            'etudiant_id' // Clé étrangère sur la table inscriptions     
+            'etudiant_id' // Clé étrangère sur la table inscriptions
         );
     }
 
@@ -182,7 +182,7 @@ class ESBTPClasse extends Model
         $filiere = $this->filiere ? $this->filiere->code : '';
         $niveau = $this->niveau ? $this->niveau->code : '';
         $annee = $this->annee ? $this->annee->name : '';
-        
+
         return "{$filiere} {$niveau} {$annee}";
     }
 
@@ -207,7 +207,7 @@ class ESBTPClasse extends Model
     }
 
     /**
-     * Alias pour la relation avec le niveau d'étude.
+     * Alias pour la relation niveau d'études pour assurer la compatibilité avec le code existant.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -215,4 +215,4 @@ class ESBTPClasse extends Model
     {
         return $this->niveau();
     }
-} 
+}

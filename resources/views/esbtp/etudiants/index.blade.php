@@ -106,6 +106,7 @@
                                     <th>Nom complet</th>
                                     <th>Genre</th>
                                     <th>Contact</th>
+                                    <th>Résidence</th>
                                     <th>Classe actuelle</th>
                                     <th>Statut</th>
                                     <th>Actions</th>
@@ -113,7 +114,10 @@
                             </thead>
                             <tbody>
                                 @forelse ($etudiants as $etudiant)
-                                    <tr>
+                                    @php
+                                        $pendingInscription = $etudiant->pending_inscriptions->first();
+                                    @endphp
+                                    <tr @if($pendingInscription) class="table-warning" @endif>
                                         <td>{{ $etudiant->matricule }}</td>
                                         <td class="text-center">
                                             @if($etudiant->photo)
@@ -124,11 +128,23 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td>{{ $etudiant->nom }} {{ $etudiant->prenoms }}</td>
+                                        <td>
+                                            {{ $etudiant->nom }} {{ $etudiant->prenoms }}
+                                            @if($pendingInscription)
+                                                <span class="badge bg-warning text-dark">Inscription en attente</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $etudiant->genre == 'M' ? 'Masculin' : 'Féminin' }}</td>
                                         <td>
                                             {{ $etudiant->telephone }}<br>
                                             <small>{{ $etudiant->email }}</small>
+                                        </td>
+                                        <td>
+                                            @if($etudiant->ville || $etudiant->commune)
+                                                {{ $etudiant->ville }} {{ $etudiant->commune ? ', '.$etudiant->commune : '' }}
+                                            @else
+                                                <span class="text-muted">Non renseignée</span>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($etudiant->inscriptions->count() > 0)
@@ -158,6 +174,39 @@
                                                 <a href="{{ route('esbtp.etudiants.edit', $etudiant) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+
+                                                @if($pendingInscription)
+                                                    @can('inscriptions.validate')
+                                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#validationModal{{ $pendingInscription->id }}" title="Valider l'inscription">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+
+                                                    <!-- Modal de validation -->
+                                                    <div class="modal fade" id="validationModal{{ $pendingInscription->id }}" tabindex="-1" aria-labelledby="validationModalLabel{{ $pendingInscription->id }}" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="validationModalLabel{{ $pendingInscription->id }}">Valider l'inscription de {{ $etudiant->nom }} {{ $etudiant->prenoms }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <form action="{{ route('esbtp.inscriptions.valider', $pendingInscription->id) }}" method="POST">
+                                                                    @csrf
+                                                                    @method('PUT')
+                                                                    <div class="modal-body">
+                                                                        <p>Êtes-vous sûr de vouloir valider cette inscription ?</p>
+                                                                        <p>L'étudiant sera automatiquement activé et pourra accéder à son compte.</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                                        <button type="submit" class="btn btn-success">Valider l'inscription</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    @endcan
+                                                @endif
+
                                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $etudiant->id }}" title="Supprimer">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -232,4 +281,4 @@
         });
     });
 </script>
-@endsection 
+@endsection

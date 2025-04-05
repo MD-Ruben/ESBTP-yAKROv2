@@ -28,12 +28,12 @@ class CheckRole
 
         // Récupérer l'utilisateur connecté
         $user = Auth::user();
-        
+
         // Si l'utilisateur est superAdmin, il a accès à tout
         if ($user->hasRole('superAdmin')) {
             return $next($request);
         }
-        
+
         // Vérifier pour les rôles multiples (ex: 'role:admin,editor')
         $roles = explode(',', $role);
         foreach ($roles as $singleRole) {
@@ -41,8 +41,8 @@ class CheckRole
                 return $next($request);
             }
         }
-        
+
         // Si aucun des rôles requis n'est présent
         abort(403, 'Accès non autorisé. Rôle de ' . ucfirst($roles[0]) . ' requis.');
     }
-} 
+}

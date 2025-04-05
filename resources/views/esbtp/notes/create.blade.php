@@ -6,23 +6,34 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Ajouter une nouvelle note</h5>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-graduation-cap me-2"></i>Ajouter une nouvelle note
+                    </h5>
                     <div>
-                        <a href="{{ route('esbtp.notes.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('esbtp.notes.index') }}" class="btn btn-outline-secondary shadow-sm">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste des notes
                         </a>
                     </div>
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-circle fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading">Erreur de validation</h5>
+                                    <ul class="mb-0 ps-3">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -46,99 +57,123 @@
 
                     <form action="{{ route('esbtp.notes.store') }}" method="POST">
                         @csrf
-
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">Informations sur l'évaluation</h6>
-                            </div>
+                        <div class="card shadow-sm border-0 mb-4">
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="evaluation_id" class="form-label">Évaluation <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('evaluation_id') is-invalid @enderror" id="evaluation_id" name="evaluation_id" required>
-                                        <option value="">Sélectionnez une évaluation</option>
-                                        @foreach($evaluations as $evaluation)
-                                            <option value="{{ $evaluation->id }}" data-bareme="{{ $evaluation->bareme }}" {{ old('evaluation_id') == $evaluation->id ? 'selected' : '' }}>
-                                                {{ $evaluation->titre }} - {{ $evaluation->matiere->name }} - {{ $evaluation->classe->name }} ({{ date('d/m/Y', strtotime($evaluation->date_evaluation)) }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('evaluation_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Informations de base
+                                </h6>
 
-                                <div class="mb-3">
-                                    <label for="etudiant_id" class="form-label">Étudiant <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('etudiant_id') is-invalid @enderror" id="etudiant_id" name="etudiant_id" required>
-                                        <option value="">Sélectionnez un étudiant</option>
-                                        @foreach($etudiants as $etudiant)
-                                            <option value="{{ $etudiant->id }}" {{ old('etudiant_id') == $etudiant->id ? 'selected' : '' }}>
-                                                {{ $etudiant->matricule }} - {{ $etudiant->nom }} {{ $etudiant->prenom }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('etudiant_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="evaluation_id" class="form-label text-muted mb-1">Évaluation <span class="text-danger">*</span></label>
+                                        <select name="evaluation_id" id="evaluation_id" class="form-select shadow-sm @error('evaluation_id') is-invalid @enderror" required>
+                                            <option value="">-- Sélectionner une évaluation --</option>
+                                            @foreach ($evaluations as $evaluation)
+                                                <option value="{{ $evaluation->id }}" {{ old('evaluation_id') == $evaluation->id ? 'selected' : '' }}>
+                                                    {{ $evaluation->titre }} - {{ $evaluation->matiere ? $evaluation->matiere->name : 'N/A' }}
+                                                    ({{ $evaluation->classe ? $evaluation->classe->name : 'N/A' }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text"><i class="fas fa-lightbulb text-warning me-1"></i> L'évaluation détermine la matière et la classe</div>
+                                        @error('evaluation_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="etudiant_id" class="form-label text-muted mb-1">Étudiant <span class="text-danger">*</span></label>
+                                        <select name="etudiant_id" id="etudiant_id" class="form-select shadow-sm @error('etudiant_id') is-invalid @enderror" required>
+                                            <option value="">-- Sélectionner un étudiant --</option>
+                                            @foreach ($etudiants as $etudiant)
+                                                <option value="{{ $etudiant->id }}" {{ old('etudiant_id') == $etudiant->id ? 'selected' : '' }}>
+                                                    {{ $etudiant->nom }} {{ $etudiant->prenoms }} ({{ $etudiant->matricule ?? 'N/A' }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('etudiant_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">Informations de la note</h6>
-                            </div>
+                        <div class="card shadow-sm border-0 mb-4">
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="valeur" class="form-label">Note <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="number"
-                                               class="form-control @error('valeur') is-invalid @enderror"
-                                               id="valeur"
-                                               name="valeur"
-                                               value="{{ old('valeur') }}"
-                                               min="0"
-                                               step="0.25"
-                                               {{ old('absent') ? 'disabled' : '' }}>
-                                        <span class="input-group-text" id="bareme-display">/ --</span>
-                                        @error('valeur')
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-clipboard-check me-2"></i>Détails de la note
+                                </h6>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="note" class="form-label text-muted mb-1">Note <span class="text-danger">*</span></label>
+                                        <div class="input-group shadow-sm">
+                                            <input type="text" name="note" id="note" class="form-control @error('note') is-invalid @enderror"
+                                                value="{{ old('note') }}" placeholder="Exemple: 15.5" required>
+                                            <span class="input-group-text">/20</span>
+                                        </div>
+                                        @error('note')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="form-text">Note équivalente sur 20 : <span id="note_sur_20">--</span>/20</div>
-                                </div>
 
-                                <div class="mb-3">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input"
-                                               type="checkbox"
-                                               id="absent"
-                                               name="absent"
-                                               value="1"
-                                               {{ old('absent') ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="absent">L'étudiant était absent lors de l'évaluation</label>
+                                    <div class="col-md-6">
+                                        <div class="d-flex flex-column h-100 justify-content-center">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="is_absent" id="is_absent" class="form-check-input"
+                                                    {{ old('is_absent') ? 'checked' : '' }}>
+                                                <label for="is_absent" class="form-check-label">
+                                                    <i class="fas fa-user-slash text-danger me-1"></i>Étudiant absent
+                                                </label>
+                                            </div>
+                                            <div class="form-text mt-1">
+                                                <i class="fas fa-info-circle text-info me-1"></i> Cochez cette case si l'étudiant était absent lors de l'évaluation
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="commentaire" class="form-label">Commentaire</label>
-                                    <textarea class="form-control @error('commentaire') is-invalid @enderror"
-                                              id="commentaire"
-                                              name="commentaire"
-                                              rows="3">{{ old('commentaire') }}</textarea>
-                                    @error('commentaire')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row g-3 mt-1">
+                                    <div class="col-12">
+                                        <label for="commentaire" class="form-label text-muted mb-1">Commentaire (optionnel)</label>
+                                        <textarea name="commentaire" id="commentaire" rows="3"
+                                            class="form-control shadow-sm @error('commentaire') is-invalid @enderror"
+                                            placeholder="Ajoutez un commentaire concernant cette note...">{{ old('commentaire') }}</textarea>
+                                        @error('commentaire')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-end">
-                                <button type="reset" class="btn btn-secondary me-2">
-                                    <i class="fas fa-undo me-1"></i>Réinitialiser
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i>Enregistrer la note
-                                </button>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info border-start border-info border-4 shadow-sm" role="alert">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-info-circle fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="alert-heading">À propos de la saisie des notes</h6>
+                                            <p class="mb-0">
+                                                Veuillez vérifier que les informations saisies sont correctes avant de soumettre le formulaire.
+                                                Si l'étudiant était absent, cochez la case "Étudiant absent" et la note sera automatiquement considérée comme 0.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ route('esbtp.notes.index') }}" class="btn btn-outline-secondary me-md-2 shadow-sm">
+                                <i class="fas fa-times me-1"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary shadow-sm">
+                                <i class="fas fa-save me-1"></i>Enregistrer la note
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -148,86 +183,50 @@
 </div>
 @endsection
 
-@section('scripts')
+@section('js')
 <script>
     $(document).ready(function() {
-        // Initialize required state on page load
-        const valeurInput = $('#valeur');
-        const absentCheckbox = $('#absent');
-
-        function updateRequiredState() {
-            const isAbsent = absentCheckbox.is(':checked');
-            console.log('Updating required state - Absent:', isAbsent);
-
-            valeurInput.prop('required', !isAbsent);
-            valeurInput.prop('disabled', isAbsent);
-
-            console.log('Required state after update:', valeurInput.prop('required'));
-            console.log('Disabled state after update:', valeurInput.prop('disabled'));
-
-            if (isAbsent) {
-                valeurInput.val('');
-                $('#note_sur_20').text('--');
-                // Remove validation error if present
-                valeurInput.removeClass('is-invalid');
-                valeurInput.next('.invalid-feedback').remove();
-            }
-        }
-
-        // Initial state
-        console.log('Setting initial state');
-        updateRequiredState();
-
-        // Mise à jour du barème lorsqu'on sélectionne une évaluation
-        $('#evaluation_id').change(function() {
-            const selectedOption = $(this).find('option:selected');
-            const bareme = selectedOption.data('bareme') || '--';
-            $('#bareme-display').text('/ ' + bareme);
-
-            // Réinitialiser la note sur 20 seulement si l'étudiant n'est pas absent
-            if (!absentCheckbox.is(':checked')) {
-                updateNoteSur20();
-            }
+        // Initialisation de Select2 pour les listes déroulantes
+        $('.form-select').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
         });
 
-        // Calcul automatique de la note sur 20
-        function updateNoteSur20() {
-            const valeur = parseFloat($('#valeur').val()) || 0;
-            const baremeText = $('#bareme-display').text().replace('/ ', '');
-
-            if (baremeText === '--' || isNaN(parseFloat(baremeText))) {
-                $('#note_sur_20').text('--');
-                return;
-            }
-
-            const bareme = parseFloat(baremeText);
-            const noteSur20 = (valeur * 20) / bareme;
-            $('#note_sur_20').text(noteSur20.toFixed(2));
-        }
-
-        $('#valeur').on('input', updateNoteSur20);
-
-        // Gestion de la case à cocher "Absent"
-        $('#absent').change(function() {
-            console.log('Absent checkbox changed');
-            updateRequiredState();
-            if ($(this).is(':checked')) {
-                $('#note_sur_20').text('0.00');
+        // Gestion de l'état absent
+        $('#is_absent').change(function() {
+            if($(this).is(':checked')) {
+                $('#note').val('0').attr('readonly', true);
             } else {
-                updateNoteSur20();
+                $('#note').val('').attr('readonly', false);
             }
         });
 
-        // Reset button handler
-        $('button[type="reset"]').click(function() {
-            console.log('Form reset triggered');
-            setTimeout(updateRequiredState, 0);
-        });
+        // Vérifier si la case est déjà cochée au chargement
+        if($('#is_absent').is(':checked')) {
+            $('#note').val('0').attr('readonly', true);
+        }
 
-        // Filtrer les étudiants par classe lorsqu'on sélectionne une évaluation
+        // Filtrer les étudiants en fonction de l'évaluation sélectionnée
         $('#evaluation_id').change(function() {
-            // Cette fonctionnalité pourrait être améliorée avec une requête AJAX
-            // pour charger uniquement les étudiants de la classe concernée
+            var evaluationId = $(this).val();
+            if(evaluationId) {
+                $.ajax({
+                    url: '/esbtp/api/evaluations/' + evaluationId + '/etudiants',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#etudiant_id').empty();
+                        $('#etudiant_id').append('<option value="">-- Sélectionner un étudiant --</option>');
+                        $.each(data, function(key, value) {
+                            $('#etudiant_id').append('<option value="' + value.id + '">' + value.nom + ' ' + value.prenoms + ' (' + (value.matricule || 'N/A') + ')</option>');
+                        });
+                        $('#etudiant_id').trigger('change');
+                    }
+                });
+            } else {
+                $('#etudiant_id').empty();
+                $('#etudiant_id').append('<option value="">-- Sélectionner un étudiant --</option>');
+            }
         });
     });
 </script>

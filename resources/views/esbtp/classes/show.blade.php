@@ -10,13 +10,15 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Détails de la classe: {{ $classe->name }}</h5>
                     <div>
+                        @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
                         <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-primary me-2">
                             <i class="fas fa-book me-1"></i>Gérer les matières
                         </a>
                         <a href="{{ route('esbtp.classes.edit', ['classe' => $classe->id]) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
-                        <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
+                        @endif
+                        <a href="{{ route('esbtp.student.classes.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
                     </div>
@@ -119,9 +121,11 @@
                             <div class="card">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">Matières enseignées</h6>
+                                    @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
                                     <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-cog me-1"></i>Gérer
                                     </a>
+                                    @endif
                                 </div>
                                 <div class="card-body">
                                     @if($classe->matieres->count() > 0)
@@ -152,7 +156,9 @@
                                     @else
                                         <div class="alert alert-info mb-0">
                                             Aucune matière associée à cette classe.
+                                            @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
                                             <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="alert-link">Ajouter des matières</a>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>

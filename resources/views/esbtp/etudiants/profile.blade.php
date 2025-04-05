@@ -113,7 +113,7 @@
                             </div>
                         </div>
 
-<h5 class="mt-4 mb-3">Informations financières</h5>
+<!--<h5 class="mt-4 mb-3">Informations financières</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead class="table-light">
@@ -133,7 +133,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
+                        </div>-->
                     @else
                         <div class="alert alert-warning">
                             <h5 class="alert-heading">Aucune inscription active</h5>

@@ -57,25 +57,36 @@
                                     <label for="annee_universitaire_id">Année Universitaire :</label>
                                     <select class="form-select" id="annee_universitaire_id" name="annee_universitaire_id">
                                         <option value="">Sélectionnez une année</option>
-                                        @foreach($anneesUniversitaires ?? [] as $annee)
-                                            <option value="{{ $annee->id }}" {{ isset($annee_id) && $annee_id == $annee->id ? 'selected' : '' }}>
+                                        @foreach($annees_universitaires ?? [] as $annee)
+                                            <option value="{{ $annee->id }}" {{ isset($annee_universitaire_id) && $annee_universitaire_id == $annee->id ? 'selected' : '' }}>
                                                 {{ $annee->annee_debut }}-{{ $annee->annee_fin }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <label for="periode">Période :</label>
-                                    <select class="form-select" id="periode" name="periode">
-                                        <option value="semestre1" {{ isset($periode) && $periode == 'semestre1' ? 'selected' : '' }}>Semestre 1</option>
-                                        <option value="semestre2" {{ isset($periode) && $periode == 'semestre2' ? 'selected' : '' }}>Semestre 2</option>
-                                        <option value="annuel" {{ isset($periode) && $periode == 'annuel' ? 'selected' : '' }}>Annuel</option>
+                                    <label for="semestre">Période :</label>
+                                    <select class="form-select" id="semestre" name="semestre">
+                                        <option value="">Toutes les périodes</option>
+                                        @foreach($periodes as $key => $periodeName)
+                                            <option value="{{ $key }}" {{ isset($semestre) && $semestre == $key ? 'selected' : '' }}>
+                                                {{ $periodeName }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-2 mb-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-filter me-1"></i> Filtrer
                                     </button>
+                                </div>
+                                <div class="col-md-12 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include_all_statuses" name="include_all_statuses" value="1" {{ isset($include_all_statuses) && $include_all_statuses ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="include_all_statuses">
+                                            Inclure tous les étudiants (même ceux avec des inscriptions inactives)
+                                        </label>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -84,12 +95,12 @@
                     @if(isset($etudiants) && $etudiants->count() > 0)
                         <div class="mb-4 d-flex justify-content-between align-items-center">
                             <div>
-                                <h4>Résultats : {{ $classe->name ?? 'Tous les étudiants' }} - {{ $periode == 'semestre1' ? 'Semestre 1' : ($periode == 'semestre2' ? 'Semestre 2' : 'Année complète') }}</h4>
+                                <h4>Résultats : {{ $classe->name ?? 'Tous les étudiants' }} - {{ $semestre ? 'Semestre '.$semestre : 'Toutes les périodes' }}</h4>
                                 <p>Année universitaire : {{ $anneeUniversitaire->annee_debut ?? '' }}-{{ $anneeUniversitaire->annee_fin ?? '' }}</p>
                             </div>
                             @if(isset($classe))
                             <div>
-                                <a href="{{ route('esbtp.resultats.classe', ['classe' => $classe->id, 'annee_universitaire_id' => $annee_id, 'periode' => $periode]) }}" class="btn btn-primary">
+                                <a href="{{ route('esbtp.resultats.classe', ['classe' => $classe->id, 'annee_universitaire_id' => $annee_id, 'periode' => $semestre]) }}" class="btn btn-primary">
                                     <i class="fas fa-chart-bar me-1"></i> Résultats détaillés de la classe
                                 </a>
                             </div>
@@ -146,14 +157,14 @@
                                                     $studentClasseId = $inscription ? $inscription->classe_id : null;
                                                     $actualClasseId = $classe_id ?? $studentClasseId;
                                                 @endphp
-                                                <a href="{{ route('esbtp.resultats.etudiant', ['etudiant' => $etudiant->id, 'classe_id' => $actualClasseId, 'annee_universitaire_id' => $annee_id, 'periode' => $periode]) }}" class="btn btn-sm btn-info me-1">
+                                                <a href="{{ route('esbtp.resultats.etudiant', ['etudiant' => $etudiant->id, 'classe_id' => $actualClasseId, 'annee_universitaire_id' => $annee_id, 'periode' => $semestre]) }}" class="btn btn-sm btn-info me-1">
                                                     <i class="fas fa-chart-line me-1"></i>Détails
                                                 </a>
                                                 @if(isset($bulletins[$etudiant->id]))
                                                     <a href="{{ route('esbtp.bulletins.show', $bulletins[$etudiant->id]) }}" class="btn btn-sm btn-secondary me-1">
                                                         <i class="fas fa-eye me-1"></i>Bulletin
                                                     </a>
-                                                    <a href="{{ route('esbtp.bulletins.pdf', $bulletins[$etudiant->id]) }}" class="btn btn-sm btn-danger" target="_blank">
+                                                    <a href="{{ route('esbtp.bulletins.pdf-params', ['bulletin' => $etudiant->id, 'classe_id' => $actualClasseId, 'periode' => $semestre, 'annee_universitaire_id' => $annee_id]) }}" class="btn btn-sm btn-danger" target="_blank">
                                                         <i class="fas fa-file-pdf me-1"></i>PDF
                                                     </a>
                                                 @else
@@ -197,6 +208,27 @@
     $(document).ready(function() {
         $('.form-select').select2({
             theme: 'bootstrap-5'
+        });
+
+        // Auto-select academic year when class is selected
+        $('#classe_id').change(function() {
+            const classeId = $(this).val();
+            if (classeId) {
+                // Make an AJAX request to get class details
+                $.ajax({
+                    url: '/esbtp/api/classes/' + classeId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data && data.annee_universitaire_id) {
+                            $('#annee_universitaire_id').val(data.annee_universitaire_id).trigger('change');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching class data:', error);
+                    }
+                });
+            }
         });
     });
 </script>

@@ -2,14 +2,14 @@
 
 /**
  * Redirect to the public directory
- * 
+ *
  * Ce fichier redirige toutes les requêtes vers le répertoire public où
  * l'application Laravel est servie. Il gère également les chemins relatifs
  * pour assurer que les redirections fonctionnent correctement.
  */
 
 // Définir le chemin de base du projet
-$basePath = '/smart_school_new';
+$basePath = '/ESBTP-yAKRO';
 
 // Obtenir l'URI actuelle
 $uri = urldecode(
@@ -26,9 +26,9 @@ if ($isDevelopmentServer) {
     // En mode production (Apache/Nginx), on s'assure que le chemin est correct
     // Supprimer le nom du projet de l'URI s'il existe
     $uri = preg_replace('#^' . $basePath . '#', '', $uri);
-    
+
     // Rediriger vers le répertoire public
     header('Location: ' . $basePath . '/public' . $uri);
 }
 
-exit; 
+exit;

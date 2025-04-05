@@ -422,11 +422,11 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <!--<img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
+            <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
             <div class="sidebar-brand">ESBTP-yAKRO</div>
-            <div class="sidebar-subtitle">Gestion Universitaire</div>-->
-            <div class="sidebar-brand">KLASSCI</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>
+            <!--<div class="sidebar-brand">KLASSCI</div>
+            <div class="sidebar-subtitle">Gestion Universitaire</div>-->
         </div>
 
         <div class="sidebar-menu">
@@ -478,7 +478,7 @@
                 </li>
                 @endrole
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.student.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.student.classes.*') || request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
                         <i class="fas fa-chalkboard nav-icon"></i>
                         <span>Classes</span>
                     </a>
@@ -522,12 +522,12 @@
                 @endrole
 
                 <!-- Section examens et notes -->
-                <div class="menu-category">Examens et notes</div>
+                <div class="menu-category">Évaluations et notes</div>
                 @hasanyrole('superAdmin|secretaire')
                 <li class="nav-item">
                     <a href="{{ route('esbtp.evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
                         <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Examens</span>
+                        <span>Évaluations</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -537,15 +537,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.bulletins.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') || request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
                         <i class="fas fa-file-invoice nav-icon"></i>
-                        <span>Bulletins</span>
+                        <span>Résultats et Bulletins</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
-                        <i class="fas fa-chart-bar nav-icon"></i>
-                        <span>Résultats</span>
+                    <a href="{{ route('esbtp.progression.index') }}" class="nav-link {{ request()->routeIs('esbtp.progression.*') ? 'active' : '' }}">
+                        <i class="fas fa-graduation-cap nav-icon"></i>
+                        <span>Progression des Étudiants</span>
                     </a>
                 </li>
                 @endhasanyrole
@@ -554,7 +554,7 @@
                 <li class="nav-item">
                     <a href="{{ route('esbtp.mes-evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-evaluations.index') ? 'active' : '' }}">
                         <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Mes examens</span>
+                        <span>Mes évaluations</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -565,8 +565,8 @@
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('esbtp.mon-bulletin.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-bulletin.index') ? 'active' : '' }}">
-                        <i class="fas fa-chart-pie nav-icon"></i>
-                        <span>Mon bulletin</span>
+                        <i class="fas fa-file-invoice nav-icon"></i>
+                        <span>Mes résultats et bulletin</span>
                     </a>
                 </li>
                 @endrole
@@ -595,6 +595,13 @@
                         <span>Mes absences</span>
                     </a>
                 </li>
+                <!-- Debug link moved to a separate nav item if needed -->
+                <li class="nav-item">
+                    <a href="/esbtp/mes-absences/debug" class="nav-link" style="color: #ff5500;">
+                        <i class="nav-icon fas fa-bug"></i>
+                        <span>Debug Mes Absences</span>
+                    </a>
+                </li>
                 @endrole
 
                 @role('etudiant')
@@ -603,6 +610,12 @@
                     <a href="{{ route('esbtp.mes-notifications.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notifications.index') ? 'active' : '' }}">
                         <i class="fas fa-bell nav-icon"></i>
                         <span>Mes notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.mes-messages.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-messages.index') ? 'active' : '' }}">
+                        <i class="fas fa-inbox nav-icon"></i>
+                        <span>Mes messages</span>
                     </a>
                 </li>
                 @endrole
@@ -629,8 +642,8 @@
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('parent.bulletins') }}" class="nav-link {{ request()->routeIs('parent.bulletins*') ? 'active' : '' }}">
-                        <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Bulletins</span>
+                        <i class="fas fa-file-invoice nav-icon"></i>
+                        <span>Résultats et bulletins</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -676,10 +689,17 @@
                 <!-- Section profil utilisateur -->
                 <div class="menu-category">Mon compte</div>
                 <li class="nav-item">
+                    @role('etudiant')
                     <a href="{{ route('esbtp.mon-profil.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-profil.*') ? 'active' : '' }}">
                         <i class="fas fa-user-circle nav-icon"></i>
                         <span>Profil</span>
                     </a>
+                    @else
+                    <a href="{{ route('admin.profile') }}" class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}">
+                        <i class="fas fa-user-circle nav-icon"></i>
+                        <span>Profil</span>
+                    </a>
+                    @endrole
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -736,7 +756,13 @@
                         </div>
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Mon profil</a></li>
+                        <li>
+                            @role('etudiant')
+                            <a class="dropdown-item" href="{{ route('esbtp.mon-profil.index') }}"><i class="fas fa-user me-2"></i> Mon profil</a>
+                            @else
+                            <a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="fas fa-user me-2"></i> Mon profil</a>
+                            @endrole
+                        </li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
@@ -860,11 +886,39 @@
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Source': 'dropdown'
                 }
             })
-            .then(() => {
+            .then(response => response.json())
+            .then(data => {
                 updateUnreadCount();
+
+                // Si la notification doit être masquée, l'enlever du DOM
+                if (data.hide) {
+                    const notificationItem = document.querySelector(`.notification-item[onclick*="${id}"]`);
+                    if (notificationItem) {
+                        // Animation de fondu avant la suppression
+                        notificationItem.style.opacity = '1';
+                        notificationItem.style.transition = 'opacity 0.3s ease-out';
+
+                        // Commencer le fondu
+                        setTimeout(() => {
+                            notificationItem.style.opacity = '0';
+                        }, 10);
+
+                        // Supprimer après l'animation
+                        setTimeout(() => {
+                            notificationItem.remove();
+
+                            // Afficher un message "aucune notification" si c'était la dernière
+                            const notificationsContainer = document.getElementById('notificationsContainer');
+                            if (notificationsContainer && !notificationsContainer.querySelector('.notification-item')) {
+                                notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Aucune notification</small></div>';
+                            }
+                        }, 300);
+                    }
+                }
             });
         }
 
@@ -900,5 +954,8 @@
         setInterval(updateUnreadCount, 60000);
     });
     </script>
+
+    <!-- Yield for page-specific scripts -->
+    @yield('scripts')
 </body>
 </html>

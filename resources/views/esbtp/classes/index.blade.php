@@ -9,9 +9,11 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Liste des classes</h5>
+                    @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
                     <a href="{{ route('esbtp.classes.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus-circle me-1"></i>Ajouter une classe
                     </a>
+                    @endif
                 </div>
                 <div class="card-body">
                     @if (session('success'))
@@ -79,13 +81,14 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('esbtp.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-info" title="Voir les détails">
+                                                <a href="{{ route('esbtp.student.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-info" title="Voir les détails">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                @if(auth()->user()->hasRole('superAdmin') || auth()->user()->hasRole('secretaire'))
                                                 <a href="{{ route('esbtp.classes.edit', ['classe' => $classe->id]) }}" class="btn btn-sm btn-warning" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-sm btn-primary" title="Gérer les matières">
+                                                <a href="{{ route('esbtp.api.classes.matieres.api', ['id' => $classe->id]) }}" class="btn btn-sm btn-primary" title="Gérer les matières">
                                                     <i class="fas fa-book"></i>
                                                 </a>
                                                 <form action="{{ route('esbtp.classes.destroy', ['classe' => $classe->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe?');">
@@ -95,6 +98,7 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

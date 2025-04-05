@@ -139,6 +139,18 @@
                 </div>
 
                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="matricule">Matricule <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('matricule') is-invalid @enderror"
+                               id="matricule" name="matricule" value="{{ old('matricule') }}" required>
+                        <small class="text-muted">Entrez manuellement le matricule de l'étudiant</small>
+                        @error('matricule')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="date_naissance">Date de naissance</label>
                         <input type="date" class="form-control @error('date_naissance') is-invalid @enderror"
@@ -149,28 +161,37 @@
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label for="genre">Genre</label>
-                        <select class="form-control @error('genre') is-invalid @enderror" id="genre" name="genre" required>
-                            <option value="">Sélectionner...</option>
-                            <option value="Homme" {{ old('genre') == 'Homme' ? 'selected' : '' }}>Homme</option>
-                            <option value="Femme" {{ old('genre') == 'Femme' ? 'selected' : '' }}>Femme</option>
-                        </select>
-                        @error('genre')
+                        <label for="lieu_naissance">Lieu de naissance</label>
+                        <input type="text" class="form-control @error('lieu_naissance') is-invalid @enderror"
+                               id="lieu_naissance" name="lieu_naissance" value="{{ old('lieu_naissance') }}">
+                        @error('lieu_naissance')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror"
-                               id="email" name="email" value="{{ old('email') }}">
-                        @error('email')
+                        <label for="sexe">Genre</label>
+                        <select class="form-control @error('sexe') is-invalid @enderror" id="sexe" name="sexe" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="M" {{ old('sexe') == 'M' ? 'selected' : '' }}>Homme</option>
+                            <option value="F" {{ old('sexe') == 'F' ? 'selected' : '' }}>Femme</option>
+                        </select>
+                        @error('sexe')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
 
                 <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="email_personnel">Email</label>
+                        <input type="email" class="form-control @error('email_personnel') is-invalid @enderror"
+                               id="email_personnel" name="email_personnel" value="{{ old('email_personnel') }}">
+                        @error('email_personnel')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="col-md-4 mb-3">
                         <label for="telephone">Téléphone</label>
                         <input type="text" class="form-control @error('telephone') is-invalid @enderror"
@@ -182,26 +203,26 @@
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label for="ville">Ville</label>
+                        <label for="ville">Ville de résidence</label>
                         <input type="text" class="form-control @error('ville') is-invalid @enderror"
                                id="ville" name="ville" value="{{ old('ville') }}">
                         @error('ville')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                </div>
 
+                <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="commune">Commune</label>
+                        <label for="commune">Commune de résidence</label>
                         <input type="text" class="form-control @error('commune') is-invalid @enderror"
                                id="commune" name="commune" value="{{ old('commune') }}">
                         @error('commune')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-12 mb-3">
+                    <div class="col-md-8 mb-3">
                         <label for="photo">Photo de profil</label>
                         <input type="file" class="form-control-file @error('photo') is-invalid @enderror"
                                id="photo" name="photo">

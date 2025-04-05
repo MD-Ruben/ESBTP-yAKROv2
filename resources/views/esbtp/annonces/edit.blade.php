@@ -103,12 +103,13 @@
                                             </div>
                                         </div>
 
-                                        <div class="mb-3" id="date-publication-container" style="display: none;">
-                                            <label for="date_publication" class="form-label">Date de publication</label>
-                                            <input type="datetime-local" class="form-control @error('date_publication') is-invalid @enderror" id="date_publication" name="date_publication" value="{{ old('date_publication', $annonce->date_publication ? $annonce->date_publication->format('Y-m-d\TH:i') : '') }}">
+                                        <div class="form-group">
+                                            <label for="date_publication">Date de publication <small class="text-muted">(Optionnel - par défaut: maintenant)</small></label>
+                                            <input type="datetime-local" class="form-control @error('date_publication') is-invalid @enderror" id="date_publication" name="date_publication" value="{{ old('date_publication', optional($annonce->date_publication)->format('Y-m-d\TH:i')) }}">
                                             @error('date_publication')
-                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
+                                            <small class="form-text text-muted">Si non spécifié, la date et l'heure actuelles seront utilisées.</small>
                                         </div>
 
                                         <div class="mb-3">

@@ -125,11 +125,14 @@ class ESBTPNoteController extends Controller
             $note->etudiant_id = $request->etudiant_id;
             $note->evaluation_id = $request->evaluation_id;
             $note->classe_id = $classe_id; // Utiliser la classe de l'évaluation
+            $note->matiere_id = $evaluation->matiere_id; // Ajouter le matiere_id de l'évaluation
             $note->semestre = $semestre; // Utiliser la période de l'évaluation
             $note->note = $request->is_absent ? 0 : $request->note;
             $note->is_absent = $request->has('is_absent') ? 1 : 0;
             $note->commentaire = $request->commentaire;
             $note->created_by = Auth::id();
+            $note->type_evaluation = $evaluation->type; // Ajouter le type d'évaluation
+            $note->annee_universitaire = $evaluation->anneeUniversitaire ? $evaluation->anneeUniversitaire->name : 'N/A'; // Ajouter l'année universitaire
             $note->save();
 
             // Débogage : Log des détails de la note créée

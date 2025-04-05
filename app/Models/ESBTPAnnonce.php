@@ -93,6 +93,28 @@ class ESBTPAnnonce extends Model
     }
 
     /**
+     * Relation avec l'utilisateur qui a créé l'annonce (alias de createdBy).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relation avec les étudiants qui ont lu cette annonce (pour les annonces générales et de classe).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function lectures()
+    {
+        return $this->belongsToMany(ESBTPEtudiant::class, 'esbtp_annonce_lectures', 'annonce_id', 'etudiant_id')
+                    ->withPivot('read_at')
+                    ->withTimestamps();
+    }
+
+    /**
      * Récupère les annonces actives (publiées et non expirées).
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
@@ -164,8 +186,8 @@ class ESBTPAnnonce extends Model
     public function isActive()
     {
         $now = now();
-        return $this->is_published 
-            && $this->date_publication <= $now 
+        return $this->is_published
+            && $this->date_publication <= $now
             && ($this->date_expiration === null || $this->date_expiration >= $now);
     }
-} 
+}

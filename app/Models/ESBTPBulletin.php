@@ -35,6 +35,7 @@ class ESBTPBulletin extends Model
         'effectif_classe',
         'mention',
         'appreciation_generale',
+        'config_matieres',
         'decision_conseil',
         'user_id',
         'signature_responsable',
@@ -62,6 +63,7 @@ class ESBTPBulletin extends Model
         'date_signature_responsable' => 'datetime',
         'date_signature_directeur' => 'datetime',
         'date_signature_parent' => 'datetime',
+        'config_matieres' => 'json',
     ];
 
     /**

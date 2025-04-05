@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
         //     ESBTPEvaluationSeeder::class,
         //     ESBTPNoteSeeder::class,
         //     ESBTPBulletinSeeder::class,
+        //     ESBTPBulletinDetailsSeeder::class,   // Migration des données bulletin vers le nouveau format
         // ]);
     }
 }

@@ -89,7 +89,7 @@ try {
 
         // Présences
         'view_attendances', 'create_attendance', 'edit_attendances', 'delete_attendances',
-        'view_own_attendances',
+        'view_own_attendances','edit attendances',
 
         // Inscriptions
         'inscriptions.view', 'inscriptions.create', 'inscriptions.edit', 'inscriptions.delete', 'inscriptions.validate',
@@ -216,6 +216,10 @@ try {
 
     // Liste des permissions à ajouter
     $permissionsToAdd = [
+
+
+        // matieres
+        'view_matieres',
         // Emplois du temps
         'view_timetables',
         'create_timetable',
@@ -227,6 +231,7 @@ try {
 
         // Présences
         'edit_attendances',
+        'edit attendances',
 
 
         // Étudiants
