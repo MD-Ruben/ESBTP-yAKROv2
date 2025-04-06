@@ -60,7 +60,7 @@
                             <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('student.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
+                    <a href="{{ route('esbtp.student.classes.show', ['classe' => $classe->id]) }}" class="btn btn-sm btn-success mt-3">Détails de la classe</a>
                 </div>
             </div>
         </div>
