@@ -66,7 +66,7 @@ class ClassController extends Controller
     {
         $class->load(['session', 'sections', 'students.user', 'subjects', 'timetable']);
         $teachers = Teacher::with('user')->get();
-        
+
         return view('classes.show', compact('class', 'teachers'));
     }
 
@@ -158,4 +158,4 @@ class ClassController extends Controller
         return redirect()->route('classes.show', $class)
             ->with('success', 'Enseignant retiré avec succès.');
     }
-} 
+}

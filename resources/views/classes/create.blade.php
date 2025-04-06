@@ -7,7 +7,7 @@
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Ajouter une Classe</h1>
-        <a href="{{ route('classes.index') }}" class="btn btn-secondary">
+        <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Retour
         </a>
     </div>
@@ -31,12 +31,12 @@
         <div class="card-body">
             <form action="{{ route('classes.store') }}" method="POST">
                 @csrf
-                
+
                 <!-- Informations de base -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3">
                         <label for="name" class="form-label">Nom de la Classe <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="name" name="name" 
+                        <input type="text" class="form-control" id="name" name="name"
                                value="{{ old('name') }}" required
                                placeholder="Ex: Première Année Génie Civil">
                         <small class="text-muted">Le nom qui identifiera cette classe</small>
@@ -62,7 +62,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <div class="form-check mb-2">
-                            <input type="checkbox" class="form-check-input" id="create_default_sections" 
+                            <input type="checkbox" class="form-check-input" id="create_default_sections"
                                    name="create_default_sections" value="1" checked>
                             <label class="form-check-label" for="create_default_sections">
                                 Créer des sections par défaut (A, B, C)
@@ -73,11 +73,11 @@
                             <div class="section-list">
                                 <div class="row mb-2 section-item">
                                     <div class="col-md-4">
-                                        <input type="text" class="form-control" name="sections[]" 
+                                        <input type="text" class="form-control" name="sections[]"
                                                placeholder="Nom de la section">
                                     </div>
                                     <div class="col-md-3">
-                                        <input type="number" class="form-control" name="capacities[]" 
+                                        <input type="number" class="form-control" name="capacities[]"
                                                placeholder="Capacité" min="1">
                                     </div>
                                     <div class="col-md-1">
@@ -102,12 +102,12 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" 
+                        <textarea class="form-control" id="description" name="description"
                                   rows="3" placeholder="Description de la classe">{{ old('description') }}</textarea>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="academic_year" class="form-label">Année Académique</label>
-                        <input type="text" class="form-control" id="academic_year" name="academic_year" 
+                        <input type="text" class="form-control" id="academic_year" name="academic_year"
                                value="{{ old('academic_year', date('Y').'-'.(date('Y')+1)) }}"
                                placeholder="Ex: 2023-2024">
                     </div>
@@ -126,7 +126,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Enregistrer
                         </button>
-                        <a href="{{ route('classes.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('esbtp.classes.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Annuler
                         </a>
                     </div>
@@ -182,4 +182,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endsection 
+@endsection

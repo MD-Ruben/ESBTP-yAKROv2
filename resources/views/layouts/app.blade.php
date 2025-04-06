@@ -478,7 +478,7 @@
                 </li>
                 @endrole
                 <li class="nav-item">
-                    <a href="{{ route('esbtp.student.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.student.classes.*') || request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
+                    <a href="{{ route('esbtp.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.classes.*') || request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
                         <i class="fas fa-chalkboard nav-icon"></i>
                         <span>Classes</span>
                     </a>

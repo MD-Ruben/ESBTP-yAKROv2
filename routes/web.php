@@ -124,6 +124,19 @@ Route::middleware(['auth', 'installed'])->group(function () {
 
             // Dashboard superAdmin
             Route::get('/dashboard', [App\Http\Controllers\ESBTP\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+
+            // Routes de modification des classes - réservées aux superAdmin
+            Route::resource('classes', ESBTPClasseController::class)
+                ->parameters(['classes' => 'classe'])
+                ->except(['index', 'show'])
+                ->names([
+                    'create' => 'classes.create',
+                    'store' => 'classes.store',
+                    'edit' => 'classes.edit',
+                    'update' => 'classes.update',
+                    'destroy' => 'classes.destroy'
+                ])
+                ->middleware(['permission:create_classe|create classes|edit_classes|edit classes|delete_classes|delete classes']);
         });
 
         // Routes accessibles aux superAdmin et secrétaires
@@ -137,25 +150,25 @@ Route::middleware(['auth', 'installed'])->group(function () {
                 ->name('classes.show')
                 ->middleware(['permission:view_classes|view classes']);
 
-            // Autres routes pour les classes avec permissions plus restrictives
-            Route::resource('classes', ESBTPClasseController::class)
-                ->parameters(['classes' => 'classe'])
-                ->except(['index', 'show'])
-                ->names([
-                    'create' => 'classes.create',
-                    'store' => 'classes.store',
-                    'edit' => 'classes.edit',
-                    'update' => 'classes.update',
-                    'destroy' => 'classes.destroy'
-                ])
-                ->middleware(['permission:create_classe|create classes|edit_classes|edit classes|delete_classes|delete classes']);
+            // Routes de l'API pour récupérer les matières d'une classe - accessible aux superAdmin et secrétaires
+            Route::get('classes/{classe}/matieres', [ESBTPClasseController::class, 'getMatieres'])
+                ->name('classes.matieres')
+                ->middleware(['permission:view_classes|view classes']);
 
             // Routes pour les matières
             Route::name('matieres.')->prefix('matieres')->group(function () {
-                Route::get('/json', [ESBTPMatiereController::class, 'getMatieresJson'])->name('json');
-                Route::delete('/bulk-delete', [ESBTPMatiereController::class, 'bulkDelete'])->name('bulk-delete');
-                Route::get('attach-to-classes', [ESBTPMatiereController::class, 'attachToClasses'])->name('attach-to-classes');
-                Route::post('process-attach-to-classes', [ESBTPMatiereController::class, 'processAttachToClasses'])->name('process-attach-to-classes');
+                Route::get('/json', [ESBTPMatiereController::class, 'getMatieresJson'])
+                    ->name('json')
+                    ->middleware(['permission:view_matieres|view matieres']);
+                Route::delete('/bulk-delete', [ESBTPMatiereController::class, 'bulkDelete'])
+                    ->name('bulk-delete')
+                    ->middleware(['permission:delete_matieres|delete matieres']);
+                Route::get('attach-to-classes', [ESBTPMatiereController::class, 'attachToClasses'])
+                    ->name('attach-to-classes')
+                    ->middleware(['permission:view_matieres|view matieres']);
+                Route::post('process-attach-to-classes', [ESBTPMatiereController::class, 'processAttachToClasses'])
+                    ->name('process-attach-to-classes')
+                    ->middleware(['permission:edit_matieres|edit matieres']);
             });
 
             // Routes CRUD pour les matières
@@ -169,7 +182,7 @@ Route::middleware(['auth', 'installed'])->group(function () {
                     'update' => 'matieres.update',
                     'destroy' => 'matieres.destroy'
                 ])
-                ->middleware(['permission:view_matieres']);
+                ->middleware(['permission:view_matieres|view matieres']);
 
             // Routes pour les emplois du temps ESBTP (définies individuellement)
             Route::get('emploi-temps', [ESBTPEmploiTempsController::class, 'index'])
@@ -375,15 +388,13 @@ Route::middleware(['auth', 'installed'])->group(function () {
                 ->name('mon-emploi-temps.index')
                 ->middleware(['permission:view own timetable|view_timetables']);
 
-            // Route pour l'affichage des classes (lecture seule)
-            Route::get('/classes', [ESBTPClasseController::class, 'index'])
+            // Routes pour l'affichage des classes (lecture seule) pour les étudiants
+            Route::get('/student-classes', [ESBTPClasseController::class, 'index'])
                 ->name('student.classes.index')
-                ->middleware(['permission:view_classes|view classes'])
-                ->middleware(['role:etudiant,secretaire']);
-            Route::get('/classes/{classe}', [ESBTPClasseController::class, 'show'])
+                ->middleware(['permission:view_classes|view classes']);
+            Route::get('/student-classes/{classe}', [ESBTPClasseController::class, 'show'])
                 ->name('student.classes.show')
-                ->middleware(['permission:view_classes|view classes'])
-                ->middleware(['role:etudiant,secretaire']);
+                ->middleware(['permission:view_classes|view classes']);
 
             Route::get('/mon-bulletin', [ESBTPBulletinController::class, 'studentBulletins'])
                 ->name('mon-bulletin.index')
@@ -610,7 +621,7 @@ Route::post('esbtp/activate-all-timetables', [App\Http\Controllers\ESBTPEmploiTe
 // Route for setting a timetable as current
 Route::post('esbtp/emploi-temps/{id}/set-current', [App\Http\Controllers\ESBTPEmploiTempsController::class, 'setCurrent'])
     ->name('esbtp.emploi-temps.set-current')
-    ->middleware(['auth', 'role:superAdmin,secretaire']);
+    ->middleware(['auth', 'role:superAdmin|secretaire']);
 
 // Routes pour les évaluations
 Route::prefix('esbtp/evaluations')->name('esbtp.evaluations.')->group(function () {

@@ -14,10 +14,14 @@
                         <a href="{{ route('esbtp.classes.matieres', ['classe' => $classe->id]) }}" class="btn btn-primary me-2">
                             <i class="fas fa-book me-1"></i>Gérer les matières
                         </a>
+                        @endif
+
+                        @if(auth()->user()->hasRole('superAdmin'))
                         <a href="{{ route('esbtp.classes.edit', ['classe' => $classe->id]) }}" class="btn btn-warning me-2">
                             <i class="fas fa-edit me-1"></i>Modifier
                         </a>
                         @endif
+
                         <a href="{{ route('esbtp.student.classes.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>Retour à la liste
                         </a>
