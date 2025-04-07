@@ -200,9 +200,9 @@
                                 <i class="fas fa-save me-1"></i> Enregistrer et continuer
                             </button>
 
-                            <!--<button type="submit" class="btn btn-primary" name="action" value="generate">
+                            <button type="submit" class="btn btn-primary" name="action" value="generate">
                                 <i class="fas fa-file-pdf me-1"></i> Générer le bulletin
-                            </button>-->
+                            </button>
                         </div>
                     </div>
                 </div>

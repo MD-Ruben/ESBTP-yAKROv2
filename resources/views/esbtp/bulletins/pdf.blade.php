@@ -1,137 +1,126 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Bulletin de Notes - {{ $bulletin->etudiant ? $bulletin->etudiant->nom_complet : 'Étudiant non défini' }}</title>
+    <title>Bulletin de {{ $bulletin->etudiant ? $bulletin->etudiant->nom . ' ' . $bulletin->etudiant->prenoms : 'l\'étudiant' }}</title>
     <style>
-        /* Reset et styles de base */
+        /* Reset CSS */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        html, body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            font-size: 8pt; /* Taille de police réduite */
-            line-height: 1.1; /* Interligne réduit */
-        }
+
+        /* Styles généraux */
         body {
-            max-width: 100%;
-            max-height: 100%;
-            padding: 2px; /* Padding réduit */
-        }
-
-        /* Clearfix pour les flottants */
-        .clearfix:after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-
-        /* Mise en page principale */
-        .container {
-            width: 100%;
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            line-height: 1.3;
+            background-color: white;
+            color: #000;
         }
 
         /* En-tête */
         .header {
             width: 100%;
-            margin-bottom: 2px; /* Marge réduite */
+            display: table;
+            margin-bottom: 5px;
         }
         .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1px; /* Marge réduite */
+            display: table-row;
+            width: 100%;
         }
-        .header-left,
-        .header-center,
-        .header-right {
-            width: 33%;
+        .header-left {
+            display: table-cell;
+            width: 30%;
+            vertical-align: top;
+            text-align: left;
+            padding: 3px;
+        }
+        .header-center {
+            display: table-cell;
+            width: 40%;
+            vertical-align: middle;
             text-align: center;
+            padding: 3px;
         }
-        /* Styles header spécifiques */
+        .header-right {
+            display: table-cell;
+            width: 30%;
+            vertical-align: top;
+            text-align: right;
+            padding: 3px;
+        }
         .republic-title {
             font-weight: bold;
-            font-size: 6pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 9pt;
         }
         .motto {
             font-style: italic;
-            font-size: 5pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 8pt;
         }
         .ministry-title {
-            font-size: 5pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 8pt;
         }
         .bulletin-header {
             font-weight: bold;
-            font-size: 7pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 10pt;
             text-transform: uppercase;
         }
         .period-header {
             font-weight: bold;
-            font-size: 6pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 9pt;
             text-transform: uppercase;
         }
-
-        /* Logo et info école */
-        .esbtp-logo {
-            text-align: center;
-            margin-bottom: 1px; /* Marge réduite */
-        }
-        .esbtp-logo img {
-            height: 35px; /* Hauteur réduite */
-        }
         .school-name {
-            font-size: 7pt; /* Taille de police réduite */
             font-weight: bold;
-            color: #009900;  /* Vert ESBTP */
-            margin-bottom: 0px;
+            font-size: 9pt;
+            color: #0A6B31; /* Couleur verte du logo ESBTP */
         }
         .school-contact {
-            font-size: 5pt; /* Taille de police réduite */
-            margin-bottom: 0px;
+            font-size: 7pt;
         }
         .academic-year {
+            font-size: 8pt;
             font-weight: bold;
-            font-size: 6pt; /* Taille de police réduite */
-            margin-top: 1px; /* Marge réduite */
+            margin-top: 2px;
+        }
+
+        /* Logo ESBTP */
+        .esbtp-logo {
+            width: 100px;
+            height: 50px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .esbtp-logo img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
         /* Informations de l'étudiant */
         .student-info-container {
-            border: 0.5px solid #000; /* Bordure plus fine */
-            padding: 1px; /* Padding réduit */
-            margin-bottom: 1px; /* Marge réduite */
+            border: 1px solid #000;
+            padding: 3px;
+            margin-top: 5px;
         }
         .student-info {
             width: 100%;
-            margin-bottom: 1px; /* Marge réduite */
+            margin-bottom: 5px;
         }
-        .student-table {
-            width: 100%;
-        }
-        .student-table-left {
+        .student-table-left, .student-table-right {
             width: 50%;
             float: left;
         }
-        .student-table-right {
-            width: 50%;
-            float: right;
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
         }
         .student-table td {
-            padding: 0px 1px; /* Padding réduit */
-            font-size: 6pt; /* Taille de police réduite */
+            padding: 3px;
         }
         .fw-bold {
             font-weight: bold;
@@ -141,83 +130,80 @@
         .grades-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1px; /* Marge réduite */
+            margin-bottom: 5px;
+            font-size: 7pt;
         }
-        .grades-table th,
-        .grades-table td {
-            border: 0.5px solid #000; /* Bordure plus fine */
-            padding: 1px 0px; /* Padding réduit */
+        .grades-table th, .grades-table td {
+            border: 0.5px solid #000;
+            padding: 3px;
             text-align: center;
-            font-size: 6pt; /* Taille de police réduite */
         }
         .grades-table th {
-            background-color: #f0f0f0;
             font-weight: bold;
+            background-color: #f2f2f2;
         }
         .section-header {
-            background-color: #000;
+            background-color: #333;
             color: white;
             font-weight: bold;
             text-align: center;
-            padding: 0px; /* Padding réduit */
+            font-size: 8pt;
         }
         .total-row {
             background-color: #f2f2f2;
             font-weight: bold;
         }
 
-        /* Absences */
+        /* Tableau des absences */
         .absence-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1px; /* Marge réduite */
+            margin-bottom: 5px;
+            font-size: 7pt;
         }
-        .absence-table th,
         .absence-table td {
-            border: 0.5px solid #000; /* Bordure plus fine */
-            padding: 0px; /* Padding réduit */
-            text-align: center;
-            font-size: 6pt; /* Taille de police réduite */
+            border: 0.5px solid #000;
+            padding: 3px;
         }
 
         /* Résultats */
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1px; /* Marge réduite */
+            margin-bottom: 5px;
+            font-size: 7pt;
         }
         .results-table td {
-            border: 0.5px solid #000; /* Bordure plus fine */
-            padding: 0px; /* Padding réduit */
-            font-size: 6pt; /* Taille de police réduite */
+            border: 0.5px solid #000;
+            padding: 3px;
         }
         .result-value {
             text-align: center;
             font-weight: bold;
         }
         .result-cadre {
-            border: 0.5px solid #000; /* Bordure plus fine */
-            padding: 0px 1px; /* Padding réduit */
+            padding: 0px 1px;
             display: inline-block;
+            border: 0.5px solid #000;
         }
 
         /* Décision et signature */
         .decision-section {
             width: 100%;
-            margin-top: 2px; /* Marge réduite */
+            margin-top: 5px;
             display: table;
         }
         .decision-title,
         .signature-title {
             font-weight: bold;
-            font-size: 6pt; /* Taille de police réduite */
-            margin-bottom: 1px; /* Marge réduite */
+            font-size: 8pt;
+            margin-bottom: 3px;
             text-align: center;
         }
         .decision-result {
             font-weight: bold;
-            font-size: 7pt; /* Taille de police réduite */
-            margin-top: 1px; /* Marge réduite */
+            font-size: 9pt;
+            margin-top: 3px;
             font-style: italic;
             text-align: center;
         }
@@ -226,21 +212,23 @@
             width: 33%;
             display: table-cell;
             text-align: center;
-            font-size: 6pt; /* Taille de police réduite */
+            font-size: 7pt;
         }
 
         /* Pied de page */
         .footer {
-            margin-top: 1px; /* Marge réduite */
-            font-size: 5pt; /* Taille de police réduite */
+            margin-top: 5px;
+            font-size: 7pt;
             text-align: center;
             font-style: italic;
+            border-top: 0.5px solid #000;
+            padding-top: 3px;
         }
 
         /* Contrôle de la mise en page */
         @page {
             size: A4 portrait;
-            margin: 0.1cm; /* Marge très réduite */
+            margin: 0.5cm;
         }
     </style>
 </head>
@@ -271,7 +259,10 @@
                     @if($logoBase64)
                         <img src="{{ $logoBase64 }}" alt="Logo ESBTP">
                     @else
-                        <div style="height: 40px; width: 90px; text-align: center; border: 1px dashed #ccc;">Logo ESBTP</div>
+                        <!-- Fallback direct URL pour l'image du logo -->
+                        <img src="{{ public_path('images/esbtp_logo.png') }}" alt="Logo ESBTP"
+                            onerror="this.onerror=null; this.src='{{ public_path('images/logo.jpeg') }}';
+                            this.onerror=null; this.style.display='none';">
                     @endif
                 </div>
             </div>
@@ -348,7 +339,7 @@
                 </tr>
                 @forelse($resultatsGeneraux as $resultat)
                     <tr>
-                        <td style="text-align: left;">{{ $resultat->matiere && $resultat->matiere->nom ? $resultat->matiere->nom : 'Matière non définie' }}</td>
+                        <td style="text-align: left;">{{ $resultat->matiere && ($resultat->matiere->nom || $resultat->matiere->name) ? ($resultat->matiere->nom ?: $resultat->matiere->name) : 'Matière non définie' }}</td>
                         <td>{{ number_format($resultat->moyenne, 2, '.', '') }}</td>
                         <td>{{ $resultat->coefficient }}</td>
                         <td>{{ number_format($resultat->moyenne * $resultat->coefficient, 2, '.', '') }}</td>
@@ -378,7 +369,7 @@
             <tbody>
                 @forelse($resultatsTechniques as $resultat)
                     <tr>
-                        <td style="text-align: left;">{{ $resultat->matiere && $resultat->matiere->nom ? $resultat->matiere->nom : 'Matière non définie' }}</td>
+                        <td style="text-align: left;">{{ $resultat->matiere && ($resultat->matiere->nom || $resultat->matiere->name) ? ($resultat->matiere->nom ?: $resultat->matiere->name) : 'Matière non définie' }}</td>
                         <td>{{ number_format($resultat->moyenne, 2, '.', '') }}</td>
                         <td>{{ $resultat->coefficient }}</td>
                         <td>{{ number_format($resultat->moyenne * $resultat->coefficient, 2, '.', '') }}</td>
@@ -408,11 +399,11 @@
             <tbody>
                 <tr>
                     <td>Absences justifiées</td>
-                    <td>{{ $absencesJustifiees ?? '00' }} Heure(s)</td>
+                    <td>{{ isset($absencesJustifiees) ? $absencesJustifiees : (isset($absences_justifiees) ? $absences_justifiees : (isset($bulletin->absences_justifiees) ? $bulletin->absences_justifiees : '00')) }} Heure(s)</td>
                 </tr>
                 <tr>
                     <td>Absences non justifiées</td>
-                    <td>{{ $absencesNonJustifiees ?? '00' }} Heure(s)</td>
+                    <td>{{ isset($absencesNonJustifiees) ? $absencesNonJustifiees : (isset($absences_non_justifiees) ? $absences_non_justifiees : (isset($bulletin->absences_non_justifiees) ? $bulletin->absences_non_justifiees : '00')) }} Heure(s)</td>
                 </tr>
             </tbody>
         </table>

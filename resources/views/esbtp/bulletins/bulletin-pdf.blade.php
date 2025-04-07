@@ -357,11 +357,11 @@
             <tbody>
                 <tr>
                     <td>Absences justifiées</td>
-                    <td class="center" style="width: 50%;">{{ $absences_justifiees }} Heure(s)</td>
+                    <td class="center" style="width: 50%;">{{ isset($absencesJustifiees) ? $absencesJustifiees : (isset($absences_justifiees) ? $absences_justifiees : (isset($bulletin->absences_justifiees) ? $bulletin->absences_justifiees : '00')) }} Heure(s)</td>
                 </tr>
                 <tr>
                     <td>Absences non justifiées</td>
-                    <td class="center">{{ $absences_non_justifiees }} Heure(s)</td>
+                    <td class="center">{{ isset($absencesNonJustifiees) ? $absencesNonJustifiees : (isset($absences_non_justifiees) ? $absences_non_justifiees : (isset($bulletin->absences_non_justifiees) ? $bulletin->absences_non_justifiees : '00')) }} Heure(s)</td>
                 </tr>
             </tbody>
         </table>

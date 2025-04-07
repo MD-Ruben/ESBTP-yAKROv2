@@ -157,9 +157,9 @@
             <div class="info-header">
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-1"><strong>Classe:</strong> {{ $classe['libelle'] ?? $classe['name'] ?? 'N/A' }}</p>
-                        <p class="mb-1"><strong>Filière:</strong> {{ $classe['filiere']['nom'] ?? $classe['filiere']['name'] ?? 'N/A' }}</p>
-                        <p class="mb-1"><strong>Niveau:</strong> {{ $classe['niveau']['libelle'] ?? $classe['niveau']['name'] ?? 'N/A' }}</p>
+                        <p class="mb-1"><strong>Classe:</strong> {{ $classe->libelle ?? $classe->name ?? 'N/A' }}</p>
+                        <p class="mb-1"><strong>Filière:</strong> {{ $classe->filiere->nom ?? $classe->filiere->name ?? 'N/A' }}</p>
+                        <p class="mb-1"><strong>Niveau:</strong> {{ $classe->niveau->libelle ?? $classe->niveau->name ?? 'N/A' }}</p>
                     </div>
                     <div class="col-md-6">
                         <p class="mb-1"><strong>Période:</strong>
@@ -171,9 +171,9 @@
                                 Annuel
                             @endif
                         </p>
-                        <p class="mb-1"><strong>Année:</strong> {{ $anneeUniversitaire['libelle'] ?? $anneeUniversitaire['name'] ?? 'N/A' }}</p>
+                        <p class="mb-1"><strong>Année:</strong> {{ $anneeUniversitaire->libelle ?? $anneeUniversitaire->name ?? 'N/A' }}</p>
                         @if(isset($etudiant))
-                        <p class="mb-1"><strong>Étudiant:</strong> {{ $etudiant['nom'] ?? '' }} {{ $etudiant['prenoms'] ?? '' }}</p>
+                        <p class="mb-1"><strong>Étudiant:</strong> {{ $etudiant->nom ?? '' }} {{ $etudiant->prenoms ?? '' }}</p>
                         @endif
                     </div>
                 </div>
@@ -201,7 +201,7 @@
 
     <div class="row">
         <div class="col-md-12 mb-3">
-            <h4>Configuration des matières pour le bulletin de {{ $etudiant['nom_prenom'] ?? $etudiant['nom'] . ' ' . $etudiant['prenoms'] }}</h4>
+            <h4>Configuration des matières pour le bulletin de {{ $etudiant->nom_prenom ?? $etudiant->nom . ' ' . $etudiant->prenoms }}</h4>
             <div class="alert alert-info">
                 <p>Sélectionnez les matières à inclure dans le bulletin et classez-les par type d'enseignement.</p>
                 <p>Les matières d'enseignement général apparaîtront dans la première partie du bulletin, tandis que les matières d'enseignement technique apparaîtront dans la seconde partie.</p>
@@ -211,25 +211,25 @@
 
     <form action="{{ route('esbtp.bulletins.save-config-matieres') }}" method="POST" id="configMatieresForm">
         @csrf
-        <input type="hidden" name="classe_id" value="{{ $classe['id'] }}">
-        <input type="hidden" name="etudiant_id" value="{{ $etudiant['id'] }}">
-        <input type="hidden" name="annee_universitaire_id" value="{{ $anneeUniversitaire['id'] }}">
+        <input type="hidden" name="classe_id" value="{{ $classe->id }}">
+        <input type="hidden" name="etudiant_id" value="{{ $etudiant->id }}">
+        <input type="hidden" name="annee_universitaire_id" value="{{ $anneeUniversitaire->id }}">
         <input type="hidden" name="periode" value="{{ $periode }}">
         @if(isset($bulletin))
             <input type="hidden" name="bulletin" value="{{ $bulletin }}">
         @endif
 
-        <div class="card">
+                <div class="card">
             <div class="card-header">
                 <h3>Liste des matières</h3>
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" id="toutes-generales">Toutes générales</button>
                     <button type="button" class="btn btn-secondary" id="toutes-techniques">Toutes techniques</button>
                     <button type="button" class="btn btn-warning" id="aucune">Aucune</button>
-                </div>
-            </div>
+                        </div>
+                    </div>
 
-            <div class="card-body">
+                    <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
@@ -240,7 +240,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($matieres as $matiere)
+                                @foreach($matieres as $matiere)
                             <tr>
                                 <td>{{ $matiere->nom ?? $matiere->name }}</td>
                                 <td>
@@ -281,11 +281,11 @@
                                     </label>
                                 </td>
                             </tr>
-                            @endforeach
+                                @endforeach
                         </tbody>
                     </table>
-                </div>
-            </div>
+                                    </div>
+                                </div>
 
             <div class="card-footer">
                 <div class="d-flex justify-content-between">
@@ -296,7 +296,7 @@
                         <button type="submit" name="action" value="save" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>Enregistrer la configuration
                         </button>
-                    </div>
+                        </div>
                     <div class="btn-group">
                         <button type="submit" name="action" value="save_and_edit_profs" class="btn btn-success">
                             <i class="fas fa-user-edit me-2"></i>Enregistrer et éditer les professeurs
@@ -400,24 +400,13 @@
             });
         });
 
-        // Configuration du formulaire
-        const form = document.getElementById('configMatieresForm');
-        form.addEventListener('submit', function(e) {
-            const hasSelectedMatieres = updateCounters();
-
-            if (!hasSelectedMatieres) {
-                e.preventDefault();
-                showToast('Veuillez sélectionner au moins une matière pour continuer.', 'error');
-            }
-        });
-
         // Boutons de sélection rapide
         document.getElementById('toutes-generales').addEventListener('click', function() {
             document.querySelectorAll('.matiere-type[value="general"]').forEach(input => {
                 input.checked = true;
             });
             updateCounters();
-            showToast('Toutes les matières ont été définies comme générales.', 'success');
+            console.log('Toutes les matières marquées comme générales');
         });
 
         document.getElementById('toutes-techniques').addEventListener('click', function() {
@@ -425,7 +414,7 @@
                 input.checked = true;
             });
             updateCounters();
-            showToast('Toutes les matières ont été définies comme techniques.', 'success');
+            console.log('Toutes les matières marquées comme techniques');
         });
 
         document.getElementById('aucune').addEventListener('click', function() {
@@ -433,7 +422,49 @@
                 input.checked = true;
             });
             updateCounters();
-            showToast('Aucune matière n\'est sélectionnée.', 'warning');
+            console.log('Aucune matière sélectionnée');
+        });
+
+        // Gestion du formulaire
+        const form = document.getElementById('configMatieresForm');
+        const submitButtons = form.querySelectorAll('button[type="submit"]');
+
+        submitButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); // Empêcher la soumission par défaut
+
+                // Stocker l'action dans un champ caché
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = this.value;
+                form.appendChild(actionInput);
+
+                // Vérifier si au moins une matière est sélectionnée
+                const hasSelectedMatieres = updateCounters();
+
+                if (!hasSelectedMatieres) {
+                    showToast('Veuillez sélectionner au moins une matière et son type d\'enseignement.', 'warning');
+                    return;
+                }
+
+                // Désactiver tous les boutons et montrer l'indicateur de chargement
+                submitButtons.forEach(btn => {
+                    btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.dataset.originalText = originalText;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Traitement en cours...';
+                });
+
+                // Ajouter une notification pour l'utilisateur
+                showToast('Sauvegarde de la configuration en cours...', 'info');
+
+                console.log('Soumission du formulaire avec action:', actionInput.value);
+                console.log('Données du formulaire:', new FormData(form));
+
+                // Soumettre le formulaire explicitement
+                form.submit();
+            });
         });
     });
 </script>
