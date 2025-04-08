@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ESBTP - École Supérieure du Bâtiment et des Travaux Publics</title>
+        <title>ESBTP - École Spéciale du Bâtiment et des Travaux Publics</title>
 
         <!-- Polices Google -->
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -141,7 +141,7 @@
                             <div class="section-title mb-4">
                                 <h2>À propos de l'ESBTP</h2>
                             </div>
-                            <p>L'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro est un établissement d'enseignement supérieur spécialisé dans la formation aux métiers du bâtiment et des travaux publics. Notre mission est de former des professionnels qualifiés capables de répondre aux défis du secteur de la construction en Côte d'Ivoire et en Afrique.</p>
+                            <p>L'École Spéciale du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro est un établissement d'enseignement supérieur spécialisé dans la formation aux métiers du bâtiment et des travaux publics. Notre mission est de former des professionnels qualifiés capables de répondre aux défis du secteur de la construction en Côte d'Ivoire et en Afrique.</p>
 
                             <div class="row mt-4">
                                 <div class="col-md-6 mb-3">
