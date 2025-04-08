@@ -7,16 +7,16 @@
 
         <!-- Polices Google -->
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-        
+
         <!-- Bootstrap CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-        
+
         <!-- Font Awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        
+
         <!-- AOS - Animation On Scroll -->
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-        
+
         <!-- Styles personnalisés -->
         <link rel="stylesheet" href="{{ asset('css/esbtp-colors.css') }}">
 
@@ -35,7 +35,7 @@
                 color: white;
                 z-index: 1;
             }
-            
+
             .hero:before {
                 content: '';
                 position: absolute;
@@ -46,36 +46,36 @@
                 background: rgba(0, 0, 0, 0.6);
                 z-index: -1;
             }
-            
+
             .program-card {
                 transition: all 0.3s ease;
                 height: 100%;
             }
-            
+
             .program-card:hover {
                 transform: translateY(-10px);
             }
-            
+
             .program-icon {
                 font-size: 2.5rem;
                 margin-bottom: 1rem;
                 color: var(--primary);
                 transition: all 0.3s ease;
             }
-            
+
             .program-card:hover .program-icon {
                 transform: scale(1.2);
             }
-            
+
             .navbar-scrolled {
                 background-color: white !important;
                 box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             }
-            
+
             .navbar-scrolled .nav-link {
                 color: var(--gray-dark) !important;
             }
-            
+
             .navbar-scrolled .nav-link:hover {
                 color: var(--primary) !important;
             }
@@ -117,7 +117,7 @@
         <section id="hero" class="hero">
             <div class="container">
                 <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
-                    <h1 class="display-4 fw-bold mb-4">École Supérieure du Bâtiment et des Travaux Publics</h1>
+                    <h1 class="display-4 fw-bold mb-4">École Spéciale du Bâtiment et des Travaux Publics</h1>
                     <p class="lead mb-5">Formez-vous aux métiers du bâtiment et des travaux publics avec des professionnels expérimentés</p>
                     <div class="hero-buttons">
                         <a href="#programs" class="btn btn-primary btn-lg me-3">Nos formations</a>
@@ -142,7 +142,7 @@
                                 <h2>À propos de l'ESBTP</h2>
                             </div>
                             <p>L'École Supérieure du Bâtiment et des Travaux Publics (ESBTP) de Yamoussoukro est un établissement d'enseignement supérieur spécialisé dans la formation aux métiers du bâtiment et des travaux publics. Notre mission est de former des professionnels qualifiés capables de répondre aux défis du secteur de la construction en Côte d'Ivoire et en Afrique.</p>
-                            
+
                             <div class="row mt-4">
                                 <div class="col-md-6 mb-3">
                                     <div class="about-feature d-flex align-items-start">
@@ -202,7 +202,7 @@
                     <h2>Nos programmes de formation</h2>
                     <p>Découvrez nos différentes filières d'études dans le domaine du bâtiment et des travaux publics</p>
                 </div>
-                
+
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
                         <div class="card program-card shadow h-100">
@@ -215,7 +215,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
                         <div class="card program-card shadow h-100">
                             <div class="card-body text-center p-4">
@@ -227,7 +227,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
                         <div class="card program-card shadow h-100">
                             <div class="card-body text-center p-4">
@@ -239,7 +239,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
                         <div class="card program-card shadow h-100">
                             <div class="card-body text-center p-4">
@@ -251,7 +251,7 @@
                             </div>
                         </div>
                             </div>
-                    
+
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
                         <div class="card program-card shadow h-100">
                             <div class="card-body text-center p-4">
@@ -263,7 +263,7 @@
                             </div>
                         </div>
                             </div>
-                    
+
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
                         <div class="card program-card shadow h-100">
                             <div class="card-body text-center p-4">
@@ -286,7 +286,7 @@
                     <h2>Contactez-nous</h2>
                     <p>Nous sommes à votre disposition pour répondre à toutes vos questions</p>
                 </div>
-                
+
                 <div class="row g-5">
                     <!-- Carte Google Maps à gauche en format portrait -->
                     <div class="col-lg-5" data-aos="fade-right">
@@ -295,7 +295,7 @@
                             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3972.4410263625247!2d-5.2957698!3d6.8088889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfb366f6d3c4d3c5%3A0x4b7f1e350d62e8c6!2sESBTP%20-%20%C3%89cole%20Sup%C3%A9rieure%20du%20B%C3%A2timent%20et%20des%20Travaux%20Publics!5e0!3m2!1sfr!2sfr!4v1652345678901!5m2!1sfr!2sfr" width="100%" height="100%" style="border:0; min-height: 500px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>
                     </div>
-                    
+
                     <!-- Formulaire et informations de contact à droite -->
                     <div class="col-lg-7" data-aos="fade-left">
                         <div class="row g-4">
@@ -332,12 +332,12 @@
                                     </form>
                                 </div>
                             </div>
-                            
+
                             <!-- Informations de contact sous le formulaire -->
                             <div class="col-12">
                                 <div class="contact-info bg-white p-4 rounded shadow">
                                     <h3 class="mb-4">Informations de contact</h3>
-                                    
+
                                 <div class="row">
                                         <div class="col-md-6 mb-4">
                                             <div class="d-flex">
@@ -348,7 +348,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-md-6 mb-4">
                                             <div class="d-flex">
                                                 <i class="fas fa-phone text-primary me-3 mt-1 fa-lg"></i>
@@ -358,7 +358,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-md-6 mb-4">
                                             <div class="d-flex">
                                                 <i class="fas fa-envelope text-primary me-3 mt-1 fa-lg"></i>
@@ -368,7 +368,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-md-6 mb-4">
                                             <div class="d-flex">
                                                 <i class="fas fa-globe text-primary me-3 mt-1 fa-lg"></i>
@@ -379,7 +379,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="mt-2">
                                         <h5 class="mb-3">Suivez-nous</h5>
                                         <div class="social-links">
@@ -415,7 +415,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-lg-2 col-md-6">
                         <div class="footer-links">
                             <h4>Liens rapides</h4>
@@ -428,7 +428,7 @@
                             </ul>
                         </div>
                     </div>
-                    
+
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-links">
                             <h4>Nos formations</h4>
@@ -441,7 +441,7 @@
                             </ul>
                         </div>
                     </div>
-                    
+
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-links">
                             <h4>Contact</h4>
@@ -454,7 +454,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="copyright mt-4 pt-3 border-top border-secondary">
                     <div class="row">
                         <div class="col-md-6 text-center text-md-start">
@@ -474,7 +474,7 @@
         <script>
             // Initialisation AOS (Animation On Scroll)
             AOS.init();
-            
+
             // Changement de couleur de la navbar au défilement
             window.addEventListener('scroll', function() {
                 const navbar = document.querySelector('.navbar');
@@ -484,22 +484,22 @@
                     navbar.classList.remove('navbar-scrolled');
                 }
             });
-            
+
             // Défilement fluide pour les liens d'ancrage
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     const targetId = this.getAttribute('href');
                     if (targetId === '#') return;
-                    
+
                     const targetElement = document.querySelector(targetId);
                     if (targetElement) {
                         window.scrollTo({
                             top: targetElement.offsetTop - 70,
                         behavior: 'smooth'
                     });
-                        
+
                         // Fermer le menu mobile après clic
                         const navbarCollapse = document.querySelector('.navbar-collapse');
                         if (navbarCollapse.classList.contains('show')) {
