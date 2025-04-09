@@ -450,12 +450,12 @@
                         <span>Rôles et permissions</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                         <i class="fas fa-cog nav-icon"></i>
                         <span>Paramètres</span>
                     </a>
-                </li>
+                </li>-->
                 <li class="nav-item">
                     <a href="{{ route('esbtp.secretaires.index') }}" class="nav-link {{ request()->routeIs('esbtp.secretaires.*') ? 'active' : '' }}">
                         <i class="fas fa-user-tie nav-icon"></i>
@@ -670,8 +670,9 @@
                 @endrole
 
                 <!-- Communication -->
-                <div class="menu-category">Communication</div>
                 @hasanyrole('superAdmin|secretaire')
+                <div class="menu-category">Communication</div>
+
                 <li class="nav-item">
                     <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.*') ? 'active' : '' }}">
                         <i class="fas fa-envelope nav-icon"></i>
@@ -681,12 +682,12 @@
                 @endhasanyrole
 
                 @role('etudiant')
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.index') ? 'active' : '' }}">
                         <i class="fas fa-inbox nav-icon"></i>
                         <span>Mes messages</span>
                     </a>
-                </li>
+                </li>-->
                 @endrole
 
                 <!-- Section profil utilisateur -->
@@ -752,7 +753,11 @@
 
                 <div class="action-item dropdown">
                     <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
-                        <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
+                        @if(Auth::user() && Auth::user()->profile_photo_path)
+                            <img src="{{ Storage::url(Auth::user()->profile_photo_path) }}" alt="{{ Auth::user()->name }}" class="user-avatar">
+                        @else
+                            <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
+                        @endif
                         <div class="user-info">
                             <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
                             <div class="user-role">{{ Auth::user()->roles->first()->name ?? 'Rôle' }}</div>

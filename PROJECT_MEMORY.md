@@ -2,6 +2,67 @@
 
 ## Corrections et Améliorations Récentes
 
+### 47. Implémentation de l'affichage des photos de profil dans la navbar (09/04/2025)
+
+**Amélioration implémentée :**
+
+-   Modification de la navbar dans app.blade.php pour afficher les photos de profil des utilisateurs
+-   Utilisation de la colonne `profile_photo_path` récemment ajoutée à la table users
+
+**Mise en œuvre :**
+
+-   Ajout d'une condition pour vérifier l'existence de la photo de profil de l'utilisateur connecté
+-   Affichage de la photo stockée via `Storage::url(Auth::user()->profile_photo_path)` si disponible
+-   Fallback vers l'image par défaut (avatar.jpg) si aucune photo n'est définie
+
+**Impact :**
+
+-   Amélioration de l'expérience utilisateur avec un avatar personnalisé dans la navbar
+-   Cohérence visuelle entre la page de profil et la navbar
+-   Utilisation effective de la colonne `profile_photo_path` ajoutée précédemment
+
+**Bonnes pratiques appliquées :**
+
+-   Vérification de l'existence de l'utilisateur et de sa photo avant d'y accéder
+-   Maintien d'une image par défaut comme fallback
+-   Utilisation appropriée du helper `Storage::url()` pour récupérer l'URL publique du fichier
+-   Documentation de la modification dans PROJECT_MEMORY.md
+
+### 46. Ajout de la colonne manquante profile_photo_path à la table users (09/04/2025)
+
+**Problème identifié :**
+
+-   Erreur SQL : "SQLSTATE[42S22]: Column not found: 1054 Unknown column 'profile_photo_path' in 'field list'" lors de tentatives de mise à jour des photos de profil.
+-   La colonne `profile_photo_path` était référencée dans le code (modèle User, contrôleurs et vues) mais n'existait pas dans le schéma de la base de données.
+
+**Analyse approfondie :**
+
+-   La colonne `profile_photo_path` était définie comme "fillable" dans le modèle User.php.
+-   Cette colonne était utilisée dans plusieurs contrôleurs :
+    -   `SecretaireAdminController` pour gérer les photos de profil des secrétaires
+    -   `AdminProfileController` pour gérer les photos de profil des administrateurs
+-   Plusieurs vues utilisaient cette colonne pour afficher les photos de profil.
+-   Aucune migration existante n'avait créé cette colonne dans la table users.
+
+**Solution mise en œuvre :**
+
+1. **Création d'une migration dédiée** :
+    - Nouvelle migration : `2025_04_09_134922_add_profile_photo_path_to_users_table.php`
+    - Ajout d'une colonne `profile_photo_path` de type string et nullable
+    - Inclusion de vérifications pour éviter les erreurs si la colonne existe déjà
+
+**Impact :**
+
+-   Résolution de l'erreur SQL lors de la mise à jour des photos de profil
+-   Fonctionnalité d'upload et d'affichage des photos de profil pleinement opérationnelle
+-   Maintien de la compatibilité avec le code existant sans nécessiter de modifications supplémentaires
+
+**Bonnes pratiques appliquées :**
+
+-   Vérification préalable de l'existence de la colonne avant de l'ajouter (idempotence)
+-   Documentation de la modification dans PROJECT_MEMORY.md
+-   Maintien de la cohérence entre le modèle de données et le code de l'application
+
 ### 45. Correction de l'affichage des absences justifiées et non justifiées dans les PDF (19/06/2025)
 
 **Problème identifié :**
