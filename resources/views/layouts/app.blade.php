@@ -753,6 +753,15 @@
 
                 <div class="action-item dropdown">
                     <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
+                        @php
+                            \Log::info('Tentative d\'affichage de la photo de profil', [
+                                'user_authenticated' => Auth::check(),
+                                'user_id' => Auth::id(),
+                                'has_profile_photo' => Auth::user() && Auth::user()->profile_photo_path ? 'yes' : 'no',
+                                'profile_photo_path' => Auth::user() ? Auth::user()->profile_photo_path : null,
+                                'storage_url' => Auth::user() && Auth::user()->profile_photo_path ? Storage::url(Auth::user()->profile_photo_path) : null
+                            ]);
+                        @endphp
                         @if(Auth::user() && Auth::user()->profile_photo_path)
                             <img src="{{ Storage::url(Auth::user()->profile_photo_path) }}" alt="{{ Auth::user()->name }}" class="user-avatar">
                         @else

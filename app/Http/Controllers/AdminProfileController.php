@@ -38,44 +38,70 @@ class AdminProfileController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function updateProfile(Request $request)
+    public function update(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'first_name' => 'nullable|string|max:255',
-            'last_name' => 'nullable|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'birth_date' => 'nullable|date',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        \Log::info('Début de la mise à jour du profil admin', [
+            'user_id' => auth()->id(),
+            'has_file' => $request->hasFile('profile_photo'),
+            'all_data' => $request->all()
         ]);
 
-        $user = Auth::user();
-        $user->name = $request->name;
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->email = $request->email;
-        $user->phone = $request->phone;
-        $user->address = $request->address;
-        $user->city = $request->city;
-        $user->birth_date = $request->birth_date;
+        try {
+            $user = auth()->user();
 
-        if ($request->hasFile('profile_photo')) {
-            // Supprimer l'ancienne photo de profil si elle existe
-            if ($user->profile_photo_path) {
-                Storage::delete($user->profile_photo_path);
+            // Validation des données
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+            ]);
+
+            \Log::info('Validation passée avec succès');
+
+            // Mise à jour du nom et de l'email
+            $user->name = $request->name;
+            $user->email = $request->email;
+
+            // Traitement de la photo de profil
+            if ($request->hasFile('profile_photo')) {
+                \Log::info('Photo de profil détectée', [
+                    'original_name' => $request->file('profile_photo')->getClientOriginalName(),
+                    'mime_type' => $request->file('profile_photo')->getMimeType(),
+                    'size' => $request->file('profile_photo')->getSize()
+                ]);
+
+                // Supprimer l'ancienne photo si elle existe
+                if ($user->profile_photo_path) {
+                    \Log::info('Suppression de l\'ancienne photo', [
+                        'old_path' => $user->profile_photo_path
+                    ]);
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+
+                // Stocker la nouvelle photo
+                $path = $request->file('profile_photo')->store('profile-photos', 'public');
+                \Log::info('Nouvelle photo stockée', [
+                    'new_path' => $path,
+                    'full_url' => Storage::disk('public')->url($path)
+                ]);
+
+                $user->profile_photo_path = $path;
             }
 
-            // Sauvegarder la nouvelle photo
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $user->profile_photo_path = $path;
+            $user->save();
+            \Log::info('Profil mis à jour avec succès', [
+                'user_id' => $user->id,
+                'profile_photo_path' => $user->profile_photo_path
+            ]);
+
+            return redirect()->back()->with('success', 'Profil mis à jour avec succès');
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la mise à jour du profil', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la mise à jour du profil');
         }
-
-        $user->save();
-
-        return redirect()->route('admin.profile')->with('success', 'Profil mis à jour avec succès');
     }
 
     /**
