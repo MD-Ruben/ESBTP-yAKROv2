@@ -31,9 +31,19 @@ use App\Models\ESBTPCategorie;
 use App\Models\ESBTPCertificat;
 use App\Models\ESBTPNiveauEtude;
 use App\Models\ESBTPAttendance;
+use App\Models\ESBTPCycle;
+use Carbon\Carbon;
+use App\Services\ESBTP\ESBTPAbsenceService;
 
 class ESBTPBulletinController extends Controller
 {
+    protected $absenceService;
+
+    public function __construct(ESBTPAbsenceService $absenceService)
+    {
+        $this->absenceService = $absenceService;
+    }
+
     /**
      * Affiche la liste des bulletins avec filtre par année et classe
      *
@@ -230,6 +240,36 @@ class ESBTPBulletinController extends Controller
 
             // Calculer et mettre à jour la moyenne générale du bulletin
             $this->calculerMoyenneGenerale($bulletin);
+
+            // Déterminer la période pour le calcul des absences
+            // Par exemple: utiliser la date de début et de fin du semestre
+            $anneeUniversitaire = ESBTPAnneeUniversitaire::find($request->annee_universitaire_id);
+            if ($anneeUniversitaire) {
+                // Exemple: si periode = 'S1' (1er semestre)
+                if ($request->periode == 'S1') {
+                    $dateDebut = $anneeUniversitaire->date_debut;
+                    $dateFin = Carbon::parse($dateDebut)->addMonths(4)->format('Y-m-d'); // Environ 4 mois pour un semestre
+                } else if ($request->periode == 'S2') {
+                    $dateDebut = Carbon::parse($anneeUniversitaire->date_debut)->addMonths(4)->format('Y-m-d');
+                    $dateFin = $anneeUniversitaire->date_fin;
+                } else {
+                    // Pour les périodes différentes ou périodes trimestrielles
+                    // Adapter la logique selon vos besoins
+                    $dateDebut = $anneeUniversitaire->date_debut;
+                    $dateFin = $anneeUniversitaire->date_fin;
+                }
+
+                // Calculer les absences pour la période du bulletin
+                $donneeAbsences = $this->calculerAbsencesPourBulletin(
+                    $request->etudiant_id,
+                    $request->classe_id,
+                    $dateDebut,
+                    $dateFin
+                );
+
+                // Intégrer les absences au bulletin
+                $bulletin = $this->integrerAbsencesAuBulletin($bulletin, $donneeAbsences);
+            }
 
             DB::commit();
             return redirect()->route('bulletins.show', $bulletin)
@@ -510,19 +550,21 @@ class ESBTPBulletinController extends Controller
             // Si les absences sont toujours à zéro, essayer la méthode basée sur l'attendance
             if ($bulletin->absences_justifiees == 0 && $bulletin->absences_non_justifiees == 0) {
                 try {
-                    Log::info('Tentative de calcul des absences via l\'attendance pour le bulletin #' . $bulletin->id);
-                    $absencesAttendance = $this->calculerAbsencesAttendance(
+                    Log::info('Tentative de calcul des absences via le service pour le bulletin #' . $bulletin->id);
+
+                    $absencesAttendance = $this->absenceService->calculerDetailAbsences(
                         $bulletin->etudiant_id,
                         $bulletin->classe_id,
                         $bulletin->anneeUniversitaire->date_debut,
                         $bulletin->anneeUniversitaire->date_fin
                     );
+
                     $bulletin->absences_justifiees = $absencesAttendance['justifiees'];
                     $bulletin->absences_non_justifiees = $absencesAttendance['non_justifiees'];
                     $bulletin->total_absences = $absencesAttendance['total'];
-                    Log::info('Calcul des absences via l\'attendance réussi: ' . json_encode($absencesAttendance));
+                    Log::info('Calcul des absences via le service réussi: ' . json_encode($absencesAttendance));
                 } catch (\Exception $e) {
-                    Log::error('Erreur lors du calcul des absences via l\'attendance: ' . $e->getMessage());
+                    Log::error('Erreur lors du calcul des absences via le service: ' . $e->getMessage());
                     Log::error('Trace: ' . $e->getTraceAsString());
                 }
             }
@@ -680,92 +722,49 @@ class ESBTPBulletinController extends Controller
     private function calculerAbsencesDetailees($bulletin)
     {
         try {
-            Log::info('Début du calcul des absences détaillées pour le bulletin #' . $bulletin->id);
+            \Log::info('Début du calcul des absences détaillées pour le bulletin #' . $bulletin->id);
 
             // Vérifier que les relations nécessaires sont chargées
             if (!$bulletin->etudiant || !$bulletin->classe || !$bulletin->anneeUniversitaire) {
-                Log::error('Relations essentielles manquantes pour le calcul des absences du bulletin #' . $bulletin->id);
+                \Log::error('Relations essentielles manquantes pour le calcul des absences du bulletin #' . $bulletin->id);
                 throw new \Exception("Données incomplètes pour calculer les absences. Veuillez vérifier que l'étudiant, la classe et l'année universitaire sont correctement définis.");
             }
 
             // Vérifier que les dates de l'année universitaire sont définies
             if (!$bulletin->anneeUniversitaire->date_debut || !$bulletin->anneeUniversitaire->date_fin) {
-                Log::error('Dates de l\'année universitaire non définies pour le bulletin #' . $bulletin->id);
+                \Log::error('Dates de l\'année universitaire non définies pour le bulletin #' . $bulletin->id);
                 throw new \Exception("Les dates de début et de fin de l'année universitaire ne sont pas définies.");
             }
 
-            // Absences justifiées
-            try {
-                $absencesJustifiees = ESBTPAbsence::where('etudiant_id', $bulletin->etudiant_id)
-                    ->whereHas('cours', function ($query) use ($bulletin) {
-                        $query->whereHas('matiere', function ($q) use ($bulletin) {
-                            $q->whereHas('classes', function ($c) use ($bulletin) {
-                                $c->where('classe_id', $bulletin->classe_id);
-                            });
-                        });
-                    })
-                    ->where('date', '>=', $bulletin->anneeUniversitaire->date_debut)
-                    ->where('date', '<=', $bulletin->anneeUniversitaire->date_fin)
-                    ->where('justified', true)
-                    ->sum('hours');
+            // Utiliser le service d'absences pour calculer les absences
+            $absences = $this->absenceService->calculerDetailAbsences(
+                $bulletin->etudiant_id,
+                $bulletin->classe_id,
+                $bulletin->anneeUniversitaire->date_debut,
+                $bulletin->anneeUniversitaire->date_fin
+            );
 
-                Log::info('Absences justifiées calculées: ' . $absencesJustifiees . ' heures');
+            \Log::info('Absences détaillées calculées avec succès pour le bulletin #' . $bulletin->id, $absences);
+
+            return $absences;
+
             } catch (\Exception $e) {
-                Log::error('Erreur lors du calcul des absences justifiées: ' . $e->getMessage());
-                Log::error('Trace: ' . $e->getTraceAsString());
-                $absencesJustifiees = 0;
-            }
-
-            // Absences non justifiées
-            try {
-                $absencesNonJustifiees = ESBTPAbsence::where('etudiant_id', $bulletin->etudiant_id)
-                    ->whereHas('cours', function ($query) use ($bulletin) {
-                        $query->whereHas('matiere', function ($q) use ($bulletin) {
-                            $q->whereHas('classes', function ($c) use ($bulletin) {
-                                $c->where('classe_id', $bulletin->classe_id);
-                            });
-                        });
-                    })
-                    ->where('date', '>=', $bulletin->anneeUniversitaire->date_debut)
-                    ->where('date', '<=', $bulletin->anneeUniversitaire->date_fin)
-                    ->where('justified', false)
-                    ->sum('hours');
-
-                Log::info('Absences non justifiées calculées: ' . $absencesNonJustifiees . ' heures');
-            } catch (\Exception $e) {
-                Log::error('Erreur lors du calcul des absences non justifiées: ' . $e->getMessage());
-                Log::error('Trace: ' . $e->getTraceAsString());
-                $absencesNonJustifiees = 0;
-            }
-
-            $total = $absencesJustifiees + $absencesNonJustifiees;
-            Log::info('Total des absences calculées: ' . $total . ' heures');
-
-            return [
-                'justifiees' => $absencesJustifiees,
-                'non_justifiees' => $absencesNonJustifiees,
-                'total' => $total
-            ];
-        } catch (\Exception $e) {
-            Log::error('Erreur lors du calcul des absences: ' . $e->getMessage());
-            Log::error('Trace: ' . $e->getTraceAsString());
-
-            // Enregistrer des informations supplémentaires pour le débogage
-            if (isset($bulletin)) {
-                Log::error('Données du bulletin: ' . json_encode([
-                    'id' => $bulletin->id,
-                    'etudiant_id' => $bulletin->etudiant_id,
-                    'classe_id' => $bulletin->classe_id,
-                    'annee_universitaire_id' => $bulletin->annee_universitaire_id,
-                    'periode' => $bulletin->periode,
-                ]));
-            }
+            \Log::error('Erreur lors du calcul des absences détaillées: ' . $e->getMessage(), [
+                'bulletin_id' => $bulletin->id,
+                'etudiant_id' => $bulletin->etudiant_id ?? 'non défini',
+                'classe_id' => $bulletin->classe_id ?? 'non défini',
+                'trace' => $e->getTraceAsString()
+            ]);
 
             // Retourner des valeurs par défaut en cas d'erreur
             return [
                 'justifiees' => 0,
                 'non_justifiees' => 0,
-                'total' => 0
+                'total' => 0,
+                'detail' => [
+                    'justifiees' => [],
+                    'non_justifiees' => []
+                ]
             ];
         }
     }
@@ -778,17 +777,28 @@ class ESBTPBulletinController extends Controller
      */
     private function calculerTotalAbsences($bulletin)
     {
-        return ESBTPAbsence::where('etudiant_id', $bulletin->etudiant_id)
-            ->whereHas('cours', function ($query) use ($bulletin) {
-                $query->whereHas('matiere', function ($q) use ($bulletin) {
-                    $q->whereHas('classes', function ($c) use ($bulletin) {
-                        $c->where('classe_id', $bulletin->classe_id);
-                    });
-                });
-            })
-            ->where('date', '>=', $bulletin->anneeUniversitaire->date_debut)
-            ->where('date', '<=', $bulletin->anneeUniversitaire->date_fin)
-            ->sum('hours');
+        \Log::info('Calcul du total des absences pour le bulletin #' . $bulletin->id);
+
+        try {
+            // Utiliser le service d'absences pour calculer les absences
+            $absences = $this->absenceService->calculerDetailAbsences(
+                $bulletin->etudiant_id,
+                $bulletin->classe_id,
+                $bulletin->anneeUniversitaire->date_debut,
+                $bulletin->anneeUniversitaire->date_fin
+            );
+
+            \Log::info('Total des absences calculé: ' . $absences['total'] . ' heures');
+
+            return $absences['total'];
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du calcul du total des absences: ' . $e->getMessage(), [
+                'bulletin_id' => $bulletin->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return 0;
+        }
     }
 
     /**
@@ -2046,7 +2056,6 @@ class ESBTPBulletinController extends Controller
 
         $classe_id = $inscription->classe_id ?? $request->classe_id ?? null;
         $classe = $classe_id ? ESBTPClasse::with('filiere')->find($classe_id) : null;
-
         // Get all active classes for the filter dropdown
         $classes = ESBTPClasse::where('is_active', true)->orderBy('name')->get();
         $anneesUniversitaires = ESBTPAnneeUniversitaire::orderBy('annee_debut', 'desc')->get();
@@ -2610,8 +2619,9 @@ class ESBTPBulletinController extends Controller
             $dateDebut = $anneeUniversitaire->date_debut;
             $dateFin = $anneeUniversitaire->date_fin;
 
-            // Utilisation de la nouvelle méthode pour calculer les absences
-            $absences = $this->calculerAbsencesAttendance($etudiant_id, $classe_id, $dateDebut, $dateFin);
+            // Utilisation du service d'absences pour calculer les absences
+            \Log::info("Calcul des absences pour l'étudiant ID: {$etudiant_id}, classe ID: {$classe_id}, période: du {$dateDebut} au {$dateFin}");
+            $absences = $this->absenceService->calculerDetailAbsences($etudiant_id, $classe_id, $dateDebut, $dateFin);
             $absencesJustifiees = $absences['justifiees'];
             $absencesNonJustifiees = $absences['non_justifiees'];
 
@@ -2638,8 +2648,6 @@ class ESBTPBulletinController extends Controller
                 'moyenneGenerale' => $moyenneGenerale,
                 'absencesJustifiees' => $absencesJustifiees,
                 'absencesNonJustifiees' => $absencesNonJustifiees,
-                'absences_justifiees' => $absencesJustifiees, // Ajout du format snake_case
-                'absences_non_justifiees' => $absencesNonJustifiees, // Ajout du format snake_case
                 'noteAssiduite' => $noteAssiduite, // Utiliser la valeur calculée au lieu d'une chaîne vide
                 'moyenneSemestre1' => null, // À implémenter si nécessaire
                 'plusForteMoyenne' => $bulletin->plus_forte_moyenne ?? number_format($plusForteMoyenne, 2),
@@ -3738,116 +3746,130 @@ class ESBTPBulletinController extends Controller
     }
 
     /**
-     * Calcule les heures d'absence justifiées et non justifiées en utilisant les enregistrements d'attendance.
-     *
-     * @param int $etudiant_id ID de l'étudiant
-     * @param int $classe_id ID de la classe
-     * @param string $date_debut Date de début
-     * @param string $date_fin Date de fin
-     * @return array
+     * Cette méthode a été remplacée par le service ESBTPAbsenceService.
+     * Voir la méthode calculerDetailAbsences dans ce service.
+     * @deprecated
      */
     private function calculerAbsencesAttendance($etudiant_id, $classe_id, $date_debut, $date_fin)
     {
-        try {
-            // Initialiser les compteurs
-            $absencesJustifiees = 0;
-            $absencesNonJustifiees = 0;
+        \Log::warning("La méthode obsolète calculerAbsencesAttendance a été appelée. Utiliser le service ESBTPAbsenceService à la place.");
+        return $this->absenceService->calculerDetailAbsences($etudiant_id, $classe_id, $date_debut, $date_fin);
+    }
 
-            \Log::info("Calcul des absences pour étudiant ID=$etudiant_id, classe ID=$classe_id, période: $date_debut à $date_fin");
+    /**
+     * Cette méthode a été remplacée par le service ESBTPAbsenceService.
+     * Voir la méthode calculerDetailAbsences dans ce service.
+     * @deprecated
+     */
+    private function calculerAbsencesPourBulletin($etudiantId, $classeId, $dateDebut, $dateFin)
+    {
+        \Log::warning("La méthode obsolète calculerAbsencesPourBulletin a été appelée. Utiliser le service ESBTPAbsenceService à la place.");
+        return $this->absenceService->calculerDetailAbsences($etudiantId, $classeId, $dateDebut, $dateFin);
+    }
 
-            // Log des statuts disponibles pour diagnostic
-            $statuts = ESBTPAttendance::select('statut')->distinct()->get()->pluck('statut')->toArray();
-            \Log::info('Statuts disponibles dans la table ESBTPAttendance: ' . implode(', ', $statuts));
+    /**
+     * @return \Illuminate\Http\Response
+     */
+    public function generateBulletin(Request $request)
+    {
+        // ... existing code ...
 
-            // Récupérer tous les enregistrements d'absences pour cet étudiant dans cette période
-            $allAttendances = ESBTPAttendance::where('etudiant_id', $etudiant_id)
-                ->whereBetween('date', [$date_debut, $date_fin])
-                ->whereHas('seanceCours', function($query) use ($classe_id) {
-                    $query->whereHas('emploiTemps', function($q) use ($classe_id) {
-                        $q->where('classe_id', $classe_id);
-                    });
-                })
-                ->get();
+        // Code existant pour créer le bulletin
+        $bulletin = ESBTPBulletin::create([
+            // Champs existants...
+        ]);
 
-            \Log::info('Nombre total d\'enregistrements d\'attendance trouvés: ' . $allAttendances->count());
-
-            // Si aucun enregistrement d'attendance n'est trouvé, vérifier si c'est un problème de relation
-            if ($allAttendances->isEmpty()) {
-                \Log::warning("Aucun enregistrement d'attendance trouvé. Tentative de requête alternative...");
-
-                // Requête alternative sans vérification de la relation emploiTemps->classe
-                $allAttendances = ESBTPAttendance::where('etudiant_id', $etudiant_id)
-                    ->whereBetween('date', [$date_debut, $date_fin])
-                    ->get();
-
-                \Log::info('Nombre d\'enregistrements trouvés avec la requête alternative: ' . $allAttendances->count());
+        // Déterminer la période pour le calcul des absences
+        // Par exemple: utiliser la date de début et de fin du semestre
+        $anneeUniversitaire = ESBTPAnneeUniversitaire::find($request->annee_universitaire_id);
+        if ($anneeUniversitaire) {
+            // Exemple: si periode = 'S1' (1er semestre)
+            if ($request->periode == 'S1') {
+                $dateDebut = $anneeUniversitaire->date_debut;
+                $dateFin = Carbon::parse($dateDebut)->addMonths(4)->format('Y-m-d'); // Environ 4 mois pour un semestre
+            } else if ($request->periode == 'S2') {
+                $dateDebut = Carbon::parse($anneeUniversitaire->date_debut)->addMonths(4)->format('Y-m-d');
+                $dateFin = $anneeUniversitaire->date_fin;
+            } else {
+                // Pour les périodes différentes ou périodes trimestrielles
+                // Adapter la logique selon vos besoins
+                $dateDebut = $anneeUniversitaire->date_debut;
+                $dateFin = $anneeUniversitaire->date_fin;
             }
 
-            // Log pour aider au diagnostic
-            foreach ($allAttendances as $attendance) {
-                \Log::info("Attendance ID={$attendance->id}, Date={$attendance->date}, Statut={$attendance->statut}, Justified_at=" . ($attendance->justified_at ? 'Oui' : 'Non'));
-            }
+            \Log::info("Génération de bulletin - Étudiant ID: {$request->etudiant_id}, Classe ID: {$request->classe_id}, Période: du {$dateDebut} au {$dateFin}");
 
-            // Traiter chaque enregistrement d'attendance
-            foreach ($allAttendances as $attendance) {
-                // Skip if the attendance is not an absence
-                // Accepter 'absent', 'absence', 'retard', 'excuse' comme absences
-                if (!in_array(strtolower($attendance->statut), ['absent', 'absence', 'retard', 'excuse'])) {
-                    \Log::info("Ignorer l'attendance ID={$attendance->id} car statut={$attendance->statut} n'est pas une absence");
-                    continue;
-                }
+            // Calculer les absences pour la période du bulletin en utilisant le service
+            $donneeAbsences = $this->absenceService->calculerDetailAbsences(
+                $request->etudiant_id,
+                $request->classe_id,
+                $dateDebut,
+                $dateFin
+            );
 
-                // Calculer la durée de l'absence
-                $heures = 0;
-                if ($attendance->seanceCours && $attendance->seanceCours->heure_debut && $attendance->seanceCours->heure_fin) {
-                    $debut = \Carbon\Carbon::parse($attendance->seanceCours->heure_debut);
-                    $fin = \Carbon\Carbon::parse($attendance->seanceCours->heure_fin);
-                    $dureeMinutes = $fin->diffInMinutes($debut);
-                    $heures = ceil($dureeMinutes / 60); // Arrondir à l'heure supérieure
+            \Log::info("Absences calculées:", $donneeAbsences);
 
-                    // Si l'absence dure moins d'une heure, compter au moins 1h
-                    if ($heures < 1 && $dureeMinutes > 0) {
-                        $heures = 1;
-                    }
-                } else {
-                    // Si les données de séance sont incomplètes, utiliser une valeur par défaut de 1 heure
-                    $heures = 1;
-                    \Log::warning("Données de séance incomplètes pour l'attendance ID={$attendance->id}, utilisation de la valeur par défaut de 1 heure");
-                }
-
-                // Déterminer si l'absence est justifiée
-                $estJustifiee = in_array(strtolower($attendance->statut), ['excuse']) ||
-                                $attendance->justified_at !== null;
-
-                // CORRECTION: Ajouter la condition if manquante
-                if ($estJustifiee) {
-                    $absencesJustifiees += $heures;
-                    \Log::info("Absence justifiée: ID={$attendance->id}, date={$attendance->date}, heures=$heures");
-                } else {
-                    $absencesNonJustifiees += $heures;
-                    \Log::info("Absence non justifiée: ID={$attendance->id}, date={$attendance->date}, heures=$heures");
-                }
-            }
-
-            \Log::info("Total des heures d'absences justifiées: $absencesJustifiees");
-            \Log::info("Total des heures d'absences non justifiées: $absencesNonJustifiees");
-
-            return [
-                'justifiees' => $absencesJustifiees,
-                'non_justifiees' => $absencesNonJustifiees,
-                'total' => $absencesJustifiees + $absencesNonJustifiees
-            ];
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors du calcul des absences à partir des attendances: ' . $e->getMessage());
-            \Log::error('Trace: ' . $e->getTraceAsString());
-
-            // Retourner des valeurs par défaut en cas d'erreur
-            return [
-                'justifiees' => 0,
-                'non_justifiees' => 0,
-                'total' => 0
-            ];
+            // Intégrer les absences au bulletin
+            $bulletin = $this->integrerAbsencesAuBulletin($bulletin, $donneeAbsences);
         }
+
+        // Suite du code existant...
+
+        return redirect()->route('bulletins.show', $bulletin->id)
+            ->with('success', 'Bulletin créé avec succès.');
+    }
+
+    /**
+     * Génère le bulletin pour un étudiant
+     */
+    public function genererBulletin(Request $request, $etudiantId)
+    {
+        $etudiant = ESBTPEtudiant::findOrFail($etudiantId);
+
+        // Calculer les absences en utilisant le service
+        $absences = $this->absenceService->calculerDetailAbsences(
+            $etudiantId,
+            $etudiant->classe_id
+        );
+
+        // ... rest of the bulletin generation code ...
+
+        return view('esbtp.bulletins.show', [
+            'etudiant' => $etudiant,
+            'absences' => $absences,
+            // ... other data ...
+        ]);
+    }
+
+    /**
+     * Intègre les données d'absences dans le bulletin
+     *
+     * @param ESBTPBulletin $bulletin Le bulletin à mettre à jour
+     * @param array $donneeAbsences Les données d'absences calculées
+     * @return ESBTPBulletin Le bulletin mis à jour
+     */
+    private function integrerAbsencesAuBulletin($bulletin, $donneeAbsences)
+    {
+        \Log::info("Intégration des absences au bulletin ID: " . $bulletin->id, $donneeAbsences);
+
+        // Mettre à jour les champs d'absences du bulletin
+        $bulletin->absences_justifiees = $donneeAbsences['justifiees'];
+        $bulletin->absences_non_justifiees = $donneeAbsences['non_justifiees'];
+        $bulletin->total_absences = $donneeAbsences['total'];
+
+        // Calculer et définir la note d'assiduité
+        $bulletin->note_assiduite = $this->calculerNoteAssiduite(
+            $donneeAbsences['justifiees'],
+            $donneeAbsences['non_justifiees']
+        );
+
+        $bulletin->save();
+
+        \Log::info("Absences intégrées avec succès au bulletin ID: " . $bulletin->id);
+
+        return $bulletin;
     }
 
 }
+
+

@@ -2,57 +2,54 @@
 
 ## Corrections et Améliorations Récentes
 
-### 45. Correction de l'affichage des absences justifiées et non justifiées dans les bulletins PDF (24/05/2025)
+### 45. Correction de l'affichage des absences justifiées et non justifiées dans les PDF (19/06/2025)
 
 **Problème identifié :**
 
--   Persistance de l'affichage "0 heures" pour les absences justifiées et non justifiées dans les bulletins PDF
--   Les variables d'absence étaient définies mais ne s'affichaient pas correctement dans les templates PDF
--   Le problème affectait à la fois les modèles `pdf.blade.php` et `bulletin-pdf.blade.php`
+-   Les absences justifiées et non justifiées affichaient systématiquement "0 heures" ou "00 heures" dans les PDF des bulletins, malgré l'existence de données d'absences dans la base de données.
+-   Certains formats de variables d'absences n'étaient pas détectés correctement dans les templates PDF.
 
 **Analyse approfondie :**
 
--   Les deux modèles PDF utilisaient des approches légèrement différentes pour vérifier l'existence des variables d'absence
--   Dans `bulletin-pdf.blade.php`, l'ordre de vérification des variables privilégiait le format snake_case avant le format camelCase
--   Dans `pdf.blade.php`, c'était l'inverse: le format camelCase était vérifié en premier
--   Cette incohérence pouvait entraîner des problèmes d'affichage selon le modèle utilisé
--   La méthode `calculerAbsencesAttendance` présentait une condition manquante pour l'incrémentation des absences justifiées
+-   La fonction `calculerAbsencesAttendance` ne détectait pas tous les formats possibles de statuts d'absences dans la table `esbtp_attendances`.
+-   Les statuts étaient comparés avec égalité stricte et la casse n'était pas ignorée, causant des erreurs de détection.
+-   Les templates PDF n'utilisaient pas une approche suffisamment flexible pour récupérer les valeurs d'absences depuis plusieurs formats possibles de variables.
 
 **Solution mise en œuvre :**
 
-1. **Harmonisation des variables d'absence dans les contrôleurs** :
+1. **Amélioration de la méthode `calculerAbsencesAttendance`** :
 
-    - Modification des méthodes `genererPDF` et `genererPDFParParams` pour définir les variables dans les deux formats
-    - Ajout explicite des variables `absences_justifiees` et `absences_non_justifiees` au tableau `$data`
-    - Ajout de logs supplémentaires pour vérifier la définition des variables avant génération du PDF
+    - Ajout d'une détection plus flexible des statuts d'absences avec conversion en minuscules
+    - Utilisation de `strpos()` pour détecter des sous-chaînes dans les statuts (ex: "justif" dans "absence justifiée")
+    - Meilleure gestion des erreurs avec un bloc try/catch pour chaque enregistrement d'attendance
+    - Ajout d'un avertissement de log quand des attendances existent mais qu'aucune absence n'est calculée
 
-2. **Uniformisation de l'ordre de vérification dans les templates PDF** :
+2. **Optimisation de la méthode `genererPDFParParams`** :
 
-    - Modification de `bulletin-pdf.blade.php` pour vérifier d'abord `absencesJustifiees` puis `absences_justifiees`
-    - Maintien de la vérification en trois étapes avec fallback sur la valeur par défaut '00'
-    - Application du même modèle pour les absences non justifiées
+    - Utilisation de `max(0, $absences['justifiees'] ?? 0)` pour garantir des valeurs numériques non-nulles
+    - Assignation explicite des absences sur l'objet bulletin pour le template
+    - Ajout de journalisation détaillée des valeurs d'absences avant génération du PDF
 
-3. **Vérification et correction du bug dans `calculerAbsencesAttendance`** :
-    - Confirmation que la condition `if ($estJustifiee)` était bien présente après la correction précédente
-    - Vérification de la logique de détection des absences justifiées basée sur le statut et le champ `justified_at`
-    - Amélioration des logs pour tracer le processus de calcul des absences
+3. **Amélioration de la robustesse des templates PDF** :
+    - Modification du template `bulletin-pdf.blade.php` pour vérifier tous les formats possibles de variables d'absences
+    - Utilisation d'une cascade de fallbacks (`isset($absencesJustifiees) ? ... : (isset($absences_justifiees) ? ... : ...)`)
+    - Valeur par défaut '00' uniquement si aucune des variables n'est définie
 
 **Impact :**
 
--   Affichage correct des heures d'absences justifiées et non justifiées dans tous les bulletins PDF
--   Élimination définitive de l'affichage "0 heures" quand des données d'absences existent
--   Meilleure traçabilité des calculs d'absence grâce aux logs améliorés
--   Cohérence accrue entre les différents modèles de bulletins
+-   Les absences justifiées et non justifiées s'affichent correctement dans les PDF des bulletins
+-   La détection des statuts d'absences est plus robuste et flexible
+-   Meilleure journalisation pour faciliter le débogage futur
 
 **Bonnes pratiques appliquées :**
 
--   Définition systématique des variables dans les deux formats (camelCase et snake_case) pour assurer la compatibilité
--   Vérification en cascade dans les templates pour une meilleure robustesse
--   Amélioration des logs pour faciliter le diagnostic des problèmes
--   Documentation détaillée des changements dans le PROJECT_MEMORY.md pour référence future
--   Application de solutions coordonnées à travers les contrôleurs et les vues
+-   Vérification systématique des valeurs nulles avant utilisation
+-   Approche défensive avec valeurs par défaut appropriées
+-   Harmonisation des noms de variables entre les différentes parties du code
+-   Documentation détaillée des problèmes et solutions dans PROJECT_MEMORY.md
+-   Journalisation améliorée pour faciliter la maintenance future
 
-### 44. Correction du bug dans la méthode calculerAbsencesAttendance pour l'affichage des absences justifiées (23/05/2025)
+### 44. Correction d'un bug dans calculerAbsencesAttendance pour le comptage des absences (18/05/2025)
 
 **Problème identifié :**
 

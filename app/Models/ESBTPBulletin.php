@@ -45,6 +45,11 @@ class ESBTPBulletin extends Model
         'date_signature_directeur',
         'date_signature_parent',
         'is_published',
+        'absences_justifiees',
+        'absences_non_justifiees',
+        'total_absences',
+        'note_assiduite',
+        'details_absences',
     ];
 
     /**
@@ -64,6 +69,11 @@ class ESBTPBulletin extends Model
         'date_signature_directeur' => 'datetime',
         'date_signature_parent' => 'datetime',
         'config_matieres' => 'json',
+        'absences_justifiees' => 'float',
+        'absences_non_justifiees' => 'float',
+        'total_absences' => 'float',
+        'note_assiduite' => 'float',
+        'details_absences' => 'json',
     ];
 
     /**

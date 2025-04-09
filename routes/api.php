@@ -71,3 +71,9 @@ Route::get('/check-emploi-temps/{id}', function ($id) {
         ], 500);
     }
 })->name('api.check-emploi-temps');
+
+// Routes pour le calcul des absences
+Route::prefix('absences')->group(function () {
+    Route::post('/calculer', 'App\Http\Controllers\ESBTPCalculAbsencesController@calculerAbsencesEtudiant');
+    Route::post('/resume-par-seance', 'App\Http\Controllers\ESBTPCalculAbsencesController@resumeAbsencesParSeance');
+});

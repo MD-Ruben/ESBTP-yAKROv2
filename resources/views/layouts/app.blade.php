@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'ESBTP-yAKRO'))</title>
+    <title>@yield('title', config('app.name', 'ESBTP'))</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" type="image/x-icon">
@@ -426,7 +426,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
-            <div class="sidebar-brand">ESBTP-yAKRO</div>
+            <div class="sidebar-brand">ESBTP</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>
             <!--<div class="sidebar-brand">KLASSCI</div>
             <div class="sidebar-subtitle">Gestion Universitaire</div>-->
