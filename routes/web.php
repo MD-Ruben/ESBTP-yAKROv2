@@ -32,6 +32,10 @@ use App\Http\Controllers\ESBTPPaiementController;
 use App\Http\Controllers\ESBTPNotificationController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\StudentProgressionController;
+use App\Http\Controllers\ESBTPComptabiliteController;
+use App\Http\Controllers\ESBTPSecretaireController;
+use App\Http\Controllers\ESBTPEnseignantController;
+use App\Http\Controllers\DepensesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -120,7 +124,7 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('annees-universitaires', ESBTPAnneeUniversitaireController::class);
 
             // Routes pour les secrétaires
-            Route::resource('secretaires', \App\Http\Controllers\ESBTP\SecretaireAdminController::class);
+            Route::resource('secretaires', ESBTPSecretaireController::class);
 
             // Dashboard superAdmin
             Route::get('/dashboard', [App\Http\Controllers\ESBTP\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
@@ -137,6 +141,8 @@ Route::middleware(['auth', 'installed'])->group(function () {
                     'destroy' => 'classes.destroy'
                 ])
                 ->middleware(['permission:create_classe|create classes|edit_classes|edit classes|delete_classes|delete classes']);
+                
+            // Routes du module comptabilité - PROVISOIREMENT SUPPRIMÉ POUR REDÉFINITION
         });
 
         // Routes accessibles aux superAdmin et secrétaires
@@ -674,3 +680,115 @@ Route::get('/esbtp-special/bulletins/generate', [ESBTPBulletinController::class,
 
 // Route pour télécharger un bulletin au format PDF
 Route::get('/esbtp/bulletins/{bulletin}/download', [ESBTPBulletinController::class, 'genererPDF'])->name('esbtp.bulletins.download');
+
+// Routes pour la gestion des secrétaires
+Route::prefix('secretaires')->name('secretaires.')->group(function () {
+    Route::get('/', [ESBTPSecretaireController::class, 'index'])->name('index');
+    Route::get('/create', [ESBTPSecretaireController::class, 'create'])->name('create');
+    Route::post('/', [ESBTPSecretaireController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [ESBTPSecretaireController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ESBTPSecretaireController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ESBTPSecretaireController::class, 'destroy'])->name('destroy');
+});
+
+// Routes pour la gestion des enseignants
+Route::prefix('esbtp/enseignants')->name('esbtp.enseignants.')->group(function () {
+    Route::get('/', [ESBTPEnseignantController::class, 'index'])->name('index');
+    Route::get('/create', [ESBTPEnseignantController::class, 'create'])->name('create');
+    Route::post('/', [ESBTPEnseignantController::class, 'store'])->name('store');
+    Route::get('/{id}', [ESBTPEnseignantController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [ESBTPEnseignantController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ESBTPEnseignantController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ESBTPEnseignantController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/promote', [ESBTPEnseignantController::class, 'promoteToAdmin'])->name('promote');
+    Route::post('/{id}/demote', [ESBTPEnseignantController::class, 'demoteFromAdmin'])->name('demote');
+});
+
+// Groupe de routes pour la comptabilité
+Route::middleware(['auth', 'permission:access_comptabilite_module'])->prefix('esbtp/comptabilite')->name('esbtp.comptabilite.')->group(function () {
+    // Dashboard comptabilité
+    Route::get('/', [ESBTPComptabiliteController::class, 'index'])->name('index');
+    
+    // Paiements
+    // Gestion des paiements
+    Route::get('/paiements', [ESBTPComptabiliteController::class, 'paiements'])->name('paiements');
+    Route::get('/paiements/create', [ESBTPComptabiliteController::class, 'createPaiement'])->name('paiements.create');
+    Route::post('/paiements', [ESBTPComptabiliteController::class, 'storePaiement'])->name('paiements.store');
+    Route::get('/paiements/{id}', [ESBTPComptabiliteController::class, 'showPaiement'])->name('paiements.show');
+    Route::get('/paiements/{id}/edit', [ESBTPComptabiliteController::class, 'editPaiement'])->name('paiements.edit');
+    Route::put('/paiements/{id}', [ESBTPComptabiliteController::class, 'updatePaiement'])->name('paiements.update');
+    Route::post('/paiements/{id}/valider', [ESBTPComptabiliteController::class, 'validerPaiement'])->name('paiements.valider');
+    Route::post('/paiements/{id}/rejeter', [ESBTPComptabiliteController::class, 'rejeterPaiement'])->name('paiements.rejeter');
+    Route::get('/paiements/{id}/recu', [ESBTPComptabiliteController::class, 'genererRecu'])->name('paiements.recu');
+    
+    // Gestion des frais de scolarité
+    Route::get('/frais-scolarite', [ESBTPComptabiliteController::class, 'fraisScolarite'])->name('frais-scolarite');
+    Route::get('/frais-scolarite/create', [ESBTPComptabiliteController::class, 'createFraisScolarite'])->name('frais-scolarite.create');
+    Route::post('/frais-scolarite', [ESBTPComptabiliteController::class, 'storeFraisScolarite'])->name('frais-scolarite.store');
+    Route::get('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'showFraisScolarite'])->name('frais-scolarite.show');
+    Route::get('/frais-scolarite/{id}/edit', [ESBTPComptabiliteController::class, 'editFraisScolarite'])->name('frais-scolarite.edit');
+    Route::put('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'updateFraisScolarite'])->name('frais-scolarite.update');
+    Route::delete('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'destroyFraisScolarite'])->name('frais-scolarite.destroy');
+    
+    // Gestion des dépenses
+    Route::get('/depenses', [DepensesController::class, 'index'])->name('depenses');
+    Route::get('/depenses/create', [DepensesController::class, 'create'])->name('depenses.create');
+    Route::post('/depenses', [DepensesController::class, 'store'])->name('depenses.store');
+    Route::get('/depenses/{id}', [DepensesController::class, 'show'])->name('depenses.show');
+    Route::get('/depenses/{id}/edit', [DepensesController::class, 'edit'])->name('depenses.edit');
+    Route::put('/depenses/{id}', [DepensesController::class, 'update'])->name('depenses.update');
+    Route::delete('/depenses/{id}', [DepensesController::class, 'destroy'])->name('depenses.destroy');
+    
+    // Gestion des catégories de dépenses
+    Route::get('/depenses/categories', [DepensesController::class, 'categories'])->name('depenses.categories');
+    Route::post('/depenses/categories', [DepensesController::class, 'storeCategory'])->name('depenses.categories.store');
+    Route::put('/depenses/categories/{id}', [DepensesController::class, 'updateCategory'])->name('depenses.categories.update');
+    Route::delete('/depenses/categories/{id}', [DepensesController::class, 'destroyCategory'])->name('depenses.categories.destroy');
+    
+    // Gestion des bourses et aides
+    Route::get('/bourses', [ESBTPComptabiliteController::class, 'bourses'])->name('bourses');
+    Route::get('/bourses/create', [ESBTPComptabiliteController::class, 'createBourse'])->name('bourses.create');
+    Route::post('/bourses', [ESBTPComptabiliteController::class, 'storeBourse'])->name('bourses.store');
+    Route::get('/bourses/{id}', [ESBTPComptabiliteController::class, 'showBourse'])->name('bourses.show');
+    Route::get('/bourses/{id}/edit', [ESBTPComptabiliteController::class, 'editBourse'])->name('bourses.edit');
+    Route::put('/bourses/{id}', [ESBTPComptabiliteController::class, 'updateBourse'])->name('bourses.update');
+    Route::delete('/bourses/{id}', [ESBTPComptabiliteController::class, 'destroyBourse'])->name('bourses.destroy');
+    
+    // Gestion des salaires
+    Route::get('/salaires', [ESBTPComptabiliteController::class, 'salaires'])->name('salaires');
+    Route::get('/salaires/create', [ESBTPComptabiliteController::class, 'createSalaire'])->name('salaires.create');
+    Route::post('/salaires', [ESBTPComptabiliteController::class, 'storeSalaire'])->name('salaires.store');
+    Route::get('/salaires/{id}', [ESBTPComptabiliteController::class, 'showSalaire'])->name('salaires.show');
+    Route::get('/salaires/{id}/edit', [ESBTPComptabiliteController::class, 'editSalaire'])->name('salaires.edit');
+    Route::put('/salaires/{id}', [ESBTPComptabiliteController::class, 'updateSalaire'])->name('salaires.update');
+    Route::delete('/salaires/{id}', [ESBTPComptabiliteController::class, 'destroySalaire'])->name('salaires.destroy');
+    Route::get('/salaires/{id}/bulletin', [ESBTPComptabiliteController::class, 'bulletinSalaire'])->name('salaires.bulletin');
+    
+    // Gestion des fournisseurs
+    Route::get('/fournisseurs', [ESBTPComptabiliteController::class, 'fournisseurs'])->name('fournisseurs');
+    Route::get('/fournisseurs/create', [ESBTPComptabiliteController::class, 'createFournisseur'])->name('fournisseurs.create');
+    Route::post('/fournisseurs', [ESBTPComptabiliteController::class, 'storeFournisseur'])->name('fournisseurs.store');
+    Route::get('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'showFournisseur'])->name('fournisseurs.show');
+    Route::get('/fournisseurs/{id}/edit', [ESBTPComptabiliteController::class, 'editFournisseur'])->name('fournisseurs.edit');
+    Route::put('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'updateFournisseur'])->name('fournisseurs.update');
+    Route::delete('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'destroyFournisseur'])->name('fournisseurs.destroy');
+    
+    // Gestion des factures
+    Route::get('/factures', [ESBTPComptabiliteController::class, 'factures'])->name('factures');
+    Route::get('/factures/create', [ESBTPComptabiliteController::class, 'createFacture'])->name('factures.create');
+    Route::post('/factures', [ESBTPComptabiliteController::class, 'storeFacture'])->name('factures.store');
+    Route::get('/factures/{id}', [ESBTPComptabiliteController::class, 'showFacture'])->name('factures.show');
+    Route::get('/factures/{id}/edit', [ESBTPComptabiliteController::class, 'editFacture'])->name('factures.edit');
+    Route::put('/factures/{id}', [ESBTPComptabiliteController::class, 'updateFacture'])->name('factures.update');
+    Route::delete('/factures/{id}', [ESBTPComptabiliteController::class, 'destroyFacture'])->name('factures.destroy');
+    Route::get('/factures/{id}/pdf', [ESBTPComptabiliteController::class, 'pdfFacture'])->name('factures.pdf');
+    
+    // Tableau de bord et rapports financiers
+    Route::get('/rapports', [ESBTPComptabiliteController::class, 'rapports'])->name('rapports');
+    Route::get('/rapports/generate', [ESBTPComptabiliteController::class, 'generateReport'])->name('rapports.generate');
+    Route::post('/rapports/export', [ESBTPComptabiliteController::class, 'exportReport'])->name('rapports.export');
+    
+    // Configuration du module comptabilité
+    Route::get('/configuration', [ESBTPComptabiliteController::class, 'configuration'])->name('configuration');
+    Route::post('/configuration', [ESBTPComptabiliteController::class, 'updateConfiguration'])->name('configuration.update');
+});

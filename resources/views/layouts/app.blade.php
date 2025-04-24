@@ -462,6 +462,12 @@
                         <span>Gestion des Secrétaires</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.enseignants.index') }}" class="nav-link {{ request()->routeIs('esbtp.enseignants.*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                        <span>Gestion des Enseignants</span>
+                    </a>
+                </li>
                 @endrole
 
                 @hasanyrole('superAdmin|secretaire')
@@ -543,12 +549,6 @@
                     <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') || request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
                         <i class="fas fa-file-invoice nav-icon"></i>
                         <span>Résultats et Bulletins</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.progression.index') }}" class="nav-link {{ request()->routeIs('esbtp.progression.*') ? 'active' : '' }}">
-                        <i class="fas fa-graduation-cap nav-icon"></i>
-                        <span>Progression des Étudiants</span>
                     </a>
                 </li>
                 @endhasanyrole
@@ -688,6 +688,52 @@
                         <span>Mes messages</span>
                     </a>
                 </li>-->
+                @endrole
+
+                @role('superAdmin')
+                <div class="menu-category">Comptabilité</div>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.index') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.index') ? 'active' : '' }}">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span>Tableau de bord financier</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.paiements') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.paiements*') ? 'active' : '' }}">
+                        <i class="fas fa-money-bill-wave nav-icon"></i>
+                        <span>Paiements étudiants</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.frais-scolarite') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.frais-scolarite*') ? 'active' : '' }}">
+                        <i class="fas fa-file-invoice-dollar nav-icon"></i>
+                        <span>Frais de scolarité</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.depenses') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.depenses*') ? 'active' : '' }}">
+                        <i class="fas fa-hand-holding-usd nav-icon"></i>
+                        <span>Dépenses</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.salaires') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.salaires*') ? 'active' : '' }}">
+                        <i class="fas fa-wallet nav-icon"></i>
+                        <span>Gestion des salaires</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.bourses') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.bourses*') ? 'active' : '' }}">
+                        <i class="fas fa-donate nav-icon"></i>
+                        <span>Bourses et aides</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('esbtp.comptabilite.rapports') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.rapports*') ? 'active' : '' }}">
+                        <i class="fas fa-file-alt nav-icon"></i>
+                        <span>Rapports financiers</span>
+                    </a>
+                </li>
                 @endrole
 
                 <!-- Section profil utilisateur -->

@@ -9,53 +9,81 @@ $kernel->bootstrap();
 // Importer les classes
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
-echo "=== RECHERCHE DE COMPTES SUPER ADMIN ===\n\n";
+// Vérification de l'existence du rôle superAdmin
+$superAdminRole = Role::where('name', 'superAdmin')->first();
 
-// Rechercher les utilisateurs avec le rôle superAdmin
-$superAdmins = User::where('role', 'superAdmin')->get();
-
-if ($superAdmins->isEmpty()) {
-    echo "Aucun utilisateur avec le rôle 'superAdmin' n'a été trouvé.\n\n";
-    
-    // Rechercher l'utilisateur Ruben
-    $ruben = User::where('email', 'ruben@gmail.com')->first();
-    
-    if ($ruben) {
-        echo "L'utilisateur Ruben a été trouvé avec les détails suivants:\n";
-        echo "ID: {$ruben->id}\n";
-        echo "Nom: {$ruben->name}\n";
-        echo "Email: {$ruben->email}\n";
-        echo "Rôle actuel: " . ($ruben->role ?? 'Non défini') . "\n\n";
-    } else {
-        echo "L'utilisateur avec l'email 'ruben@gmail.com' n'a pas été trouvé.\n\n";
-    }
-    
-    // Rechercher d'autres utilisateurs administrateurs
-    echo "Autres utilisateurs avec des rôles administratifs:\n";
-    $admins = User::whereIn('role', ['admin', 'secretaire'])
-                  ->orWhere('name', 'like', '%admin%')
-                  ->orWhere('email', 'like', '%admin%')
-                  ->get();
-    
-    if ($admins->isEmpty()) {
-        echo "Aucun autre utilisateur administrateur trouvé.\n";
-    } else {
-        foreach ($admins as $index => $admin) {
-            echo "#{$index}: {$admin->name} ({$admin->email}) - Rôle: " . ($admin->role ?? 'Non défini') . "\n";
-        }
-    }
+if (!$superAdminRole) {
+    echo "⚠️ Le rôle 'superAdmin' n'existe pas. Création du rôle...\n";
+    $superAdminRole = Role::create(['name' => 'superAdmin']);
+    echo "✅ Rôle 'superAdmin' créé avec succès.\n";
 } else {
-    echo "Comptes super admin trouvés (" . $superAdmins->count() . "):\n\n";
-    
-    foreach ($superAdmins as $index => $admin) {
-        echo "Super Admin #{$index + 1}\n";
-        echo "ID: {$admin->id}\n";
-        echo "Nom: {$admin->name}\n";
-        echo "Email: {$admin->email}\n";
-        echo "Rôle: {$admin->role}\n";
-        echo "Créé le: {$admin->created_at}\n\n";
-    }
+    echo "✅ Le rôle 'superAdmin' existe déjà.\n";
 }
 
-echo "=== FIN DE LA RECHERCHE ===\n"; 
+// Vérification des utilisateurs ayant le rôle superAdmin
+$superAdmins = User::role('superAdmin')->get();
+
+echo "\n=== UTILISATEURS SUPER ADMIN EXISTANTS ===\n";
+if ($superAdmins->count() > 0) {
+    foreach ($superAdmins as $admin) {
+        echo "- {$admin->name} (username: {$admin->username}, email: {$admin->email})\n";
+    }
+} else {
+    echo "Aucun utilisateur avec le rôle superAdmin n'a été trouvé.\n";
+}
+
+// Création d'un nouvel utilisateur superAdmin
+$username = 'superadmin';
+$email = 'admin@esbtp.com';
+$password = 'Admin@2024';
+
+// Vérifier si un utilisateur avec ce nom d'utilisateur ou email existe déjà
+$existingUser = User::where('username', $username)->orWhere('email', $email)->first();
+
+if ($existingUser) {
+    echo "\n⚠️ Un utilisateur avec ce nom d'utilisateur ou cet email existe déjà.\n";
+    echo "Utilisateur: {$existingUser->name} (username: {$existingUser->username}, email: {$existingUser->email})\n";
+    
+    // Vérifier si cet utilisateur a déjà le rôle superAdmin
+    if (!$existingUser->hasRole('superAdmin')) {
+        echo "Cet utilisateur n'a pas le rôle superAdmin. Attribution du rôle...\n";
+        $existingUser->assignRole('superAdmin');
+        echo "✅ Rôle 'superAdmin' attribué à l'utilisateur {$existingUser->name}.\n";
+    } else {
+        echo "Cet utilisateur a déjà le rôle superAdmin.\n";
+    }
+} else {
+    // Créer un nouvel utilisateur superAdmin
+    $newUser = User::create([
+        'name' => 'Super Admin',
+        'username' => $username,
+        'email' => $email,
+        'password' => Hash::make($password),
+        'is_active' => true,
+        'email_verified_at' => now(),
+    ]);
+
+    // Attribuer le rôle superAdmin
+    $newUser->assignRole('superAdmin');
+
+    echo "\n✅ Nouvel utilisateur superAdmin créé avec succès:\n";
+    echo "Nom: Super Admin\n";
+    echo "Nom d'utilisateur: $username\n";
+    echo "Email: $email\n";
+    echo "Mot de passe: $password\n";
+}
+
+echo "\n=== IDENTIFIANTS DE CONNEXION SUPERADMIN ===\n";
+if ($existingUser && $existingUser->hasRole('superAdmin')) {
+    echo "Nom d'utilisateur: {$existingUser->username}\n";
+    echo "Email: {$existingUser->email}\n";
+    echo "Mot de passe: Utilisez votre mot de passe actuel ou réinitialisez-le via la page de connexion.\n";
+} else {
+    echo "Nom d'utilisateur: $username\n";
+    echo "Email: $email\n";
+    echo "Mot de passe: $password\n";
+}
+
+echo "\nUtilisez ces identifiants pour vous connecter à l'application.\n"; 

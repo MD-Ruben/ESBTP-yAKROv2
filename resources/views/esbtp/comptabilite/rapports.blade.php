@@ -22,7 +22,7 @@
                 </div>
                 <div class="card-body">
                     <!-- Sélection de période -->
-                    <form method="GET" action="{{ route('comptabilite.rapports') }}" class="row g-3 mb-4">
+                    <form method="GET" action="{{ route('esbtp.comptabilite.rapports') }}" class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label for="annee" class="form-label">Année</label>
                             <select class="form-select" id="annee" name="annee" onchange="this.form.submit()">

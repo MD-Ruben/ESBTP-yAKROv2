@@ -4,199 +4,179 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="fas fa-money-bill-wave text-primary me-2"></i>Gestion des paiements
-                    </h5>
-                    <a href="{{ route('comptabilite.paiements.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Nouveau paiement
-                    </a>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Gestion des paiements</h5>
+            <a href="{{ route('esbtp.comptabilite.paiements.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Nouveau paiement
+            </a>
+        </div>
+        <div class="card-body">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+            
+            <!-- Filtres de recherche -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-filter me-1"></i> Filtres
                 </div>
                 <div class="card-body">
-                    <!-- Filtres -->
-                    <div class="accordion mb-4" id="accordionFilters">
-                        <div class="accordion-item border-0 shadow-sm">
-                            <h2 class="accordion-header" id="headingFilters">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
-                                    <i class="fas fa-filter me-2"></i>Filtres
-                                </button>
-                            </h2>
-                            <div id="collapseFilters" class="accordion-collapse collapse" aria-labelledby="headingFilters" data-bs-parent="#accordionFilters">
-                                <div class="accordion-body">
-                                    <form method="GET" action="{{ route('comptabilite.paiements.index') }}" class="row g-3">
-                                        <div class="col-md-3">
-                                            <label for="etudiant_id" class="form-label">Étudiant</label>
-                                            <select class="form-select" id="etudiant_id" name="etudiant_id">
-                                                <option value="">Tous les étudiants</option>
-                                                @foreach($etudiants ?? [] as $etudiant)
-                                                    <option value="{{ $etudiant->id }}" {{ request('etudiant_id') == $etudiant->id ? 'selected' : '' }}>
-                                                        {{ $etudiant->user->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="classe_id" class="form-label">Classe</label>
-                                            <select class="form-select" id="classe_id" name="classe_id">
-                                                <option value="">Toutes les classes</option>
-                                                @foreach($classes ?? [] as $classe)
-                                                    <option value="{{ $classe->id }}" {{ request('classe_id') == $classe->id ? 'selected' : '' }}>
-                                                        {{ $classe->nom }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="type_paiement" class="form-label">Type de paiement</label>
-                                            <select class="form-select" id="type_paiement" name="type_paiement">
-                                                <option value="">Tous les types</option>
-                                                <option value="Frais de scolarité" {{ request('type_paiement') == 'Frais de scolarité' ? 'selected' : '' }}>Frais de scolarité</option>
-                                                <option value="Frais d'inscription" {{ request('type_paiement') == "Frais d'inscription" ? 'selected' : '' }}>Frais d'inscription</option>
-                                                <option value="Frais d'examen" {{ request('type_paiement') == "Frais d'examen" ? 'selected' : '' }}>Frais d'examen</option>
-                                                <option value="Autre" {{ request('type_paiement') == 'Autre' ? 'selected' : '' }}>Autre</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="statut" class="form-label">Statut</label>
-                                            <select class="form-select" id="statut" name="statut">
-                                                <option value="">Tous les statuts</option>
-                                                <option value="payé" {{ request('statut') == 'payé' ? 'selected' : '' }}>Payé</option>
-                                                <option value="en attente" {{ request('statut') == 'en attente' ? 'selected' : '' }}>En attente</option>
-                                                <option value="rejeté" {{ request('statut') == 'rejeté' ? 'selected' : '' }}>Rejeté</option>
-                                                <option value="retard" {{ request('statut') == 'retard' ? 'selected' : '' }}>En retard</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="date_debut" class="form-label">Date début</label>
-                                            <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ request('date_debut') }}">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="date_fin" class="form-label">Date fin</label>
-                                            <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ request('date_fin') }}">
-                                        </div>
-                                        <div class="col-md-6 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-primary me-2">
-                                                <i class="fas fa-search me-2"></i>Filtrer
-                                            </button>
-                                            <a href="{{ route('comptabilite.paiements.index') }}" class="btn btn-secondary">
-                                                <i class="fas fa-redo me-2"></i>Réinitialiser
-                                            </a>
-                                        </div>
+                    <form action="{{ route('esbtp.comptabilite.paiements') }}" method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="etudiant" class="form-label">Étudiant</label>
+                            <input type="text" class="form-control" id="etudiant" name="etudiant" placeholder="Nom ou matricule" value="{{ request('etudiant') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_debut" class="form-label">Date début</label>
+                            <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ request('date_debut') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_fin" class="form-label">Date fin</label>
+                            <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ request('date_fin') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statut" class="form-label">Statut</label>
+                            <select class="form-select" id="statut" name="statut">
+                                <option value="">Tous</option>
+                                <option value="completé" {{ request('statut') == 'completé' ? 'selected' : '' }}>Complété</option>
+                                <option value="en attente" {{ request('statut') == 'en attente' ? 'selected' : '' }}>En attente</option>
+                                <option value="annulé" {{ request('statut') == 'annulé' ? 'selected' : '' }}>Annulé</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i> Rechercher
+                            </button>
+                            <a href="{{ route('esbtp.comptabilite.paiements') }}" class="btn btn-secondary">
+                                <i class="fas fa-redo me-1"></i> Réinitialiser
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Tableau des paiements -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Étudiant</th>
+                            <th>Type</th>
+                            <th>Montant</th>
+                            <th>Mode de paiement</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($paiements as $paiement)
+                        <tr>
+                            <td>{{ $paiement->reference_paiement }}</td>
+                            <td>{{ $paiement->etudiant->nom }} {{ $paiement->etudiant->prenom }}</td>
+                            <td>{{ $paiement->type_paiement }}</td>
+                            <td class="text-end">{{ number_format($paiement->montant, 0, ',', ' ') }} FCFA</td>
+                            <td>{{ $paiement->mode_paiement }}</td>
+                            <td>{{ \Carbon\Carbon::parse($paiement->date_paiement)->format('d/m/Y') }}</td>
+                            <td>
+                                @if($paiement->statut == 'completé')
+                                <span class="badge bg-success">Complété</span>
+                                @elseif($paiement->statut == 'en attente')
+                                <span class="badge bg-warning">En attente</span>
+                                @elseif($paiement->statut == 'annulé')
+                                <span class="badge bg-danger">Annulé</span>
+                                @else
+                                <span class="badge bg-secondary">{{ $paiement->statut }}</span>
+                                @endif
+                            </td>
+                            <td class="text-nowrap">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ route('esbtp.comptabilite.paiements.show', $paiement->id) }}" class="btn btn-sm btn-info" title="Détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    @if($paiement->statut != 'completé')
+                                    <a href="{{ route('esbtp.comptabilite.paiements.edit', $paiement->id) }}" class="btn btn-sm btn-primary" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @endif
+                                    
+                                    <a href="{{ route('esbtp.comptabilite.paiements.recu', $paiement->id) }}" class="btn btn-sm btn-success" title="Générer reçu" target="_blank">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </a>
+                                    
+                                    @if($paiement->statut == 'en attente')
+                                    <form action="{{ route('esbtp.comptabilite.paiements.valider', $paiement->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success" title="Valider">
+                                            <i class="fas fa-check"></i>
+                                        </button>
                                     </form>
+                                    
+                                    <form action="{{ route('esbtp.comptabilite.paiements.rejeter', $paiement->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir rejeter ce paiement?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Rejeter">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center">Aucun paiement trouvé</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="mt-4">
+                {{ $paiements->withQueryString()->links() }}
+            </div>
+            
+            <!-- Résumé financier -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i> Résumé financier
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total des paiements</h5>
+                                    <h2 class="display-6">{{ number_format($paiements->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Paiements complétés</h5>
+                                    <h2 class="display-6">{{ number_format($paiements->where('statut', 'completé')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Paiements en attente</h5>
+                                    <h2 class="display-6">{{ number_format($paiements->where('statut', 'en attente')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Liste des paiements -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Étudiant</th>
-                                    <th>Classe</th>
-                                    <th>Type</th>
-                                    <th>Montant</th>
-                                    <th>Méthode</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($paiements ?? [] as $paiement)
-                                    <tr>
-                                        <td>{{ $paiement->id }}</td>
-                                        <td>{{ $paiement->date_paiement->format('d/m/Y') }}</td>
-                                        <td>{{ $paiement->etudiant->user->name ?? 'N/A' }}</td>
-                                        <td>{{ $paiement->etudiant->classe->nom ?? 'N/A' }}</td>
-                                        <td>{{ $paiement->type_paiement }}</td>
-                                        <td>{{ number_format($paiement->montant, 0, ',', ' ') }} FCFA</td>
-                                        <td>{{ $paiement->methode_paiement }}</td>
-                                        <td>
-                                            <span class="badge {{ $paiement->statut == 'payé' ? 'bg-success' : ($paiement->statut == 'en attente' ? 'bg-warning' : ($paiement->statut == 'rejeté' ? 'bg-danger' : 'bg-secondary')) }}">
-                                                {{ ucfirst($paiement->statut) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{{ route('comptabilite.paiements.show', $paiement->id) }}" class="btn btn-info">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                @if($paiement->statut == 'en attente')
-                                                    <a href="{{ route('paiements.valider', $paiement->id) }}" class="btn btn-success">
-                                                        <i class="fas fa-check"></i>
-                                                    </a>
-                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $paiement->id }}">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                @endif
-                                                <a href="{{ route('paiements.recu', $paiement->id) }}" class="btn btn-primary" target="_blank">
-                                                    <i class="fas fa-file-invoice"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="9" class="text-center py-4">
-                                            <div class="d-flex flex-column align-items-center">
-                                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                                                <h5>Aucun paiement trouvé</h5>
-                                                <p class="text-muted">Essayez de modifier vos filtres ou d'ajouter un nouveau paiement</p>
-                                                <a href="{{ route('comptabilite.paiements.create') }}" class="btn btn-primary mt-2">
-                                                    <i class="fas fa-plus me-2"></i>Nouveau paiement
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    @if(isset($paiements) && $paiements->hasPages())
-                        <div class="d-flex justify-content-center mt-4">
-                            {{ $paiements->appends(request()->query())->links() }}
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Modals de rejet (un pour chaque paiement) -->
-@if(isset($paiements))
-    @foreach($paiements as $paiement)
-        <div class="modal fade" id="rejectModal{{ $paiement->id }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ $paiement->id }}" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="rejectModalLabel{{ $paiement->id }}">Rejeter le paiement</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="{{ route('paiements.rejeter', $paiement->id) }}" method="POST">
-                        @csrf
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="raison" class="form-label">Raison du rejet</label>
-                                <textarea class="form-control" id="raison" name="raison" rows="3" required></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-danger">Rejeter</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endforeach
-@endif
 @endsection 

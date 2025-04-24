@@ -113,7 +113,7 @@ echo "\n=== VÉRIFICATION DE LA SIDEBAR ===\n";
 try {
     $sidebarContent = file_get_contents(__DIR__ . '/resources/views/layouts/app.blade.php');
     $teacherLink = strpos($sidebarContent, "{{ route('esbtp.teachers.index') }}") !== false;
-    $comptabiliteLink = strpos($sidebarContent, "{{ route('comptabilite.index') }}") !== false;
+    $comptabiliteLink = strpos($sidebarContent, "{{ route('esbtp.comptabilite.index') }}") !== false;
     
     echo ($teacherLink ? "✅" : "❌") . " Lien vers la gestion des enseignants dans la sidebar\n";
     echo ($comptabiliteLink ? "✅" : "❌") . " Lien vers la comptabilité dans la sidebar\n";

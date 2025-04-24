@@ -12,17 +12,17 @@
                         <i class="fas fa-chart-line text-primary me-2"></i>Tableau de bord financier
                     </h5>
                     <div>
-                        <a href="{{ route('comptabilite.paiements.create') }}" class="btn btn-sm btn-primary me-2">
+                        <a href="{{ route('esbtp.comptabilite.paiements.create') }}" class="btn btn-sm btn-primary me-2">
                             <i class="fas fa-plus me-1"></i>Nouveau paiement
                         </a>
-                        <a href="{{ route('comptabilite.depenses.create') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('esbtp.comptabilite.depenses.create') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="fas fa-plus me-1"></i>Nouvelle dépense
                         </a>
                     </div>
                 </div>
                 <div class="card-body">
                     <!-- Filtres de période -->
-                    <form method="GET" action="{{ route('comptabilite.index') }}" class="row mb-4">
+                    <form method="GET" action="{{ route('esbtp.comptabilite.index') }}" class="row mb-4">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="date_debut">Période du</label>
@@ -81,7 +81,7 @@
                             <div class="card h-100">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="card-title mb-0">Paiements récents</h5>
-                                    <a href="{{ route('comptabilite.paiements.index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                                    <a href="{{ route('esbtp.comptabilite.paiements') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
                                 </div>
                                 <div class="card-body">
                                     @if(isset($recentesPaiements) && $recentesPaiements->count() > 0)
@@ -117,7 +117,7 @@
                             <div class="card h-100">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="card-title mb-0">Dépenses récentes</h5>
-                                    <a href="{{ route('comptabilite.depenses.index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                                    <a href="{{ route('esbtp.comptabilite.depenses') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
                                 </div>
                                 <div class="card-body">
                                     @if(isset($recentesDepenses) && $recentesDepenses->count() > 0)
@@ -179,7 +179,7 @@
                                                             <td>{{ number_format($etudiant->paiements->sum('montant'), 0, ',', ' ') }} FCFA</td>
                                                             <td>{{ $etudiant->paiements->first()->date_echeance->format('d/m/Y') }}</td>
                                                             <td>
-                                                                <a href="{{ route('comptabilite.paiements.create', ['etudiant_id' => $etudiant->id]) }}" class="btn btn-sm btn-primary">
+                                                                <a href="{{ route('esbtp.comptabilite.paiements.create', ['etudiant_id' => $etudiant->id]) }}" class="btn btn-sm btn-primary">
                                                                     <i class="fas fa-plus"></i> Paiement
                                                                 </a>
                                                             </td>
@@ -212,7 +212,7 @@
                                         <div class="text-center">
                                             <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
                                             <p>Graphique d'évolution mensuelle</p>
-                                            <a href="{{ route('comptabilite.rapports') }}" class="btn btn-sm btn-primary">
+                                            <a href="{{ route('esbtp.comptabilite.rapports') }}" class="btn btn-sm btn-primary">
                                                 Voir les rapports détaillés
                                             </a>
                                         </div>
@@ -230,7 +230,7 @@
                                         <div class="text-center">
                                             <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
                                             <p>Graphique de répartition</p>
-                                            <a href="{{ route('comptabilite.rapports') }}" class="btn btn-sm btn-primary">
+                                            <a href="{{ route('esbtp.comptabilite.rapports') }}" class="btn btn-sm btn-primary">
                                                 Voir les rapports détaillés
                                             </a>
                                         </div>

@@ -11,7 +11,7 @@
                     <h5 class="card-title mb-0 fw-bold">
                         <i class="fas fa-file-invoice-dollar text-primary me-2"></i>Gestion des dépenses
                     </h5>
-                    <a href="{{ route('comptabilite.depenses.create') }}" class="btn btn-primary">
+                    <a href="{{ route('esbtp.comptabilite.depenses.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Nouvelle dépense
                     </a>
                 </div>
@@ -26,7 +26,7 @@
                             </h2>
                             <div id="collapseFilters" class="accordion-collapse collapse" aria-labelledby="headingFilters" data-bs-parent="#accordionFilters">
                                 <div class="accordion-body">
-                                    <form method="GET" action="{{ route('comptabilite.depenses.index') }}" class="row g-3">
+                                    <form method="GET" action="{{ route('esbtp.comptabilite.depenses.index') }}" class="row g-3">
                                         <div class="col-md-3">
                                             <label for="categorie" class="form-label">Catégorie</label>
                                             <select class="form-select" id="categorie" name="categorie">
@@ -50,7 +50,7 @@
                                             <button type="submit" class="btn btn-primary me-2">
                                                 <i class="fas fa-search me-2"></i>Filtrer
                                             </button>
-                                            <a href="{{ route('comptabilite.depenses.index') }}" class="btn btn-secondary">
+                                            <a href="{{ route('esbtp.comptabilite.depenses.index') }}" class="btn btn-secondary">
                                                 <i class="fas fa-redo me-2"></i>Réinitialiser
                                             </a>
                                         </div>
@@ -87,7 +87,7 @@
                                         <td>{{ $depense->reference ?? 'N/A' }}</td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{{ route('comptabilite.depenses.show', $depense->id) }}" class="btn btn-info">
+                                                <a href="{{ route('esbtp.comptabilite.depenses.show', $depense->id) }}" class="btn btn-info">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="#" class="btn btn-primary" onclick="window.print()">
@@ -103,7 +103,7 @@
                                                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                                                 <h5>Aucune dépense trouvée</h5>
                                                 <p class="text-muted">Essayez de modifier vos filtres ou d'ajouter une nouvelle dépense</p>
-                                                <a href="{{ route('comptabilite.depenses.create') }}" class="btn btn-primary mt-2">
+                                                <a href="{{ route('esbtp.comptabilite.depenses.create') }}" class="btn btn-primary mt-2">
                                                     <i class="fas fa-plus me-2"></i>Nouvelle dépense
                                                 </a>
                                             </div>
@@ -161,7 +161,7 @@
                             </div>
                             
                             <div class="mt-4 text-center">
-                                <a href="{{ route('comptabilite.rapports') }}" class="btn btn-primary">
+                                <a href="{{ route('esbtp.comptabilite.rapports') }}" class="btn btn-primary">
                                     <i class="fas fa-chart-pie me-2"></i>Voir les rapports détaillés
                                 </a>
                             </div>

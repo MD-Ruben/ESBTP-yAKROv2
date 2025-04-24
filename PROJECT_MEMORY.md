@@ -2,6 +2,86 @@
 
 ## Corrections et Améliorations Récentes
 
+### 49. Correction des liens de la comptabilité et ajout de la gestion des enseignants (17/07/2025)
+
+**Problèmes identifiés :**
+
+- Les liens du module comptabilité (à l'exception du tableau de bord financier) ne fonctionnaient pas correctement
+- L'interface de gestion des enseignants n'était pas complètement implémentée (vues manquantes)
+
+**Analyse approfondie :**
+
+1. Problème lié à la comptabilité :
+   - Le contrôleur `DepensesController` utilisait des modèles non existants (`Depense` et `CategorieDepense`) au lieu des modèles corrects (`ESBTPDepense` et `ESBTPCategorieDepense`)
+   - Les noms de tables étaient incorrects dans certaines validations (`esbtp_categories_depense` au lieu de `esbtp_categories_depenses`)
+   - Les redirections utilisaient des routes incorrectes ou incomplètes
+
+2. Problème lié à la gestion des enseignants :
+   - Le contrôleur `ESBTPEnseignantController` existait avec toutes les méthodes nécessaires
+   - Les routes étaient correctement définies mais les vues `create.blade.php`, `edit.blade.php` et `show.blade.php` manquaient
+
+**Solution mise en œuvre :**
+
+1. Correction du module comptabilité :
+   - Mise à jour du `DepensesController` pour utiliser les modèles corrects (`ESBTPDepense` et `ESBTPCategorieDepense`)
+   - Correction des noms de tables dans les validations
+   - Correction des routes de redirection
+   - Ajout des méthodes `create` et `edit` manquantes
+
+2. Implémentation complète de la gestion des enseignants :
+   - Création des vues manquantes :
+     - `create.blade.php` : Formulaire d'ajout d'un nouvel enseignant
+     - `edit.blade.php` : Formulaire de modification d'un enseignant existant
+     - `show.blade.php` : Affichage détaillé d'un enseignant
+
+**Impact :**
+
+- Tous les liens du module comptabilité fonctionnent maintenant correctement
+- Les administrateurs peuvent gérer complètement les enseignants (ajouter, modifier, supprimer)
+- Interface utilisateur cohérente avec le reste de l'application
+- Amélioration de l'expérience utilisateur pour les administrateurs
+
+**Bonnes pratiques appliquées :**
+
+- Conservation de la structure existante des modèles et contrôleurs
+- Respect des conventions de nommage de l'application
+- Interface utilisateur cohérente avec le reste de l'application
+- Gestion des erreurs et validation des données
+- Documentation complète des modifications dans PROJECT_MEMORY.md
+
+### 48. Correction de l'erreur RouteNotFoundException [esbtp.comptabilite.reporting] (15/07/2025)
+
+**Problème identifié :**
+
+- Erreur `Symfony\Component\Routing\Exception\RouteNotFoundException: Route [esbtp.comptabilite.reporting] not defined.` lors de la connexion à l'application
+- L'erreur provenait du fichier app.blade.php qui référençait une route inexistante
+- Cette erreur empêchait les utilisateurs de se connecter correctement à l'application
+
+**Analyse approfondie :**
+
+- Le menu de la sidebar dans app.blade.php faisait référence à une route nommée `esbtp.comptabilite.reporting` pour les rapports financiers
+- Cette route n'était pas définie dans le fichier routes/web.php
+- Une route similaire était définie sous le nom `esbtp.comptabilite.rapports` pour la même fonctionnalité
+
+**Solution mise en œuvre :**
+
+- Modification du fichier app.blade.php pour remplacer la référence à `esbtp.comptabilite.reporting` par `esbtp.comptabilite.rapports`
+- Mise à jour du sélecteur de classe active dans la condition pour mettre en surbrillance l'élément du menu: `request()->routeIs('esbtp.comptabilite.rapports*')`
+
+**Impact :**
+
+- Résolution de l'erreur RouteNotFoundException
+- Les utilisateurs peuvent maintenant se connecter et accéder à l'application sans erreur
+- Le menu de navigation pour les rapports financiers fonctionne correctement
+- Conservation de la cohérence entre les routes définies et les liens dans l'interface utilisateur
+
+**Bonnes pratiques appliquées :**
+
+- Identification précise de la source de l'erreur grâce au message d'exception
+- Vérification complète des routes définies dans web.php avant modification
+- Documentation de la correction dans PROJECT_MEMORY.md pour référence future
+- Conservation de la cohérence entre les noms de routes utilisés dans l'application
+
 ### 47. Implémentation de l'affichage des photos de profil dans la navbar (09/04/2025)
 
 **Amélioration implémentée :**
@@ -495,7 +575,7 @@ Le processus de génération de bulletins fonctionne maintenant correctement. Le
 
 -   La méthode `calculerMoyenneEtudiant` était appelée à la ligne 2386 dans `genererPDFParParams` pour calculer les statistiques de classe:
 
-````php
+```php
     $moyenneEtud = $this->calculerMoyenneEtudiant($etud->id, $classe_id, $periode, $annee_universitaire_id);
     ```
 
@@ -621,4 +701,3 @@ Le processus de génération de bulletins fonctionne maintenant correctement. Le
 -   Importance de maintenir une cohérence entre les noms des paramètres dans les URLs et dans le code du contrôleur
 -   Utilité de journaliser les paramètres reçus pour faciliter le débogage des problèmes liés aux requêtes HTTP
 -   Avantage d'une solution qui préserve la compatibilité avec le code existant
-````
