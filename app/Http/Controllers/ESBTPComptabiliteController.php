@@ -600,7 +600,7 @@ class ESBTPComptabiliteController extends Controller
         $recettesParMois = $this->getRecettesParMois();
         $depensesParMois = $this->getDepensesParMois();
         
-        return view('esbtp.comptabilite.rapports.index', compact(
+        return view('esbtp.comptabilite.rapports', compact(
             'statsRecettes',
             'statsDepenses',
             'statsPaiements',
@@ -655,7 +655,7 @@ class ESBTPComptabiliteController extends Controller
         $data['dateFin'] = $dateFin;
         $data['type'] = $type;
         
-        return view('esbtp.comptabilite.rapports.report', compact('data'));
+        return view('esbtp.comptabilite.rapports', compact('data'));
     }
     
     /**
@@ -675,11 +675,29 @@ class ESBTPComptabiliteController extends Controller
      */
     public function fraisScolarite()
     {
-        $fraisScolarites = ESBTPFraisScolarite::with(['filiere', 'niveau', 'anneeUniversitaire'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = ESBTPFraisScolarite::with(['filiere', 'niveau', 'anneeUniversitaire']);
         
-        return view('esbtp.comptabilite.frais-scolarite.index', compact('fraisScolarites'));
+        // Filtres
+        if (request()->has('filiere') && !empty(request('filiere'))) {
+            $query->where('filiere_id', request('filiere'));
+        }
+        
+        if (request()->has('niveau') && !empty(request('niveau'))) {
+            $query->where('niveau_id', request('niveau'));
+        }
+        
+        if (request()->has('annee') && !empty(request('annee'))) {
+            $query->where('annee_universitaire_id', request('annee'));
+        }
+        
+        $fraisScolarites = $query->orderBy('created_at', 'desc')->paginate(15);
+        
+        // Récupérer les données pour les filtres
+        $filieres = \App\Models\ESBTPFiliere::orderBy('name')->get();
+        $niveaux = \App\Models\ESBTPNiveauEtude::orderBy('name')->get();
+        $annees = \App\Models\ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
+        
+        return view('esbtp.comptabilite.frais-scolarite.index', compact('fraisScolarites', 'filieres', 'niveaux', 'annees'));
     }
     
     /**
@@ -687,9 +705,9 @@ class ESBTPComptabiliteController extends Controller
      */
     public function createFraisScolarite()
     {
-        $filieres = ESBTPFiliere::all();
-        $niveaux = ESBTPNiveauEtude::all();
-        $annees = ESBTPAnneeUniversitaire::all();
+        $filieres = \App\Models\ESBTPFiliere::orderBy('name')->get();
+        $niveaux = \App\Models\ESBTPNiveauEtude::orderBy('name')->get();
+        $annees = \App\Models\ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
         
         return view('esbtp.comptabilite.frais-scolarite.create', compact('filieres', 'niveaux', 'annees'));
     }
@@ -768,9 +786,9 @@ class ESBTPComptabiliteController extends Controller
     public function editFraisScolarite($id)
     {
         $fraisScolarite = ESBTPFraisScolarite::findOrFail($id);
-        $filieres = ESBTPFiliere::all();
-        $niveaux = ESBTPNiveauEtude::all();
-        $annees = ESBTPAnneeUniversitaire::all();
+        $filieres = \App\Models\ESBTPFiliere::orderBy('name')->get();
+        $niveaux = \App\Models\ESBTPNiveauEtude::orderBy('name')->get();
+        $annees = \App\Models\ESBTPAnneeUniversitaire::orderBy('name', 'desc')->get();
         
         return view('esbtp.comptabilite.frais-scolarite.edit', compact('fraisScolarite', 'filieres', 'niveaux', 'annees'));
     }
@@ -927,6 +945,249 @@ class ESBTPComptabiliteController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
             
-        return view('esbtp.comptabilite.salaires.index', compact('salaires'));
+        // Calculer les montants totaux des salaires
+        $totalSalaires = ESBTPSalaire::sum('montant_net');
+        $totalPayes = ESBTPSalaire::where('statut', 'payé')->sum('montant_net');
+        $totalEnAttente = ESBTPSalaire::where('statut', 'en attente')->sum('montant_net');
+            
+        return view('esbtp.comptabilite.salaires.index', compact('salaires', 'totalSalaires', 'totalPayes', 'totalEnAttente'));
+    }
+    
+    /**
+     * Affiche le formulaire de création d'un salaire
+     */
+    public function createSalaire()
+    {
+        // Récupérer la liste des employés (enseignants et administratifs)
+        $users = \App\Models\User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['enseignant', 'secretaire', 'superAdmin']);
+        })->orderBy('name')->get();
+        
+        return view('esbtp.comptabilite.salaires.create', compact('users'));
+    }
+    
+    /**
+     * Enregistre un nouveau salaire
+     */
+    public function storeSalaire(Request $request)
+    {
+        // Validation des données
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'mois' => 'required|integer|between:1,12',
+            'annee' => 'required|integer',
+            'salaire_base' => 'required|numeric|min:0',
+            'heures_supplementaires' => 'nullable|numeric|min:0',
+            'primes' => 'nullable|numeric|min:0',
+            'retenues' => 'nullable|numeric|min:0',
+            'montant_net' => 'required|numeric|min:0',
+            'date_paiement' => 'nullable|date',
+            'statut' => 'required|in:calculé,validé,payé',
+            'description' => 'nullable|string',
+        ]);
+        
+        // Vérifier si un salaire existe déjà pour cet employé pour ce mois et cette année
+        $existingSalaire = ESBTPSalaire::where('user_id', $request->user_id)
+            ->where('mois', $request->mois)
+            ->where('annee', $request->annee)
+            ->first();
+            
+        if ($existingSalaire) {
+            return redirect()->back()
+                ->with('error', 'Un salaire existe déjà pour cet employé pour la période spécifiée.')
+                ->withInput();
+        }
+        
+        // Créer le nouveau salaire
+        $salaire = new ESBTPSalaire();
+        $salaire->user_id = $request->user_id;
+        $salaire->mois = $request->mois;
+        $salaire->annee = $request->annee;
+        $salaire->salaire_base = $request->salaire_base;
+        $salaire->heures_supplementaires = $request->heures_supplementaires ?? 0;
+        $salaire->primes = $request->primes ?? 0;
+        $salaire->retenues = $request->retenues ?? 0;
+        $salaire->montant_net = $request->montant_net;
+        $salaire->date_paiement = $request->date_paiement;
+        $salaire->statut = $request->statut;
+        $salaire->notes = $request->description;
+        $salaire->createur_id = auth()->id();
+        
+        // Si le statut est "payé", définir la date de validation et le validateur
+        if ($request->statut == 'payé') {
+            $salaire->validateur_id = auth()->id();
+            $salaire->date_validation = now();
+        }
+        
+        $salaire->save();
+        
+        return redirect()->route('esbtp.comptabilite.salaires')
+            ->with('success', 'Le salaire a été créé avec succès.');
+    }
+    
+    /**
+     * Affiche les détails d'un salaire
+     */
+    public function showSalaire($id)
+    {
+        $salaire = ESBTPSalaire::with(['user', 'anneeUniversitaire', 'createur', 'validateur'])
+            ->findOrFail($id);
+            
+        return view('esbtp.comptabilite.salaires.show', compact('salaire'));
+    }
+    
+    /**
+     * Affiche le formulaire d'édition d'un salaire
+     */
+    public function editSalaire($id)
+    {
+        $salaire = ESBTPSalaire::findOrFail($id);
+        
+        // Récupérer la liste des employés
+        $users = \App\Models\User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['enseignant', 'secretaire', 'superAdmin']);
+        })->orderBy('name')->get();
+        
+        return view('esbtp.comptabilite.salaires.edit', compact('salaire', 'users'));
+    }
+    
+    /**
+     * Met à jour un salaire existant
+     */
+    public function updateSalaire(Request $request, $id)
+    {
+        $salaire = ESBTPSalaire::findOrFail($id);
+        
+        // Validation des données
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'mois' => 'required|integer|between:1,12',
+            'annee' => 'required|integer',
+            'salaire_base' => 'required|numeric|min:0',
+            'heures_supplementaires' => 'nullable|numeric|min:0',
+            'primes' => 'nullable|numeric|min:0',
+            'retenues' => 'nullable|numeric|min:0',
+            'montant_net' => 'required|numeric|min:0',
+            'date_paiement' => 'nullable|date',
+            'statut' => 'required|in:calculé,validé,payé',
+            'description' => 'nullable|string',
+        ]);
+        
+        // Vérifier si un autre salaire existe déjà pour cet employé pour ce mois et cette année
+        $existingSalaire = ESBTPSalaire::where('user_id', $request->user_id)
+            ->where('mois', $request->mois)
+            ->where('annee', $request->annee)
+            ->where('id', '!=', $id)
+            ->first();
+            
+        if ($existingSalaire) {
+            return redirect()->back()
+                ->with('error', 'Un autre salaire existe déjà pour cet employé pour la période spécifiée.')
+                ->withInput();
+        }
+        
+        // Mettre à jour le salaire
+        $salaire->user_id = $request->user_id;
+        $salaire->mois = $request->mois;
+        $salaire->annee = $request->annee;
+        $salaire->salaire_base = $request->salaire_base;
+        $salaire->heures_supplementaires = $request->heures_supplementaires ?? 0;
+        $salaire->primes = $request->primes ?? 0;
+        $salaire->retenues = $request->retenues ?? 0;
+        $salaire->montant_net = $request->montant_net;
+        $salaire->date_paiement = $request->date_paiement;
+        $salaire->notes = $request->description;
+        
+        // Si le statut change pour "payé", mettre à jour le validateur et la date de validation
+        if ($request->statut == 'payé' && $salaire->statut != 'payé') {
+            $salaire->validateur_id = auth()->id();
+            $salaire->date_validation = now();
+        }
+        
+        $salaire->statut = $request->statut;
+        $salaire->save();
+        
+        return redirect()->route('esbtp.comptabilite.salaires')
+            ->with('success', 'Le salaire a été mis à jour avec succès.');
+    }
+    
+    /**
+     * Supprime un salaire
+     */
+    public function destroySalaire($id)
+    {
+        $salaire = ESBTPSalaire::findOrFail($id);
+        $salaire->delete();
+        
+        return redirect()->route('esbtp.comptabilite.salaires')
+            ->with('success', 'Le salaire a été supprimé avec succès.');
+    }
+    
+    /**
+     * Génère un bulletin de salaire
+     */
+    public function bulletinSalaire($id)
+    {
+        $salaire = ESBTPSalaire::with(['user', 'anneeUniversitaire', 'createur', 'validateur'])
+            ->findOrFail($id);
+            
+        // Préparer les données pour le PDF
+        $data = [
+            'salaire' => $salaire,
+            'employe' => $salaire->user,
+            'mois' => [
+                1 => 'Janvier', 2 => 'Février', 3 => 'Mars',
+                4 => 'Avril', 5 => 'Mai', 6 => 'Juin',
+                7 => 'Juillet', 8 => 'Août', 9 => 'Septembre',
+                10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'
+            ][$salaire->mois],
+            'annee' => $salaire->annee,
+            'date_emission' => now()->format('d/m/Y')
+        ];
+        
+        // Générer le PDF
+        $pdf = \PDF::loadView('esbtp.comptabilite.salaires.bulletin', $data);
+        
+        // Télécharger le PDF
+        $filename = 'bulletin_salaire_' . $salaire->user->name . '_' . $data['mois'] . '_' . $data['annee'] . '.pdf';
+        return $pdf->download($filename);
+    }
+    
+    /**
+     * Met à jour le statut d'un salaire
+     */
+    public function updateStatusSalaire($id, $status)
+    {
+        $salaire = ESBTPSalaire::findOrFail($id);
+        
+        // Vérifier que le statut est valide
+        if (!in_array($status, ['calculé', 'validé', 'payé'])) {
+            return redirect()->back()->with('error', 'Statut invalide.');
+        }
+        
+        // Mettre à jour le statut
+        $salaire->statut = $status;
+        
+        // Si le statut est "payé", mettre à jour le validateur et la date de validation
+        if ($status == 'payé' && $salaire->validateur_id === null) {
+            $salaire->validateur_id = auth()->id();
+            $salaire->date_validation = now();
+            
+            // Mettre à jour la date de paiement si elle n'est pas définie
+            if ($salaire->date_paiement === null) {
+                $salaire->date_paiement = now();
+            }
+        }
+        
+        $salaire->save();
+        
+        $statusText = [
+            'calculé' => 'calculé',
+            'validé' => 'validé',
+            'payé' => 'payé'
+        ][$status];
+        
+        return redirect()->route('esbtp.comptabilite.salaires')
+            ->with('success', "Le salaire a été marqué comme $statusText avec succès.");
     }
 }

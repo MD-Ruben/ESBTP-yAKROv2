@@ -2,6 +2,76 @@
 
 @section('title', 'Rapports financiers')
 
+@section('styles')
+<style>
+    /* Styles des cartes financières */
+    .financial-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        position: relative;
+    }
+    
+    .financial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .recettes-card {
+        background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    }
+    
+    .depenses-card {
+        background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    }
+    
+    .balance-card {
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    }
+    
+    .balance-negative {
+        background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    }
+    
+    .card-amount {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    
+    .card-label {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-desc {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .financial-card .float-icon {
+        position: absolute;
+        right: 15px;
+        font-size: 4rem;
+        bottom: 0;
+        opacity: 0.2;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .financial-card:hover .float-icon {
+        opacity: 0.4;
+        transform: translateY(0);
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid">
     <div class="row mb-4">
@@ -42,27 +112,55 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="card bg-success text-white">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">Total des recettes</h5>
-                                                    <h2 class="display-6">{{ number_format(array_sum($recettes ?? [0]), 0, ',', ' ') }} FCFA</h2>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="financial-card recettes-card">
+                                                <div class="card-body p-4">
+                                                    <div class="card-label">
+                                                        <i class="fas fa-money-bill-wave me-2"></i>TOTAL DES RECETTES
+                                                    </div>
+                                                    <div class="card-amount">
+                                                        {{ number_format(array_sum($recettes ?? [0]), 0, ',', ' ') }} FCFA
+                                                    </div>
+                                                    <div class="card-desc">Tous les paiements reçus</div>
+                                                    <div class="float-icon">
+                                                        <i class="fas fa-coins"></i>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="card bg-danger text-white">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">Total des dépenses</h5>
-                                                    <h2 class="display-6">{{ number_format(array_sum($depenses ?? [0]), 0, ',', ' ') }} FCFA</h2>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="financial-card depenses-card">
+                                                <div class="card-body p-4">
+                                                    <div class="card-label">
+                                                        <i class="fas fa-file-invoice-dollar me-2"></i>TOTAL DES DÉPENSES
+                                                    </div>
+                                                    <div class="card-amount">
+                                                        {{ number_format(array_sum($depenses ?? [0]), 0, ',', ' ') }} FCFA
+                                                    </div>
+                                                    <div class="card-desc">Toutes les dépenses effectuées</div>
+                                                    <div class="float-icon">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="card {{ (array_sum($recettes ?? [0]) - array_sum($depenses ?? [0])) >= 0 ? 'bg-primary' : 'bg-warning' }} text-white">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">Balance</h5>
-                                                    <h2 class="display-6">{{ number_format(array_sum($recettes ?? [0]) - array_sum($depenses ?? [0]), 0, ',', ' ') }} FCFA</h2>
+                                        <div class="col-md-4 mb-3">
+                                            @php
+                                                $balance = array_sum($recettes ?? [0]) - array_sum($depenses ?? [0]);
+                                                $isPositive = $balance >= 0;
+                                            @endphp
+                                            <div class="financial-card {{ $isPositive ? 'balance-card' : 'balance-negative' }}">
+                                                <div class="card-body p-4">
+                                                    <div class="card-label">
+                                                        <i class="fas fa-balance-scale me-2"></i>BALANCE
+                                                    </div>
+                                                    <div class="card-amount">
+                                                        {{ number_format($balance, 0, ',', ' ') }} FCFA
+                                                    </div>
+                                                    <div class="card-desc">{{ $isPositive ? 'Excédent budgétaire' : 'Déficit budgétaire' }}</div>
+                                                    <div class="float-icon">
+                                                        <i class="fas fa-{{ $isPositive ? 'chart-line' : 'chart-area' }}"></i>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

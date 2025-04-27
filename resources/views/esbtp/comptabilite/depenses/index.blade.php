@@ -26,7 +26,7 @@
                             </h2>
                             <div id="collapseFilters" class="accordion-collapse collapse" aria-labelledby="headingFilters" data-bs-parent="#accordionFilters">
                                 <div class="accordion-body">
-                                    <form method="GET" action="{{ route('esbtp.comptabilite.depenses.index') }}" class="row g-3">
+                                    <form method="GET" action="{{ route('esbtp.comptabilite.depenses') }}" class="row g-3">
                                         <div class="col-md-3">
                                             <label for="categorie" class="form-label">Catégorie</label>
                                             <select class="form-select" id="categorie" name="categorie">
@@ -50,7 +50,7 @@
                                             <button type="submit" class="btn btn-primary me-2">
                                                 <i class="fas fa-search me-2"></i>Filtrer
                                             </button>
-                                            <a href="{{ route('esbtp.comptabilite.depenses.index') }}" class="btn btn-secondary">
+                                            <a href="{{ route('esbtp.comptabilite.depenses') }}" class="btn btn-secondary">
                                                 <i class="fas fa-redo me-2"></i>Réinitialiser
                                             </a>
                                         </div>
@@ -79,9 +79,9 @@
                                 @forelse($depenses ?? [] as $depense)
                                     <tr>
                                         <td>{{ $depense->id }}</td>
-                                        <td>{{ $depense->date->format('d/m/Y') }}</td>
+                                        <td>{{ $depense->date_depense ? $depense->date_depense->format('d/m/Y') : 'N/A' }}</td>
                                         <td>{{ $depense->description ?? $depense->libelle }}</td>
-                                        <td>{{ $depense->categorie }}</td>
+                                        <td>{{ $depense->categorie ? $depense->categorie->nom : 'N/A' }}</td>
                                         <td>{{ number_format($depense->montant, 0, ',', ' ') }} FCFA</td>
                                         <td>{{ $depense->beneficiaire ?? 'N/A' }}</td>
                                         <td>{{ $depense->reference ?? 'N/A' }}</td>

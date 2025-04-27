@@ -2,6 +2,66 @@
 
 @section('title', 'Gestion des paiements')
 
+@section('styles')
+<style>
+    .finance-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        border: none;
+        margin-bottom: 20px;
+    }
+    
+    .finance-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .finance-card .card-body {
+        padding: 20px;
+    }
+    
+    .finance-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 10px 0;
+        line-height: 1.2;
+    }
+    
+    .finance-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0;
+        opacity: 0.8;
+    }
+    
+    .finance-icon {
+        font-size: 2.5rem;
+        opacity: 0.3;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+    }
+    
+    .paiements-card {
+        background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+        color: white;
+    }
+    
+    .recettes-card {
+        background: linear-gradient(135deg, #1e8e3e 0%, #34a853 100%);
+        color: white;
+    }
+    
+    .attente-card {
+        background: linear-gradient(135deg, #fbbc04 0%, #fdd663 100%);
+        color: white;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid">
     <div class="card">
@@ -144,32 +204,38 @@
             
             <!-- Résumé financier -->
             <div class="card mt-4">
-                <div class="card-header">
-                    <i class="fas fa-chart-pie me-1"></i> Résumé financier
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Résumé financier</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body py-4">
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="card bg-primary text-white mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card finance-card paiements-card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total des paiements</h5>
-                                    <h2 class="display-6">{{ number_format($paiements->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <i class="fas fa-money-bill-wave finance-icon"></i>
+                                    <p class="finance-label">Total des paiements</p>
+                                    <h2 class="finance-amount">{{ number_format($paiements->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <p class="mb-0 opacity-75">Tous les paiements enregistrés</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card bg-success text-white mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card finance-card recettes-card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">Paiements complétés</h5>
-                                    <h2 class="display-6">{{ number_format($paiements->where('statut', 'completé')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <i class="fas fa-check-circle finance-icon"></i>
+                                    <p class="finance-label">Paiements complétés</p>
+                                    <h2 class="finance-amount">{{ number_format($paiements->where('statut', 'completé')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <p class="mb-0 opacity-75">Paiements validés et complétés</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card bg-warning text-white mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card finance-card attente-card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">Paiements en attente</h5>
-                                    <h2 class="display-6">{{ number_format($paiements->where('statut', 'en attente')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <i class="fas fa-clock finance-icon"></i>
+                                    <p class="finance-label">Paiements en attente</p>
+                                    <h2 class="finance-amount">{{ number_format($paiements->where('statut', 'en attente')->sum('montant'), 0, ',', ' ') }} FCFA</h2>
+                                    <p class="mb-0 opacity-75">Paiements en attente de validation</p>
                                 </div>
                             </div>
                         </div>
