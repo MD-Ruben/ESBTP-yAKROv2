@@ -180,12 +180,17 @@
             clear: both;
             display: table;
         }
+        .header-left {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-container">
-            <img src="{{ public_path('images/esbtp_logo.png') }}" alt="Logo" class="logo">
+        <div class="header-left">
+            <img src="{{ public_path('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo" class="logo">
         </div>
         <div class="school-info">
             <h2>Ecole Speciale du Bâtiment et des Travaux Publics</h2>

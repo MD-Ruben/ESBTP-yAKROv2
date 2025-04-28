@@ -1,10 +1,11 @@
 <!--
-    Layout principal de l'application ESBTP-yAKRO
+    Layout principal de l'application KLASSCI
 
     Ce fichier a été modifié pour :
     1. Corriger les routes non définies (erreurs 'Route [xxx] not defined')
     2. Organiser la barre latérale en fonction des rôles (superadmin, secretaire, enseignant, etudiant, parent)
     3. Regrouper les fonctionnalités par catégories logiques
+    4. Ajouter le logo KLASSCI
 
     Toutes les routes ont été alignées avec les contrôleurs existants.
 
@@ -18,1007 +19,569 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'ESBTP'))</title>
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" type="image/x-icon">
+    <title>@yield('title', 'KLASSCI')</title>
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        :root {
-            --esbtp-green: #01632f;
-            --esbtp-green-dark: #014a23;
-            --esbtp-green-light: #e6f3ee;
-            --esbtp-orange: #f29400;
-            --esbtp-orange-dark: #d98600;
-            --esbtp-orange-light: #fff8eb;
-            --esbtp-white: #ffffff;
-            --esbtp-light-green: rgba(1, 99, 47, 0.1);
-            --esbtp-light-orange: rgba(242, 148, 0, 0.1);
-            --esbtp-gray: #f8f9fa;
-            --esbtp-dark: #343a40;
-            --esbtp-text: #495057;
-            --sidebar-width: 280px;
-            --topbar-height: 70px;
-            --border-radius: 10px;
-            --card-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            --transition-speed: 0.3s;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--esbtp-gray);
-            color: var(--esbtp-text);
-            min-height: 100vh;
-            display: flex;
-        }
-
-        /* Correction pour les éléments select et option */
-        select, select option {
-            color: var(--esbtp-text) !important;
-            background-color: var(--esbtp-white) !important;
-        }
-
-        select option {
-            padding: 8px 12px;
-        }
-
-        /* Pour Select2 si utilisé */
-        .select2-container--default .select2-selection--single .select2-selection__rendered,
-        .select2-results__option {
-            color: var(--esbtp-text) !important;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--esbtp-white);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-            transition: transform var(--transition-speed);
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .sidebar-logo {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--esbtp-green);
-            margin-bottom: 5px;
-        }
-
-        .sidebar-subtitle {
-            font-size: 0.9rem;
-            color: var(--esbtp-orange);
-            font-weight: 500;
-        }
-
-        .sidebar-menu {
-            padding: 20px;
-        }
-
-        .menu-category {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: var(--esbtp-text);
-            opacity: 0.6;
-            margin: 20px 0 10px;
-            font-weight: 600;
-        }
-
-        .nav-item {
-            margin-bottom: 5px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            color: var(--esbtp-text);
-            border-radius: var(--border-radius);
-            transition: all var(--transition-speed);
-        }
-
-        .nav-link:hover {
-            background-color: var(--esbtp-light-green);
-            color: var(--esbtp-green);
-        }
-
-        .nav-link.active {
-            background-color: var(--esbtp-green);
-            color: var(--esbtp-white);
-        }
-
-        .nav-icon {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Main Content Styles */
-        .main-wrapper {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            display: flex;
-            flex-direction: column;
-            transition: margin var(--transition-speed);
-        }
-
-        .topbar {
-            height: var(--topbar-height);
-            background-color: var(--esbtp-white);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            padding: 0 30px;
-            position: sticky;
-            top: 0;
-            z-index: 99;
-        }
-
-        .toggle-sidebar {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--esbtp-text);
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .page-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--esbtp-dark);
-            flex: 1;
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-        }
-
-        .action-item {
-            margin-left: 20px;
-            position: relative;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: var(--esbtp-text);
-            cursor: pointer;
-            transition: color var(--transition-speed);
-        }
-
-        .action-btn:hover {
-            color: var(--esbtp-green);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--esbtp-orange);
-            color: var(--esbtp-white);
-            font-size: 0.7rem;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-dropdown {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 10px;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--esbtp-dark);
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            color: var(--esbtp-text);
-            opacity: 0.8;
-        }
-
-        .content {
-            padding: 30px;
-            flex: 1;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(0);
-            }
-
-            .main-wrapper {
-                margin-left: 0;
-            }
-
-            .toggle-sidebar {
-                display: block;
-            }
-        }
-
-        /* Card Styles */
-        .card {
-            background-color: var(--esbtp-white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            border: none;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .card-header {
-            background-color: var(--esbtp-white);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--esbtp-dark);
-            margin: 0;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        /* Button Styles */
-        .btn-primary {
-            background-color: var(--esbtp-green);
-            border-color: var(--esbtp-green);
-        }
-
-        .btn-primary:hover, .btn-primary:focus {
-            background-color: var(--esbtp-green-dark);
-            border-color: var(--esbtp-green-dark);
-        }
-
-        .btn-secondary {
-            background-color: var(--esbtp-orange);
-            border-color: var(--esbtp-orange);
-        }
-
-        .btn-secondary:hover, .btn-secondary:focus {
-            background-color: var(--esbtp-orange-dark);
-            border-color: var(--esbtp-orange-dark);
-        }
-
-        .notifications-dropdown {
-            width: 320px;
-            padding: 0;
-            max-height: 400px;
-        }
-
-        .notifications-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .notifications-header h6 {
-            margin: 0;
-        }
-
-        .notifications-body {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .notification-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .notification-item:hover {
-            background-color: var(--esbtp-light-green);
-        }
-
-        .notification-item.unread {
-            background-color: var(--esbtp-light-orange);
-        }
-
-        .notification-item .notification-title {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 3px;
-        }
-
-        .notification-item .notification-time {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        .notifications-footer {
-            border-top: 1px solid #eee;
-        }
-
-        .notifications-footer a {
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-
-        #unreadNotificationCount {
-            display: none;
-        }
-
-        #unreadNotificationCount:not(:empty) {
-            display: flex;
-        }
-    </style>
-    @stack('styles')
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{{ asset('css/nextadmin.css') }}" rel="stylesheet">
+    
+    <!-- Styles supplémentaires -->
+    @yield('styles')
 </head>
 <body>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="{{ asset('images/esbtp_logo.png') }}" alt="ESBTP Logo" class="sidebar-logo">
-            <div class="sidebar-brand">ESBTP</div>
-            <div class="sidebar-subtitle">Gestion Universitaire</div>
-            <!--<div class="sidebar-brand">KLASSCI</div>
-            <div class="sidebar-subtitle">Gestion Universitaire</div>-->
-        </div>
+    <div class="nextadmin-wrapper">
+        <!-- Sidebar -->
+        <aside class="nextadmin-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" style="width: 30px; height: auto;"></div>
+                    <div class="sidebar-logo-text">KLASSCI</div>
+                </div>
+            </div>
 
-        <div class="sidebar-menu">
-            <div class="menu-category">Navigation principale</div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span>Tableau de bord</span>
-                    </a>
-                </li>
-
-                @role('superAdmin')
-                <div class="menu-category">Administration</div>
-                <li class="nav-item">
-                    <a href="{{ route('roles.index') }}" class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-tag nav-icon"></i>
-                        <span>Rôles et permissions</span>
-                    </a>
-                </li>
-                <!--<li class="nav-item">
-                    <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                        <i class="fas fa-cog nav-icon"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>-->
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.secretaires.index') }}" class="nav-link {{ request()->routeIs('esbtp.secretaires.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-tie nav-icon"></i>
-                        <span>Gestion des Secrétaires</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.enseignants.index') }}" class="nav-link {{ request()->routeIs('esbtp.enseignants.*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span>Gestion des Enseignants</span>
-                    </a>
-                </li>
-                @endrole
-
-                @hasanyrole('superAdmin|secretaire')
-                <div class="menu-category">Structure académique</div>
-                @role('superAdmin')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.filieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.filieres.*') ? 'active' : '' }}">
-                        <i class="fas fa-graduation-cap nav-icon"></i>
-                        <span>Filières</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.niveaux-etudes.index') }}" class="nav-link {{ request()->routeIs('esbtp.niveaux-etudes.*') ? 'active' : '' }}">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span>Niveaux d'études</span>
-                    </a>
-                </li>
-                @endrole
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.classes.index') }}" class="nav-link {{ request()->routeIs('esbtp.classes.*') || request()->routeIs('esbtp.classes.*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard nav-icon"></i>
-                        <span>Classes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.matieres.index') }}" class="nav-link {{ request()->routeIs('esbtp.matieres.*') ? 'active' : '' }}">
-                        <i class="fas fa-book nav-icon"></i>
-                        <span>Matières</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                @hasanyrole('superAdmin|secretaire')
-                <div class="menu-category">Gestion des étudiants</div>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.etudiants-inscriptions.index') }}" class="nav-link {{ request()->routeIs('esbtp.etudiants-inscriptions.*') || request()->routeIs('esbtp.etudiants.*') || request()->routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate nav-icon"></i>
-                        <span>Étudiants & Inscriptions</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                <!-- Section emploi du temps -->
-                <div class="menu-category">Emploi du temps</div>
-                @hasanyrole('superAdmin|secretaire')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.emploi-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span>Gestion des emplois du temps</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                @role('etudiant')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mon-emploi-temps.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-emploi-temps.index') ? 'active' : '' }}">
-                        <i class="fas fa-calendar-day nav-icon"></i>
-                        <span>Mon emploi du temps</span>
-                    </a>
-                </li>
-                @endrole
-
-                <!-- Section examens et notes -->
-                <div class="menu-category">Évaluations et notes</div>
-                @hasanyrole('superAdmin|secretaire')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
-                        <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Évaluations</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.notes.index') }}" class="nav-link {{ request()->routeIs('esbtp.notes.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-list nav-icon"></i>
-                        <span>Notes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.resultats.index') }}" class="nav-link {{ request()->routeIs('esbtp.bulletins.*') || request()->routeIs('esbtp.resultats.*') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice nav-icon"></i>
-                        <span>Résultats et Bulletins</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                @role('etudiant')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-evaluations.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-evaluations.index') ? 'active' : '' }}">
-                        <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Mes évaluations</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-notes.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notes.index') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-list nav-icon"></i>
-                        <span>Mes notes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mon-bulletin.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-bulletin.index') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice nav-icon"></i>
-                        <span>Mes résultats et bulletin</span>
-                    </a>
-                </li>
-                @endrole
-
-                <!-- Section présences -->
-                <div class="menu-category">Présences</div>
-                @hasanyrole('superAdmin|secretaire')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.attendances.index') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.index') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Suivi des présences</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.attendances.rapport-form') }}" class="nav-link {{ request()->routeIs('esbtp.attendances.rapport-form') ? 'active' : '' }}">
-                        <i class="fas fa-chart-pie nav-icon"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                @role('etudiant')
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-absences.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-absences.index') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-check nav-icon"></i>
-                        <span>Mes absences</span>
-                    </a>
-                </li>
-                <!-- Debug link moved to a separate nav item if needed -->
-                <li class="nav-item">
-                    <a href="/esbtp/mes-absences/debug" class="nav-link" style="color: #ff5500;">
-                        <i class="nav-icon fas fa-bug"></i>
-                        <span>Debug Mes Absences</span>
-                    </a>
-                </li>
-                @endrole
-
-                @role('etudiant')
-                <div class="menu-category">Communication</div>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-notifications.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-notifications.index') ? 'active' : '' }}">
-                        <i class="fas fa-bell nav-icon"></i>
-                        <span>Mes notifications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.mes-messages.index') }}" class="nav-link {{ request()->routeIs('esbtp.mes-messages.index') ? 'active' : '' }}">
-                        <i class="fas fa-inbox nav-icon"></i>
-                        <span>Mes messages</span>
-                    </a>
-                </li>
-                @endrole
-
-                @role('parent')
-                <div class="menu-category">Espace Parent</div>
-                <li class="nav-item">
-                    <a href="{{ route('parent.dashboard') }}" class="nav-link {{ request()->routeIs('parent.dashboard') ? 'active' : '' }}">
-                        <i class="fas fa-home nav-icon"></i>
-                        <span>Tableau de bord</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.payments') }}" class="nav-link {{ request()->routeIs('parent.payments*') ? 'active' : '' }}">
-                        <i class="fas fa-money-bill-wave nav-icon"></i>
-                        <span>Paiements</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.absences.summary') }}" class="nav-link {{ request()->routeIs('parent.absences*') ? 'active' : '' }}">
-                        <i class="fas fa-user-clock nav-icon"></i>
-                        <span>Absences</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.bulletins') }}" class="nav-link {{ request()->routeIs('parent.bulletins*') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice nav-icon"></i>
-                        <span>Résultats et bulletins</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.messages') }}" class="nav-link {{ request()->routeIs('parent.messages*') ? 'active' : '' }}">
-                        <i class="fas fa-envelope nav-icon"></i>
-                        <span>Messages</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.notifications') }}" class="nav-link {{ request()->routeIs('parent.notifications*') ? 'active' : '' }}">
-                        <i class="fas fa-bell nav-icon"></i>
-                        <span>Notifications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('parent.settings.index') }}" class="nav-link {{ request()->routeIs('parent.settings*') ? 'active' : '' }}">
-                        <i class="fas fa-cog nav-icon"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
-                @endrole
-
-                <!-- Communication -->
-                @hasanyrole('superAdmin|secretaire')
-                <div class="menu-category">Communication</div>
-
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.*') ? 'active' : '' }}">
-                        <i class="fas fa-envelope nav-icon"></i>
-                        <span>Envoi de messages</span>
-                    </a>
-                </li>
-                @endhasanyrole
-
-                @role('etudiant')
-                <!--<li class="nav-item">
-                    <a href="{{ route('esbtp.annonces.index') }}" class="nav-link {{ request()->routeIs('esbtp.annonces.index') ? 'active' : '' }}">
-                        <i class="fas fa-inbox nav-icon"></i>
-                        <span>Mes messages</span>
-                    </a>
-                </li>-->
-                @endrole
-
-                @role('superAdmin')
-                <div class="menu-category">Comptabilité</div>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.index') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.index') ? 'active' : '' }}">
-                        <i class="fas fa-chart-line nav-icon"></i>
-                        <span>Tableau de bord financier</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.paiements') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.paiements*') ? 'active' : '' }}">
-                        <i class="fas fa-money-bill-wave nav-icon"></i>
-                        <span>Paiements étudiants</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.frais-scolarite') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.frais-scolarite*') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice-dollar nav-icon"></i>
-                        <span>Frais de scolarité</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.depenses') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.depenses*') ? 'active' : '' }}">
-                        <i class="fas fa-hand-holding-usd nav-icon"></i>
-                        <span>Dépenses</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.salaires') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.salaires*') ? 'active' : '' }}">
-                        <i class="fas fa-wallet nav-icon"></i>
-                        <span>Gestion des salaires</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.bourses') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.bourses*') ? 'active' : '' }}">
-                        <i class="fas fa-donate nav-icon"></i>
-                        <span>Bourses et aides</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('esbtp.comptabilite.rapports') }}" class="nav-link {{ request()->routeIs('esbtp.comptabilite.rapports*') ? 'active' : '' }}">
-                        <i class="fas fa-file-alt nav-icon"></i>
-                        <span>Rapports financiers</span>
-                    </a>
-                </li>
-                @endrole
-
-                <!-- Section profil utilisateur -->
-                <div class="menu-category">Mon compte</div>
-                <li class="nav-item">
-                    @role('etudiant')
-                    <a href="{{ route('esbtp.mon-profil.index') }}" class="nav-link {{ request()->routeIs('esbtp.mon-profil.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-circle nav-icon"></i>
-                        <span>Profil</span>
-                    </a>
-                    @else
-                    <a href="{{ route('admin.profile') }}" class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}">
-                        <i class="fas fa-user-circle nav-icon"></i>
-                        <span>Profil</span>
-                    </a>
-                    @endrole
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt nav-icon"></i>
-                        <span>Déconnexion</span>
-                    </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                        @csrf
-                    </form>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="main-wrapper">
-        <header class="topbar">
-            <button id="toggle-sidebar" class="toggle-sidebar">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <h1 class="page-title">@yield('page_title', 'Tableau de bord')</h1>
-
-            <div class="topbar-actions">
-                <div class="action-item">
-                    <div class="dropdown">
-                        <button class="action-btn" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge" id="unreadNotificationCount">0</span>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end notifications-dropdown" aria-labelledby="notificationsDropdown">
-                            <div class="notifications-header">
-                                <h6 class="dropdown-header">Notifications</h6>
-                                <button class="btn btn-link btn-sm mark-all-read">Tout marquer comme lu</button>
-                            </div>
-                            <div class="notifications-body" id="notificationsContainer">
-                                <div class="text-center p-3">
-                                    <small>Chargement...</small>
-                                </div>
-                            </div>
-                            <div class="notifications-footer">
-                                <div class="dropdown-divider"></div>
-                                <a href="@if(auth()->check() && auth()->user()->hasRole('etudiant')){{ route('esbtp.mes-notifications.index') }}@else{{ route('notifications.index') }}@endif" class="dropdown-item text-center">Voir toutes les notifications</a>
+            <div class="sidebar-menu">
+                @if(auth()->check())
+                    @if(auth()->user()->hasRole('superAdmin'))
+                        <div class="menu-category">Tableau de bord</div>
+                        <div class="menu-item">
+                            <a href="{{ route('dashboard') }}" class="menu-link {{ Request::routeIs('dashboard') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-home"></i></div>
+                                <div class="menu-text">Accueil</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-category">Gestion académique</div>
+                        
+                        <!-- Accordion Menu - Filières & Classes -->
+                        <div class="menu-accordion">
+                            <button class="menu-accordion-btn {{ Request::routeIs('esbtp.filieres.*') || Request::routeIs('esbtp.classes.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-school"></i></div>
+                                <div class="menu-text">Filières & Classes</div>
+                                <div class="menu-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </button>
+                            <div class="menu-accordion-content {{ Request::routeIs('esbtp.filieres.*') || Request::routeIs('esbtp.classes.*') ? 'show' : '' }}">
+                                <a href="{{ route('esbtp.filieres.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.filieres.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Filières</span>
+                                </a>
+                                <a href="{{ route('esbtp.classes.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.classes.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Classes</span>
+                                </a>
+                                <a href="{{ route('esbtp.niveaux-etudes.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.niveaux-etudes.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Niveaux d'études</span>
+                                </a>
                             </div>
                         </div>
+                        
+                        <!-- Accordion Menu - Étudiants -->
+                        <div class="menu-accordion">
+                            <button class="menu-accordion-btn {{ Request::routeIs('esbtp.etudiants.*') || Request::routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-user-graduate"></i></div>
+                                <div class="menu-text">Étudiants</div>
+                                <div class="menu-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </button>
+                            <div class="menu-accordion-content {{ Request::routeIs('esbtp.etudiants.*') || Request::routeIs('esbtp.inscriptions.*') ? 'show' : '' }}">
+                                <a href="{{ route('esbtp.etudiants.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.etudiants.index') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Liste des étudiants</span>
+                                </a>
+                                <a href="{{ route('esbtp.etudiants.create') }}" class="menu-sublink {{ Request::routeIs('esbtp.etudiants.create') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Ajouter un étudiant</span>
+                                </a>
+                                <a href="{{ route('esbtp.inscriptions.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Inscriptions</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Accordion Menu - Enseignement -->
+                        <div class="menu-accordion">
+                            <button class="menu-accordion-btn {{ Request::routeIs('esbtp.matieres.*') || Request::routeIs('esbtp.evaluations.*') || Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <div class="menu-text">Enseignement</div>
+                                <div class="menu-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </button>
+                            <div class="menu-accordion-content {{ Request::routeIs('esbtp.matieres.*') || Request::routeIs('esbtp.evaluations.*') || Request::routeIs('esbtp.emploi-temps.*') ? 'show' : '' }}">
+                                <a href="{{ route('esbtp.matieres.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.matieres.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Matières</span>
+                                </a>
+                                <a href="{{ route('esbtp.evaluations.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Examens & Évaluations</span>
+                                </a>
+                                <a href="{{ route('esbtp.emploi-temps.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Emplois du temps</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Accordion Menu - Bulletins & Notes -->
+                        <div class="menu-accordion">
+                            <button class="menu-accordion-btn {{ Request::routeIs('esbtp.notes.*') || Request::routeIs('esbtp.bulletins.*') || Request::routeIs('esbtp.resultats.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="menu-text">Notes & Bulletins</div>
+                                <div class="menu-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </button>
+                            <div class="menu-accordion-content {{ Request::routeIs('esbtp.notes.*') || Request::routeIs('esbtp.bulletins.*') || Request::routeIs('esbtp.resultats.*') ? 'show' : '' }}">
+                                <a href="{{ route('esbtp.notes.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.notes.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Gestion des notes</span>
+                                </a>
+                                <a href="{{ route('esbtp.bulletins.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Bulletins scolaires</span>
+                                </a>
+                                <a href="{{ route('esbtp.resultats.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.resultats.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Résultats & Classements</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-category">Administration</div>
+                        
+                        <!-- Accordion Menu - Personnel -->
+                        <div class="menu-accordion">
+                            <button class="menu-accordion-btn {{ Request::routeIs('esbtp.enseignants.*') || Request::routeIs('secretaires.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-users-cog"></i></div>
+                                <div class="menu-text">Personnel</div>
+                                <div class="menu-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </button>
+                            <div class="menu-accordion-content {{ Request::routeIs('esbtp.enseignants.*') || Request::routeIs('secretaires.*') ? 'active' : '' }}">
+                                <a href="{{ route('esbtp.enseignants.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.enseignants.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Enseignants</span>
+                                </a>
+                                <a href="{{ route('secretaires.index') }}" class="menu-sublink {{ Request::routeIs('secretaires.*') ? 'active' : '' }}">
+                                    <span class="menu-dot"></span>
+                                    <span>Secrétaires</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Autres menus -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.attendances.index') }}" class="menu-link {{ Request::routeIs('esbtp.attendances.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-calendar-check"></i></div>
+                                <div class="menu-text">Présences</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.comptabilite.index') }}" class="menu-link {{ Request::routeIs('esbtp.comptabilite.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <div class="menu-text">Comptabilité</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.annonces.index') }}" class="menu-link {{ Request::routeIs('esbtp.annonces.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                                <div class="menu-text">Annonces</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-category">Système</div>
+                        <div class="menu-item">
+                            <a href="{{ route('settings.index') }}" class="menu-link {{ Request::routeIs('settings.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-cog"></i></div>
+                                <div class="menu-text">Paramètres</div>
+                            </a>
+                        </div>
+                    @endif
+
+                    @if(auth()->user()->hasRole('teacher') || auth()->user()->hasRole('enseignant'))
+                        <div class="menu-category">Tableau de bord</div>
+                        <div class="menu-item">
+                            <a href="{{ route('dashboard') }}" class="menu-link {{ Request::routeIs('dashboard') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-home"></i></div>
+                                <div class="menu-text">Accueil</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-category">Enseignement</div>
+                        
+                        <!-- Gestion des notes -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.notes.index') }}" class="menu-link {{ Request::routeIs('esbtp.notes.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-graduation-cap"></i></div>
+                                <div class="menu-text">Gestion des notes</div>
+                            </a>
+                        </div>
+
+                        <!-- Examens & Évaluations -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.evaluations.index') }}" class="menu-link {{ Request::routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="menu-text">Examens & Évaluations</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Emploi du temps -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.emploi-temps.index') }}" class="menu-link {{ Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                                <div class="menu-text">Emploi du temps</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Gestion de présence -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.attendances.index') }}" class="menu-link {{ Request::routeIs('esbtp.attendances.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-clipboard-check"></i></div>
+                                <div class="menu-text">Gestion des présences</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-category">Étudiants</div>
+                        
+                        <!-- Liste des étudiants -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.etudiants.index') }}" class="menu-link {{ Request::routeIs('esbtp.etudiants.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-user-graduate"></i></div>
+                                <div class="menu-text">Liste des étudiants</div>
+                            </a>
+                        </div>
+
+                        <!-- Classes -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.classes.index') }}" class="menu-link {{ Request::routeIs('esbtp.classes.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-chalkboard"></i></div>
+                                <div class="menu-text">Classes</div>
+                            </a>
+                        </div>
+                        
+                        <div class="menu-category">Communication</div>
+                        
+                        <!-- Annonces -->
+                        <div class="menu-item">
+                            <a href="{{ route('esbtp.annonces.index') }}" class="menu-link {{ Request::routeIs('esbtp.annonces.*') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                                <div class="menu-text">Annonces</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Mon compte -->
+                        <div class="menu-item">
+                            <a href="{{ route('admin.profile') }}" class="menu-link {{ Request::routeIs('admin.profile') ? 'active' : '' }}">
+                                <div class="menu-icon"><i class="fas fa-user-circle"></i></div>
+                                <div class="menu-text">Mon profil</div>
+                            </a>
+                        </div>
+                    @endif
+                @endif
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="nextadmin-main">
+            <!-- Navbar -->
+            <nav class="nextadmin-navbar">
+                <div class="navbar-content">
+                    <div class="navbar-left">
+                        <button class="navbar-toggle" id="sidebar-toggle">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="navbar-title d-none d-md-block">
+                            <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" style="height: 35px; width: auto;">
+                            <span class="ms-2 fw-bold">KLASSCI</span>
+                        </div>
                     </div>
+                    
+                    <div class="navbar-center d-none d-lg-block">
+                        <div class="navbar-search">
+                            <div class="navbar-search-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <input type="text" placeholder="Rechercher..." class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="navbar-right">
+                        <!-- Notifications -->
+                        <div class="dropdown">
+                            <button class="navbar-icon" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="navbar-badge">3</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="notificationsDropdown">
+                                <li>
+                                    <h6 class="dropdown-header">Notifications</h6>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item notification-item unread" href="#">
+                                        <div class="notification-icon bg-primary-light text-primary">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">Nouvelle inscription</div>
+                                            <div class="notification-text">Un nouvel étudiant s'est inscrit</div>
+                                            <div class="notification-time">Il y a 5 minutes</div>
+                                        </div>
+                            </a>
+                        </li>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="#">
+                                        <div class="notification-icon bg-success-light text-success">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">Notes publiées</div>
+                                            <div class="notification-text">Les notes de mathématiques sont disponibles</div>
+                                            <div class="notification-time">Il y a 2 heures</div>
+                                        </div>
+                            </a>
+                        </li>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="#">
+                                        <div class="notification-icon bg-info-light text-info">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">Rappel</div>
+                                            <div class="notification-text">Réunion des enseignants demain</div>
+                                            <div class="notification-time">Il y a 1 jour</div>
+                                        </div>
+                            </a>
+                        </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-center view-all" href="#">
+                                        Voir toutes les notifications
+                            </a>
+                        </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Messages -->
+                        <div class="dropdown">
+                            <button class="navbar-icon" type="button" id="messagesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-envelope"></i>
+                                <span class="navbar-badge">2</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="messagesDropdown">
+                                <li>
+                                    <h6 class="dropdown-header">Messages</h6>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item message-item unread" href="#">
+                                        <div class="message-avatar">
+                                            <div class="user-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-title">Konan Yves</div>
+                                            <div class="message-text">Bonjour, concernant le cours de...</div>
+                                            <div class="message-time">Il y a 10 minutes</div>
+                                        </div>
+                            </a>
+                        </li>
+                                <li>
+                                    <a class="dropdown-item message-item" href="#">
+                                        <div class="message-avatar">
+                                            <div class="user-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-title">Touré Fatima</div>
+                                            <div class="message-text">Merci pour les informations...</div>
+                                            <div class="message-time">Il y a 3 heures</div>
+                                        </div>
+                            </a>
+                        </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-center view-all" href="#">
+                                        Voir tous les messages
+                                    </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dropdown">
+                            <button class="navbar-icon" type="button" id="quickActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-th-large"></i>
+                        </button>
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="quickActionsDropdown">
+                                <li>
+                                    <h6 class="dropdown-header">Actions rapides</h6>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <div class="quick-actions-grid">
+                                        <a href="{{ route('esbtp.etudiants.create') }}" class="quick-action-item">
+                                            <div class="quick-action-icon bg-primary-light text-primary">
+                                                <i class="fas fa-user-plus"></i>
+                            </div>
+                                            <div class="quick-action-text">Nouvel étudiant</div>
+                                        </a>
+                                        <a href="{{ route('esbtp.evaluations.create') }}" class="quick-action-item">
+                                            <div class="quick-action-icon bg-info-light text-info">
+                                                <i class="fas fa-file-alt"></i>
+                                </div>
+                                            <div class="quick-action-text">Créer examen</div>
+                                        </a>
+                                        <a href="{{ route('esbtp.notes.index') }}" class="quick-action-item">
+                                            <div class="quick-action-icon bg-success-light text-success">
+                                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                                            <div class="quick-action-text">Saisie notes</div>
+                                        </a>
+                                        <a href="{{ route('esbtp.annonces.create') }}" class="quick-action-item">
+                                            <div class="quick-action-icon bg-warning-light text-warning">
+                                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                                            <div class="quick-action-text">Annonce</div>
+                                        </a>
+                        </div>
+                                </li>
+                            </ul>
                 </div>
 
-                <div class="action-item dropdown">
-                    <div class="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
-                        @php
-                            \Log::info('Tentative d\'affichage de la photo de profil', [
-                                'user_authenticated' => Auth::check(),
-                                'user_id' => Auth::id(),
-                                'has_profile_photo' => Auth::user() && Auth::user()->profile_photo_path ? 'yes' : 'no',
-                                'profile_photo_path' => Auth::user() ? Auth::user()->profile_photo_path : null,
-                                'storage_url' => Auth::user() && Auth::user()->profile_photo_path ? Storage::url(Auth::user()->profile_photo_path) : null
-                            ]);
-                        @endphp
-                        @if(Auth::user() && Auth::user()->profile_photo_path)
-                            <img src="{{ Storage::url(Auth::user()->profile_photo_path) }}" alt="{{ Auth::user()->name }}" class="user-avatar">
+                <!-- User Profile -->
+                <div class="dropdown ms-2">
+                    <div class="navbar-user" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="navbar-avatar">
+                            @if(auth()->user()->profile_photo_path)
+                                <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="{{ auth()->user()->name }}">
                         @else
-                            <img src="{{ asset('images/avatar.jpg') }}" alt="User Avatar" class="user-avatar">
-                        @endif
-                        <div class="user-info">
-                            <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
-                            <div class="user-role">{{ Auth::user()->roles->first()->name ?? 'Rôle' }}</div>
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="navbar-user-info d-none d-md-block">
+                            <div class="navbar-user-name">{{ auth()->user()->name }}</div>
                         </div>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="profileDropdown">
                         <li>
-                            @role('etudiant')
-                            <a class="dropdown-item" href="{{ route('esbtp.mon-profil.index') }}"><i class="fas fa-user me-2"></i> Mon profil</a>
-                            @else
-                            <a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="fas fa-user me-2"></i> Mon profil</a>
-                            @endrole
+                            <div class="dropdown-user-details">
+                                <div class="dropdown-user-avatar">
+                                    @if(auth()->user()->profile_photo_path)
+                                        <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="{{ auth()->user()->name }}">
+                                    @else
+                                        <div class="user-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <div class="dropdown-user-name">{{ auth()->user()->name }}</div>
+                                    <div class="dropdown-user-email">{{ auth()->user()->email }}</div>
+                                </div>
+                            </div>
                         </li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <form method="POST" action="{{ route('logout') }}">
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-user-circle me-2"></i> Mon profil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('settings.index') }}">
+                                <i class="fas fa-cog me-2"></i> Paramètres
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" id="logout-form">
                                 @csrf
-                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</button>
+                                <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                                </a>
                             </form>
                         </li>
                     </ul>
                 </div>
             </div>
-        </header>
+                </div>
+            </nav>
 
-        <div class="content">
+            <!-- Content -->
+            <div class="nextadmin-content">
             @yield('content')
         </div>
+        </main>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    @stack('scripts')
-
+    <!-- Custom JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar on mobile
-            const toggleBtn = document.getElementById('toggle-sidebar');
+            // Sidebar Toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
             const sidebar = document.getElementById('sidebar');
-            const notificationsDropdown = document.getElementById('notificationsDropdown');
 
-            if (toggleBtn && sidebar) {
-                toggleBtn.addEventListener('click', function() {
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
+                    
+                    // Adjust for mobile
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.toggle('show');
+                    }
                 });
             }
-
-            // Empêcher la propagation du click sur le dropdown des notifications
-            notificationsDropdown?.addEventListener('click', function(event) {
-                event.stopPropagation();
+            
+            // Accordion Toggle
+            const accordionButtons = document.querySelectorAll('.menu-accordion-btn');
+            
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    
+                    if (content.classList.contains('show')) {
+                        content.classList.remove('show');
+                    } else {
+                        content.classList.add('show');
+                    }
+                });
             });
 
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth < 992) {
-                    const isClickInsideSidebar = sidebar.contains(event.target);
-                    const isClickOnToggleBtn = toggleBtn.contains(event.target);
-                    const isClickOnNotifications = notificationsDropdown.contains(event.target);
-
-                    if (!isClickInsideSidebar && !isClickOnToggleBtn && !isClickOnNotifications && !sidebar.classList.contains('collapsed')) {
+            // Collapse sidebar on mobile by default
+            function checkWidth() {
+                if (window.innerWidth < 992 && sidebar) {
                         sidebar.classList.add('collapsed');
+                    sidebar.classList.remove('show');
+                } else if (sidebar) {
+                            sidebar.classList.remove('collapsed');
+                        }
                     }
-                }
-            });
-
-            // Adjust sidebar on window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 992) {
-                    sidebar.classList.remove('collapsed');
-                }
-            });
-        });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const notificationsDropdown = document.getElementById('notificationsDropdown');
-        const notificationsContainer = document.getElementById('notificationsContainer');
-        const unreadCount = document.getElementById('unreadNotificationCount');
-        let isLoading = false;
-
-        function updateUnreadCount() {
-            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
-            fetch('{{ route("esbtp.notifications.unreadCount") }}')
-            @else
-            fetch('{{ route("notifications.unreadCount") }}')
-            @endif
-                .then(response => response.json())
-                .then(data => {
-                    unreadCount.textContent = data.count > 0 ? data.count : '';
-                });
-        }
-
-        function loadNotifications() {
-            if (isLoading) return;
-            isLoading = true;
-
-            notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Chargement...</small></div>';
-
-            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
-            fetch('{{ route("esbtp.mes-notifications.index") }}', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            @else
-            fetch('{{ route("notifications.index") }}', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            @endif
-                .then(response => response.text())
-                .then(html => {
-                    notificationsContainer.innerHTML = html;
-                    isLoading = false;
-                })
-                .catch(() => {
-                    notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Erreur de chargement</small></div>';
-                    isLoading = false;
-                });
-        }
-
-        function markAsRead(id) {
-            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
-            fetch(`{{ url('esbtp/mes-notifications') }}/${id}/read`, {
-            @else
-            fetch(`{{ url('notifications') }}/${id}/read`, {
-            @endif
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                    'X-Source': 'dropdown'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateUnreadCount();
-
-                // Si la notification doit être masquée, l'enlever du DOM
-                if (data.hide) {
-                    const notificationItem = document.querySelector(`.notification-item[onclick*="${id}"]`);
-                    if (notificationItem) {
-                        // Animation de fondu avant la suppression
-                        notificationItem.style.opacity = '1';
-                        notificationItem.style.transition = 'opacity 0.3s ease-out';
-
-                        // Commencer le fondu
-                        setTimeout(() => {
-                            notificationItem.style.opacity = '0';
-                        }, 10);
-
-                        // Supprimer après l'animation
-                        setTimeout(() => {
-                            notificationItem.remove();
-
-                            // Afficher un message "aucune notification" si c'était la dernière
-                            const notificationsContainer = document.getElementById('notificationsContainer');
-                            if (notificationsContainer && !notificationsContainer.querySelector('.notification-item')) {
-                                notificationsContainer.innerHTML = '<div class="text-center p-3"><small>Aucune notification</small></div>';
-                            }
-                        }, 300);
-                    }
-                }
-            });
-        }
-
-        document.querySelector('.mark-all-read')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            @if(auth()->check() && auth()->user()->hasRole('etudiant'))
-            fetch('{{ route("esbtp.mes-notifications.markAllAsRead") }}', {
-            @else
-            fetch('{{ route("notifications.markAllAsRead") }}', {
-            @endif
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(() => {
-                updateUnreadCount();
-                loadNotifications();
-            });
-        });
-
-        notificationsDropdown?.addEventListener('click', function() {
-            loadNotifications();
-        });
-
-        // Initial unread count
-        updateUnreadCount();
-
-        // Update unread count every minute
-        setInterval(updateUnreadCount, 60000);
+            
+            // Initial check
+            checkWidth();
+            
+            // Check on resize
+            window.addEventListener('resize', checkWidth);
     });
     </script>
 
-    <!-- Yield for page-specific scripts -->
+    <!-- Scripts additionnels -->
     @yield('scripts')
 </body>
 </html>

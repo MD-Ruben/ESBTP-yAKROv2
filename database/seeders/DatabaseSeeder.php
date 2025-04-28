@@ -47,5 +47,10 @@ class DatabaseSeeder extends Seeder
 
         // Add the expense categories seeder
         $this->call(ESBTPCategorieDepenseSeeder::class);
+        
+        // Add test users with different roles
+        if (app()->environment('local', 'development', 'testing')) {
+            $this->call(UsersTestSeeder::class);
+        }
     }
 }

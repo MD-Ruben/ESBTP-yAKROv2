@@ -20,7 +20,7 @@
     }
     
     .card-header-gradient {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: linear-gradient(135deg, #0056b3, #004494);
         color: white;
         padding: 20px 25px;
         position: relative;
@@ -67,7 +67,7 @@
     }
     
     .stat-card.avg-card {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: linear-gradient(135deg, #0056b3, #004494);
         color: white;
     }
     
@@ -137,7 +137,7 @@
     }
     
     .custom-table thead {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: linear-gradient(135deg, #0056b3, #004494);
         color: white;
     }
     
@@ -161,7 +161,7 @@
     }
     
     .custom-table tbody tr:hover {
-        background-color: rgba(52, 152, 219, 0.05);
+        background-color: rgba(0, 86, 179, 0.05);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     }
@@ -185,7 +185,7 @@
     }
     
     .action-btn.btn-info {
-        background: #3498db;
+        background: #0056b3;
         color: white;
     }
     
@@ -217,13 +217,13 @@
     .custom-pagination .page-item .page-link {
         border-radius: 50px;
         margin: 0 3px;
-        color: #3498db;
+        color: #0056b3;
         border: none;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
     
     .custom-pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: linear-gradient(135deg, #0056b3, #004494);
         border: none;
     }
     
@@ -383,7 +383,7 @@
                                 </td>
                                 <td>
                                     @if($depense->categorie)
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: rgba(52, 152, 219, 0.2); color: #2980b9;">
+                                        <span class="badge rounded-pill px-3 py-2" style="background-color: rgba(0, 86, 179, 0.2); color: #0056b3;">
                                             {{ $depense->categorie->nom }}
                                         </span>
                                     @else

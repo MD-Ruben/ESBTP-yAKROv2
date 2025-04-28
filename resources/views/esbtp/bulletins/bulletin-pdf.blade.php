@@ -225,7 +225,7 @@
                 <div>et de la Recherche Scientifique</div>
             </div>
             <div class="header-center">
-                <img src="{{ asset('images/esbtp_logo.png') }}" alt="Logo ESBTP" class="logo">
+                <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" class="logo">
                 <div class="school-name">École Spéciale du Bâtiment et des Travaux Publics</div>
                 <div class="school-address">BP 04 BP 1234 Abidjan 04 • Tel: 00 00 00 00 • Fax: 00 00 00 00</div>
             </div>

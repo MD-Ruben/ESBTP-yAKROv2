@@ -5,30 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ESBTP') }} - Réinitialisation du mot de passe</title>
+    <title>{{ config('app.name', 'KLASSCI') }} - Réinitialisation du mot de passe</title>
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Animation CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     
     <style>
         :root {
-            --esbtp-orange: #f29400;
-            --esbtp-green: #01632f;
-            --esbtp-white: #ffffff;
-            --esbtp-light-green: rgba(1, 99, 47, 0.05);
-            --esbtp-light-orange: rgba(242, 148, 0, 0.1);
+            /* KLASSCI Color Palette */
+            --klassci-primary: #6366f1; /* Indigo */
+            --klassci-secondary: #ec4899; /* Pink */
+            --klassci-success: #22c55e; /* Green */
+            --klassci-warning: #f59e0b; /* Amber */
+            --klassci-danger: #ef4444; /* Red */
+            --klassci-info: #0ea5e9; /* Light Blue */
+            --klassci-light: #f8fafc;
+            --klassci-dark: #0f172a;
+            --klassci-gradient: linear-gradient(135deg, var(--klassci-primary), var(--klassci-secondary));
+            --klassci-border-radius: 12px;
+            --klassci-box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.05);
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--esbtp-light-green), var(--esbtp-light-orange));
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05)), url('/images/pattern-bg.png');
+            background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -37,33 +45,37 @@
             overflow-x: hidden;
         }
         
-        body::before, body::after {
-            content: '';
+        /* Animated shapes */
+        .shape {
             position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+        
+        .shape-1 {
+            top: 20%;
+            left: 10%;
             width: 300px;
             height: 300px;
-            border-radius: 50%;
-            z-index: -1;
+            background: radial-gradient(var(--klassci-primary), transparent 70%);
+            animation: float 15s infinite alternate;
         }
         
-        body::before {
-            background: radial-gradient(var(--esbtp-light-orange), transparent 70%);
-            top: -100px;
-            right: -100px;
-            animation: float 8s ease-in-out infinite;
-        }
-        
-        body::after {
-            background: radial-gradient(var(--esbtp-light-green), transparent 70%);
-            bottom: -100px;
-            left: -100px;
-            animation: float 10s ease-in-out infinite reverse;
+        .shape-2 {
+            bottom: 10%;
+            right: 5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(var(--klassci-secondary), transparent 70%);
+            animation: float 18s infinite alternate-reverse;
         }
         
         @keyframes float {
-            0% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-            100% { transform: translateY(0) rotate(0deg); }
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(30px, -50px) rotate(10deg) scale(1.05); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg) scale(0.95); }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1); }
         }
         
         .reset-container {
@@ -73,28 +85,28 @@
         }
         
         .card {
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: var(--klassci-border-radius);
+            box-shadow: var(--klassci-box-shadow);
             border: none;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             transform-style: preserve-3d;
             transition: all 0.5s ease;
         }
         
         .card:hover {
-            transform: translateY(-5px) rotateX(5deg);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.2), 0 10px 20px -5px rgba(99, 102, 241, 0.1);
+            transform: translateY(-5px);
         }
         
         .card-header {
-            background: linear-gradient(135deg, var(--esbtp-green), #014a23);
+            background: var(--klassci-gradient);
             color: white;
-            border-radius: 20px 20px 0 0 !important;
+            border-radius: var(--klassci-border-radius) var(--klassci-border-radius) 0 0 !important;
             padding: 30px 20px;
             text-align: center;
-            border-bottom: 5px solid var(--esbtp-orange);
+            border-bottom: none;
             position: relative;
             overflow: hidden;
         }
@@ -106,8 +118,19 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
             transform: rotate(30deg);
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo-img {
+            height: 60px;
+            object-fit: contain;
         }
         
         .card-body {
@@ -115,32 +138,32 @@
         }
         
         .btn-primary {
-            background: linear-gradient(to right, var(--esbtp-orange), #f2a730);
+            background: var(--klassci-gradient);
             border: none;
             padding: 12px 25px;
             font-weight: 600;
             border-radius: 30px;
-            box-shadow: 0 5px 15px rgba(242, 148, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
             transition: all 0.3s ease;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(to right, var(--esbtp-green), #018a42);
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(1, 99, 47, 0.4);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
         }
         
         .form-control {
-            padding: 12px 15px;
+            padding: 14px 16px;
             border-radius: 10px;
             border: 2px solid #e2e8f0;
             background-color: #f8fafc;
             transition: all 0.3s ease;
+            font-size: 0.95rem;
         }
         
         .form-control:focus {
-            border-color: var(--esbtp-orange);
-            box-shadow: 0 0 0 3px rgba(242, 148, 0, 0.1);
+            border-color: var(--klassci-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
             background-color: white;
         }
         
@@ -149,7 +172,7 @@
             background-color: #f8fafc;
             border: 2px solid #e2e8f0;
             border-right: none;
-            color: var(--esbtp-green);
+            color: var(--klassci-primary);
         }
         
         .form-control {
@@ -157,7 +180,7 @@
         }
         
         .login-link {
-            color: var(--esbtp-green);
+            color: var(--klassci-primary);
             display: inline-flex;
             align-items: center;
             font-weight: 600;
@@ -166,7 +189,7 @@
         }
         
         .login-link:hover {
-            color: var(--esbtp-orange);
+            color: var(--klassci-secondary);
             transform: translateX(-5px);
         }
         
@@ -180,259 +203,217 @@
         }
         
         .alert-success {
-            background-color: rgba(25, 135, 84, 0.1);
-            color: #198754;
+            background-color: rgba(34, 197, 94, 0.1);
+            color: var(--klassci-success);
         }
         
         .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--klassci-danger);
         }
         
         /* Animation pour les champs du formulaire */
-        .animate__animated {
-            animation-duration: 0.6s;
+        .fade-in {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
         
-        .animate__delay-1 {
-            animation-delay: 0.1s;
+        .fade-in.active {
+            opacity: 1;
+            transform: translateY(0);
         }
         
-        .animate__delay-2 {
-            animation-delay: 0.2s;
+        .delay-1 {
+            transition-delay: 0.1s;
         }
         
-        .animate__delay-3 {
-            animation-delay: 0.3s;
+        .delay-2 {
+            transition-delay: 0.2s;
         }
         
-        /* Effet de particules */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            pointer-events: none;
-        }
-        
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.5;
-            animation: particleFloat 15s infinite linear;
-        }
-        
-        @keyframes particleFloat {
-            0% { transform: translateY(0) rotate(0deg); }
-            100% { transform: translateY(-100vh) rotate(360deg); }
+        .delay-3 {
+            transition-delay: 0.3s;
         }
         
         /* Animation de l'icône de clé */
-        .key-icon {
+        .reset-icon {
             display: inline-block;
             font-size: 2.5rem;
-            color: var(--esbtp-orange);
+            color: white;
             margin-bottom: 15px;
-            animation: shake 3s infinite;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            animation: pulse 2s infinite;
         }
         
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
-            20%, 40%, 60%, 80% { transform: rotate(10deg); }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         
         /* Effet de force du mot de passe */
         .password-strength {
             height: 5px;
             border-radius: 5px;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-            background-color: #e2e8f0;
+            margin-top: 5px;
+            background: #e2e8f0;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
-        .password-strength-bar {
+        .password-strength-meter {
             height: 100%;
             width: 0;
-            border-radius: 5px;
             transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+        
+        .strength-weak {
+            width: 33%;
+            background: var(--klassci-danger);
+        }
+        
+        .strength-medium {
+            width: 66%;
+            background: var(--klassci-warning);
+        }
+        
+        .strength-strong {
+            width: 100%;
+            background: var(--klassci-success);
         }
     </style>
 </head>
 <body>
-    <!-- Particules d'arrière-plan -->
-    <div class="particles" id="particles"></div>
+    <!-- Animated background shapes -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
 
-    <div class="container">
-        <div class="reset-container animate__animated animate__fadeIn">
-            <div class="card">
-                <div class="card-header">
-                    <div class="key-icon animate__animated animate__bounceIn">
-                        <i class="fas fa-key"></i>
-                    </div>
-                    <h3 class="mb-0 animate__animated animate__fadeInDown">Réinitialisation du mot de passe</h3>
-                    <p class="mb-0 mt-2 animate__animated animate__fadeInUp">ESBTP - Système de Gestion Universitaire</p>
+    <div class="reset-container">
+        <div class="card" data-aos="fade-up">
+            <div class="card-header">
+                <div class="logo-container">
+                    <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="KLASSCI Logo" class="logo-img">
                 </div>
-                <div class="card-body p-4">
-                    @if ($errors->any())
-                        <div class="alert alert-danger mb-3 animate__animated animate__fadeIn">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('password.update') }}" id="resetForm">
-                        @csrf
-
-                        <input type="hidden" name="token" value="{{ $token }}">
-
-                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-1">
-                            <label for="email" class="form-label">Adresse e-mail</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus readonly>
-                            </div>
-                        </div>
-
-                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-2">
-                            <label for="password" class="form-label">Nouveau mot de passe</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" placeholder="••••••••">
-                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="password-strength mt-2">
-                                <div class="password-strength-bar" id="passwordStrengthBar"></div>
-                            </div>
-                            <small class="text-muted mt-1" id="passwordFeedback">Entrez un mot de passe fort</small>
-                        </div>
-
-                        <div class="mb-4 animate__animated animate__fadeInUp animate__delay-3">
-                            <label for="password-confirm" class="form-label">Confirmer le mot de passe</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password" placeholder="••••••••">
-                                <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 animate__animated animate__fadeInUp animate__delay-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-key me-2"></i> Réinitialiser le mot de passe
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <i class="fas fa-key reset-icon"></i>
+                <h3 class="mb-0">Réinitialisation du mot de passe</h3>
+                <p class="text-white-50 mt-2">Créez un nouveau mot de passe sécurisé</p>
             </div>
-            <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-3">
-                <a href="{{ route('login') }}" class="login-link">
-                    <i class="fas fa-arrow-left"></i> Retour à la connexion
-                </a>
+            <div class="card-body">
+                @if (session('status'))
+                    <div class="alert alert-success mb-4" role="alert">
+                        {{ session('status') }}
+                    </div>
+                @endif
+                
+                <form method="POST" action="{{ route('password.update') }}">
+                    @csrf
+                    
+                    <input type="hidden" name="token" value="{{ $token }}">
+                    
+                    <div class="mb-4 fade-in active">
+                        <label for="email" class="form-label">Adresse e-mail</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus readonly>
+                            @error('email')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 fade-in active delay-1">
+                        <label for="password" class="form-label">Nouveau mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                            @error('password')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="password-strength mt-2">
+                            <div class="password-strength-meter" id="passwordStrengthMeter"></div>
+                        </div>
+                        <small id="passwordHelpBlock" class="form-text text-muted mt-1"></small>
+                    </div>
+                    
+                    <div class="mb-4 fade-in active delay-2">
+                        <label for="password-confirm" class="form-label">Confirmer le mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-4 fade-in active delay-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Réinitialiser le mot de passe
+                        </button>
+                    </div>
+                    
+                    <div class="text-center fade-in active delay-3">
+                        <a href="{{ route('login') }}" class="login-link">
+                            <i class="fas fa-arrow-left"></i> Retour à la connexion
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-
+    
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        // Création des particules d'arrière-plan
         document.addEventListener('DOMContentLoaded', function() {
-            const particlesContainer = document.getElementById('particles');
-            const colors = ['#01632f33', '#f2940033', '#01632f22', '#f2940022'];
-            
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                // Taille aléatoire
-                const size = Math.random() * 30 + 10;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // Position aléatoire
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                
-                // Couleur aléatoire
-                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                // Durée d'animation aléatoire
-                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
-                
-                // Délai d'animation aléatoire
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                
-                particlesContainer.appendChild(particle);
-            }
-            
-            // Fonctionnalité pour afficher/masquer le mot de passe
-            const togglePassword = document.getElementById('togglePassword');
-            const password = document.getElementById('password');
-            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-            const confirmPassword = document.getElementById('password-confirm');
-            
-            togglePassword.addEventListener('click', function() {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                this.querySelector('i').classList.toggle('fa-eye');
-                this.querySelector('i').classList.toggle('fa-eye-slash');
-            });
-            
-            toggleConfirmPassword.addEventListener('click', function() {
-                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-                confirmPassword.setAttribute('type', type);
-                this.querySelector('i').classList.toggle('fa-eye');
-                this.querySelector('i').classList.toggle('fa-eye-slash');
+            // Initialiser AOS
+            AOS.init({
+                duration: 800,
+                easing: 'ease-out',
+                once: true
             });
             
             // Vérification de la force du mot de passe
-            const passwordStrengthBar = document.getElementById('passwordStrengthBar');
-            const passwordFeedback = document.getElementById('passwordFeedback');
+            const passwordInput = document.getElementById('password');
+            const meterElement = document.getElementById('passwordStrengthMeter');
+            const helpTextElement = document.getElementById('passwordHelpBlock');
             
-            password.addEventListener('input', function() {
-                const value = password.value;
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
                 let strength = 0;
                 
-                if (value.length >= 8) strength += 25;
-                if (value.match(/[a-z]/)) strength += 25;
-                if (value.match(/[A-Z]/)) strength += 25;
-                if (value.match(/[0-9]/)) strength += 25;
+                // Vérification de la longueur
+                if (password.length >= 8) strength += 1;
                 
-                passwordStrengthBar.style.width = strength + '%';
+                // Vérification de la présence de lettres et de chiffres
+                if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 1;
                 
-                if (strength <= 25) {
-                    passwordStrengthBar.style.backgroundColor = '#dc3545';
-                    passwordFeedback.textContent = 'Mot de passe faible';
-                } else if (strength <= 50) {
-                    passwordStrengthBar.style.backgroundColor = '#ffc107';
-                    passwordFeedback.textContent = 'Mot de passe moyen';
-                } else if (strength <= 75) {
-                    passwordStrengthBar.style.backgroundColor = '#0dcaf0';
-                    passwordFeedback.textContent = 'Mot de passe bon';
-                } else {
-                    passwordStrengthBar.style.backgroundColor = '#198754';
-                    passwordFeedback.textContent = 'Mot de passe excellent';
-                }
-            });
-            
-            // Vérification de la correspondance des mots de passe
-            const resetForm = document.getElementById('resetForm');
-            
-            resetForm.addEventListener('submit', function(e) {
-                if (password.value !== confirmPassword.value) {
-                    e.preventDefault();
-                    alert('Les mots de passe ne correspondent pas.');
+                // Vérification de la présence de caractères spéciaux
+                if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
+                
+                // Mise à jour de l'indicateur
+                meterElement.className = 'password-strength-meter';
+                
+                if (password === '') {
+                    meterElement.style.width = '0';
+                    helpTextElement.textContent = '';
+                } else if (strength === 1) {
+                    meterElement.classList.add('strength-weak');
+                    helpTextElement.textContent = 'Mot de passe faible - Essayez d\'ajouter des majuscules et des caractères spéciaux';
+                    helpTextElement.style.color = 'var(--klassci-danger)';
+                } else if (strength === 2) {
+                    meterElement.classList.add('strength-medium');
+                    helpTextElement.textContent = 'Mot de passe moyen - Ajoutez des caractères spéciaux pour plus de sécurité';
+                    helpTextElement.style.color = 'var(--klassci-warning)';
+                } else if (strength === 3) {
+                    meterElement.classList.add('strength-strong');
+                    helpTextElement.textContent = 'Mot de passe fort - Parfait !';
+                    helpTextElement.style.color = 'var(--klassci-success)';
                 }
             });
         });
