@@ -44,5 +44,8 @@ class DatabaseSeeder extends Seeder
         //     ESBTPBulletinSeeder::class,
         //     ESBTPBulletinDetailsSeeder::class,   // Migration des données bulletin vers le nouveau format
         // ]);
+
+        // Add the expense categories seeder
+        $this->call(ESBTPCategorieDepenseSeeder::class);
     }
 }

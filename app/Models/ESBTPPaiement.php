@@ -25,17 +25,24 @@ class ESBTPPaiement extends Model
     protected $fillable = [
         'inscription_id',
         'etudiant_id',
+        'annee_universitaire_id',
+        'type_paiement',
+        'categorie_id',
         'montant',
+        'reference_paiement',
+        'mode_paiement',
+        'numero_transaction',
         'date_paiement',
-        'mode_paiement', // Espèces, chèque, virement, etc.
-        'reference_paiement', // Numéro de chèque, de transaction, etc.
-        'tranche', // Première tranche, deuxième tranche, etc.
+        'date_echeance',
+        'description',
+        'statut',
+        'createur_id',
+        'validateur_id',
+        'date_validation',
         'motif', // Scolarité, frais d'inscription, frais divers, etc.
         'numero_recu',
         'commentaire',
         'status', // En attente, validé, rejeté, etc.
-        'date_validation',
-        'validated_by',
         'created_by',
         'updated_by'
     ];
@@ -48,17 +55,18 @@ class ESBTPPaiement extends Model
     protected $casts = [
         'montant' => 'float',
         'date_paiement' => 'date',
-        'date_validation' => 'date',
+        'date_echeance' => 'date',
+        'date_validation' => 'datetime',
     ];
 
     /**
-     * Relation avec l'inscription.
+     * Relation avec la catégorie de paiement.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function inscription()
+    public function categorie()
     {
-        return $this->belongsTo(ESBTPInscription::class, 'inscription_id');
+        return $this->belongsTo(ESBTPCategoriePaiement::class, 'categorie_id');
     }
 
     /**
@@ -72,13 +80,43 @@ class ESBTPPaiement extends Model
     }
 
     /**
-     * Utilisateur qui a validé le paiement.
+     * Relation avec l'année universitaire.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function validatedBy()
+    public function anneeUniversitaire()
     {
-        return $this->belongsTo(User::class, 'validated_by');
+        return $this->belongsTo(ESBTPAnneeUniversitaire::class, 'annee_universitaire_id');
+    }
+
+    /**
+     * Relation avec l'utilisateur qui a créé le paiement.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function createur()
+    {
+        return $this->belongsTo(User::class, 'createur_id');
+    }
+
+    /**
+     * Relation avec l'utilisateur qui a validé le paiement.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function validateur()
+    {
+        return $this->belongsTo(User::class, 'validateur_id');
+    }
+
+    /**
+     * Relation avec l'inscription.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function inscription()
+    {
+        return $this->belongsTo(ESBTPInscription::class, 'inscription_id');
     }
 
     /**

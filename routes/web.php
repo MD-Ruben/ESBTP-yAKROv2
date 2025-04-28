@@ -36,6 +36,7 @@ use App\Http\Controllers\ESBTPComptabiliteController;
 use App\Http\Controllers\ESBTPSecretaireController;
 use App\Http\Controllers\ESBTPEnseignantController;
 use App\Http\Controllers\DepensesController;
+use App\Http\Controllers\ESBTPCategoriePaiementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -791,4 +792,16 @@ Route::middleware(['auth', 'permission:access_comptabilite_module'])->prefix('es
     // Configuration du module comptabilité
     Route::get('/configuration', [ESBTPComptabiliteController::class, 'configuration'])->name('configuration');
     Route::post('/configuration', [ESBTPComptabiliteController::class, 'updateConfiguration'])->name('configuration.update');
+    
+    // Gestion des catégories de paiement
+    Route::prefix('categories-paiement')->name('categories-paiement.')->group(function () {
+        Route::get('/', [ESBTPCategoriePaiementController::class, 'index'])->name('index');
+        Route::get('/create', [ESBTPCategoriePaiementController::class, 'create'])->name('create');
+        Route::post('/', [ESBTPCategoriePaiementController::class, 'store'])->name('store');
+        Route::get('/{categorie}', [ESBTPCategoriePaiementController::class, 'show'])->name('show');
+        Route::get('/{categorie}/edit', [ESBTPCategoriePaiementController::class, 'edit'])->name('edit');
+        Route::put('/{categorie}', [ESBTPCategoriePaiementController::class, 'update'])->name('update');
+        Route::delete('/{categorie}', [ESBTPCategoriePaiementController::class, 'destroy'])->name('destroy');
+        Route::patch('/{categorie}/toggle-status', [ESBTPCategoriePaiementController::class, 'toggleStatus'])->name('toggle-status');
+    });
 });
