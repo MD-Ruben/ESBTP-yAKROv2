@@ -156,7 +156,7 @@ class ESBTPAttendanceController extends Controller
         $statsRetard = $stats['retard'];
         $statsExcuse = $stats['excuse'];
 
-        // Get statistics per student
+        // Calculate statistics per student
         $statsParEtudiant = [];
 
         // Get class filter
@@ -210,6 +210,25 @@ class ESBTPAttendanceController extends Controller
             ];
         }
 
+        // Calculate additional statistics for the view
+        $totalAttendances = $statsTotal;
+        
+        // Calculate attendances for this month
+        $currentMonth = Carbon::now()->startOfMonth();
+        $attendancesThisMonth = ESBTPAttendance::whereDate('date', '>=', $currentMonth)->count();
+        
+        // Calculate average attendance rate
+        $totalRecords = ESBTPAttendance::count();
+        $totalPresent = ESBTPAttendance::where('statut', 'present')->count();
+        $averageAttendanceRate = $totalRecords > 0 ? round(($totalPresent / $totalRecords) * 100) : 0;
+        
+        // Calculate number of classes with attendance records
+        $classesWithAttendance = DB::table('esbtp_attendances')
+            ->join('esbtp_seance_cours', 'esbtp_attendances.seance_cours_id', '=', 'esbtp_seance_cours.id')
+            ->join('esbtp_emploi_temps', 'esbtp_seance_cours.emploi_temps_id', '=', 'esbtp_emploi_temps.id')
+            ->distinct('esbtp_emploi_temps.classe_id')
+            ->count('esbtp_emploi_temps.classe_id');
+
         return view('esbtp.attendances.index', compact(
             'attendances',
             'classes',
@@ -229,7 +248,11 @@ class ESBTPAttendanceController extends Controller
             'statsParStatus',
             'filteredTotal',
             'statsParEtudiant',
-            'etudiants'
+            'etudiants',
+            'totalAttendances',
+            'attendancesThisMonth',
+            'averageAttendanceRate',
+            'classesWithAttendance'
         ));
     }
 

@@ -31,25 +31,59 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link href="{{ asset('css/nextadmin.css') }}" rel="stylesheet">
-    
+
     <!-- Styles supplémentaires -->
+    <style>
+        /* Amélioration de la visibilité des éléments de la navbar */
+        .navbar-user-name, 
+        .dropdown-user-name, 
+        .dropdown-user-email,
+        .notification-title,
+        .notification-text,
+        .message-title,
+        .message-text,
+        .quick-action-text {
+            color: var(--nextadmin-gray-700) !important;
+        }
+        
+        .navbar-title {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* S'assurer que les icônes sont bien visibles */
+        .navbar-icon i, 
+        .menu-icon i {
+            color: var(--nextadmin-gray-700);
+        }
+        
+        /* Améliorer le contraste dans les dropdowns */
+        .dropdown-item {
+            color: var(--nextadmin-gray-700) !important;
+        }
+        
+        .dropdown-header {
+            color: var(--nextadmin-gray-900) !important;
+            font-weight: 600;
+        }
+    </style>
     @yield('styles')
 </head>
 <body>
     <div class="nextadmin-wrapper">
         <!-- Sidebar -->
         <aside class="nextadmin-sidebar" id="sidebar">
-            <div class="sidebar-header">
+        <div class="sidebar-header">
                 <div class="sidebar-logo">
                     <div class="sidebar-logo-icon"><img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" style="width: 30px; height: auto;"></div>
                     <div class="sidebar-logo-text">KLASSCI</div>
                 </div>
-            </div>
+        </div>
 
-            <div class="sidebar-menu">
+        <div class="sidebar-menu">
                 @if(auth()->check())
                     @if(auth()->user()->hasRole('superAdmin'))
                         <div class="menu-category">Tableau de bord</div>
@@ -58,7 +92,7 @@
                                 <div class="menu-icon"><i class="fas fa-home"></i></div>
                                 <div class="menu-text">Accueil</div>
                             </a>
-                        </div>
+                    </div>
                         
                         <div class="menu-category">Gestion académique</div>
                         
@@ -82,7 +116,7 @@
                                     <span class="menu-dot"></span>
                                     <span>Niveaux d'études</span>
                                 </a>
-                            </div>
+                    </div>
                         </div>
                         
                         <!-- Accordion Menu - Étudiants -->
@@ -105,8 +139,8 @@
                                     <span class="menu-dot"></span>
                                     <span>Inscriptions</span>
                                 </a>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
                         
                         <!-- Accordion Menu - Enseignement -->
                         <div class="menu-accordion">
@@ -267,8 +301,8 @@
                             </a>
                         </div>
                         
-                        <div class="menu-category">Communication</div>
-                        
+                <div class="menu-category">Communication</div>
+
                         <!-- Annonces -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.annonces.index') }}" class="menu-link {{ Request::routeIs('esbtp.annonces.*') ? 'active' : '' }}">
@@ -299,7 +333,6 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <div class="navbar-title d-none d-md-block">
-                            <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" style="height: 35px; width: auto;">
                             <span class="ms-2 fw-bold">KLASSCI</span>
                         </div>
                     </div>
@@ -323,7 +356,7 @@
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="notificationsDropdown">
                                 <li>
                                     <h6 class="dropdown-header">Notifications</h6>
-                                </li>
+                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item notification-item unread" href="#">
@@ -335,8 +368,8 @@
                                             <div class="notification-text">Un nouvel étudiant s'est inscrit</div>
                                             <div class="notification-time">Il y a 5 minutes</div>
                                         </div>
-                            </a>
-                        </li>
+                    </a>
+                </li>
                                 <li>
                                     <a class="dropdown-item notification-item" href="#">
                                         <div class="notification-icon bg-success-light text-success">
@@ -347,8 +380,8 @@
                                             <div class="notification-text">Les notes de mathématiques sont disponibles</div>
                                             <div class="notification-time">Il y a 2 heures</div>
                                         </div>
-                            </a>
-                        </li>
+                    </a>
+                </li>
                                 <li>
                                     <a class="dropdown-item notification-item" href="#">
                                         <div class="notification-icon bg-info-light text-info">
@@ -359,14 +392,14 @@
                                             <div class="notification-text">Réunion des enseignants demain</div>
                                             <div class="notification-time">Il y a 1 jour</div>
                                         </div>
-                            </a>
-                        </li>
+                    </a>
+                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-center view-all" href="#">
                                         Voir toutes les notifications
-                            </a>
-                        </li>
+                    </a>
+                </li>
                             </ul>
                         </div>
                         
@@ -379,7 +412,7 @@
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="messagesDropdown">
                                 <li>
                                     <h6 class="dropdown-header">Messages</h6>
-                                </li>
+                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item message-item unread" href="#">
@@ -393,8 +426,8 @@
                                             <div class="message-text">Bonjour, concernant le cours de...</div>
                                             <div class="message-time">Il y a 10 minutes</div>
                                         </div>
-                            </a>
-                        </li>
+                    </a>
+                </li>
                                 <li>
                                     <a class="dropdown-item message-item" href="#">
                                         <div class="message-avatar">
@@ -408,15 +441,15 @@
                                             <div class="message-time">Il y a 3 heures</div>
                                         </div>
                             </a>
-                        </li>
+                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-center view-all" href="#">
                                         Voir tous les messages
                                     </a>
-                            </li>
-                        </ul>
-                    </div>
+                </li>
+            </ul>
+    </div>
 
                     <!-- Quick Actions -->
                     <div class="dropdown">
@@ -463,56 +496,64 @@
                 <div class="dropdown ms-2">
                     <div class="navbar-user" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="navbar-avatar">
-                            @if(auth()->user()->profile_photo_path)
+                            @if(auth()->check() && auth()->user()->profile_photo_path)
                                 <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="{{ auth()->user()->name }}">
                         @else
                                 <div class="user-avatar">
                                     <i class="fas fa-user"></i>
                                 </div>
-                            @endif
+                        @endif
                         </div>
                         <div class="navbar-user-info d-none d-md-block">
-                            <div class="navbar-user-name">{{ auth()->user()->name }}</div>
-                        </div>
+                            <div class="navbar-user-name">{{ auth()->check() ? auth()->user()->name : 'Invité' }}</div>
+                    </div>
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="profileDropdown">
                         <li>
                             <div class="dropdown-user-details">
                                 <div class="dropdown-user-avatar">
-                                    @if(auth()->user()->profile_photo_path)
+                                    @if(auth()->check() && auth()->user()->profile_photo_path)
                                         <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="{{ auth()->user()->name }}">
-                                    @else
+                            @else
                                         <div class="user-avatar">
                                             <i class="fas fa-user"></i>
                                         </div>
                                     @endif
                                 </div>
                                 <div class="dropdown-user-info">
-                                    <div class="dropdown-user-name">{{ auth()->user()->name }}</div>
-                                    <div class="dropdown-user-email">{{ auth()->user()->email }}</div>
+                                    <div class="dropdown-user-name">{{ auth()->check() ? auth()->user()->name : 'Invité' }}</div>
+                                    <div class="dropdown-user-email">{{ auth()->check() ? auth()->user()->email : '' }}</div>
                                 </div>
                             </div>
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-user-circle me-2"></i> Mon profil
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('settings.index') }}">
-                                <i class="fas fa-cog me-2"></i> Paramètres
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                                @csrf
-                                <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                        @if(auth()->check())
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user-circle me-2"></i> Mon profil
                                 </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('settings.index') }}">
+                                    <i class="fas fa-cog me-2"></i> Paramètres
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                                @csrf
+                                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                                    </a>
                             </form>
                         </li>
+                        @else
+                            <li>
+                                <a class="dropdown-item" href="{{ route('login') }}">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Connexion
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>

@@ -45,26 +45,36 @@ class DashboardController extends Controller
     }
 
     /**
-     * Affiche le tableau de bord en fonction du rôle de l'utilisateur.
+     * Affiche le tableau de bord principal.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
         $user = Auth::user();
 
+        // Vérifier si l'utilisateur est un super admin
         if ($user->hasRole('superAdmin')) {
             return $this->superAdminDashboard();
-        } elseif ($user->hasRole('secretaire')) {
+        }
+        
+        // Vérifier si l'utilisateur est un secrétaire
+        if ($user->hasRole('secretaire')) {
             return $this->secretaireDashboard();
-        } elseif ($user->hasRole('etudiant')) {
+        }
+        
+        // Vérifier si l'utilisateur est un enseignant
+        if ($user->hasRole(['teacher', 'enseignant'])) {
+            return redirect()->route('teacher.dashboard');
+        }
+        
+        // Vérifier si l'utilisateur est un étudiant
+        if ($user->hasRole('etudiant')) {
             return $this->etudiantDashboard();
-        } elseif ($user->hasRole('parent')) {
-            return $this->parentDashboard();
         }
 
-        // Vue par défaut si aucun rôle spécifique n'est trouvé
-        return view('dashboard.index', [
-            'user' => $user
-        ]);
+        // Si aucun rôle spécifique n'est trouvé, afficher un tableau de bord générique
+        return view('dashboard.index');
     }
 
     /**

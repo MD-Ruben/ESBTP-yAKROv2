@@ -1,23 +1,24 @@
+Compiled views cleared!
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KLASSCI - École Spéciale du Bâtiment et des Travaux Publics</title>
 
-        <!-- Polices Google -->
+    <!-- Polices Google -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- AOS - Animation On Scroll -->
-        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS - Animation On Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-        <style>
+    <style>
         :root {
             /* Palette de couleurs */
             --primary: #2563eb;
@@ -249,18 +250,18 @@
         }
 
         /* Hero Section */
-            .hero {
-                position: relative;
+        .hero {
+            position: relative;
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.8) 100%), 
                         url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-                background-size: cover;
+            background-size: cover;
             background-position: center;
-                background-attachment: fixed;
+            background-attachment: fixed;
             min-height: 100vh;
-                display: flex;
-                align-items: center;
+            display: flex;
+            align-items: center;
             padding: 5rem 0;
-                color: white;
+            color: white;
             overflow: hidden;
         }
 
@@ -306,8 +307,8 @@
             height: 10rem;
             background-color: white;
             clip-path: polygon(0 60%, 100% 0, 100% 100%, 0% 100%);
-                z-index: 1;
-            }
+            z-index: 1;
+        }
 
         .hero-circle {
             position: absolute;
@@ -330,7 +331,7 @@
             animation: float 14s ease-in-out infinite reverse;
         }
 
-        @keyframes float {
+        @keyframes  float {
             0% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(5deg); }
             100% { transform: translateY(0) rotate(0deg); }
@@ -411,7 +412,7 @@
         }
         
         .about-image::before {
-                content: '';
+            content: '';
             position: absolute;
             width: 100px;
             height: 100px;
@@ -469,11 +470,11 @@
         }
         
         .formation-overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.6);
             opacity: 0;
             transition: all 0.3s ease;
@@ -481,15 +482,15 @@
         
         .formation-card:hover .formation-overlay {
             opacity: 1;
-            }
-
+        }
+        
         .formation-card {
-                transition: all 0.3s ease;
-            }
-
+            transition: all 0.3s ease;
+        }
+        
         .formation-card:hover {
-                transform: translateY(-10px);
-            }
+            transform: translateY(-10px);
+        }
 
         /* Styles pour la section témoignages */
         .testimonials {
@@ -529,22 +530,22 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
             position: relative;
             z-index: 1;
-                transition: all 0.3s ease;
-            }
-
+            transition: all 0.3s ease;
+        }
+        
         .testimonial-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            }
-
+        }
+        
         .testimonial-quote {
             font-size: 3rem;
             color: var(--primary);
             line-height: 1;
             margin-bottom: 1rem;
             opacity: 0.3;
-            }
-
+        }
+        
         .testimonial-text {
             font-style: italic;
             margin-bottom: 1.5rem;
@@ -575,64 +576,64 @@
         .testimonial-author-role {
             font-size: 0.9rem;
             color: var(--secondary);
-            }
-        </style>
-    </head>
-    <body>
+        }
+    </style>
+</head>
+<body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
-            <div class="container">
-                <a class="navbar-brand" href="#">
-                <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="KLASSCI Logo">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="http://127.0.0.1:8000/images/LOGO-KLASSCI-PNG.png" alt="KLASSCI Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                        <li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link active" href="#home">Accueil</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#about">À propos</a>
-                        </li>
-                        <li class="nav-item">
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">À propos</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#formations">Formations</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#contact">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                        <a class="nav-link nav-cta" href="{{ route('login') }}">Connexion</a>
-                        </li>
-                    </ul>
-                </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-cta" href="http://127.0.0.1:8000/login">Connexion</a>
+                    </li>
+                </ul>
             </div>
-        </nav>
+        </div>
+    </nav>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
-            <div class="container">
+        <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-7" data-aos="fade-right" data-aos-duration="1000">
                     <div class="hero-content">
                         <span class="hero-subtitle">L'excellence dans la formation technique</span>
                         <h1 class="hero-title">Former la prochaine génération de professionnels du bâtiment</h1>
                         <p class="hero-description">L'École Spéciale du Bâtiment et des Travaux Publics vous offre un enseignement de qualité, dispensé par des professionnels expérimentés.</p>
-                    <div class="hero-buttons">
+                        <div class="hero-buttons">
                             <a href="#formations" class="btn btn-secondary btn-lg">Découvrir nos formations</a>
                             <a href="#contact" class="btn btn-outline-light btn-lg">Nous contacter</a>
-                    </div>
+                        </div>
                         
                         <div class="hero-stats">
                             <div class="hero-stat">
                                 <span class="hero-stat-value" data-count="15">15</span>
                                 <span class="hero-stat-label">Années d'excellence</span>
-                </div>
+                            </div>
                             <div class="hero-stat">
                                 <span class="hero-stat-value" data-count="5000">5000+</span>
                                 <span class="hero-stat-label">Diplômés</span>
-            </div>
+                            </div>
                             <div class="hero-stat">
                                 <span class="hero-stat-value" data-count="25">25</span>
                                 <span class="hero-stat-label">Partenaires industriels</span>
@@ -650,11 +651,11 @@
         <div class="hero-shape"></div>
         <div class="hero-circle hero-circle-1"></div>
         <div class="hero-circle hero-circle-2"></div>
-        </section>
+    </section>
 
-        <!-- Section À propos -->
+    <!-- Section À propos -->
     <section id="about" class="section">
-            <div class="container">
+        <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6" data-aos="fade-right" data-aos-duration="1000">
                     <div class="about-image position-relative">
@@ -663,15 +664,15 @@
                             <div class="d-flex align-items-center">
                                 <div class="badge-icon" style="background-color: var(--primary-light); color: var(--primary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
                                     <i class="fas fa-award fa-lg"></i>
-                        </div>
+                                </div>
                                 <div>
                                     <span class="d-block fw-bold" style="color: var(--dark);">15+ Années</span>
                                     <span style="color: var(--gray);">d'excellence</span>
-                    </div>
+                                </div>
                             </div>
-                                        </div>
-                                        </div>
-                                    </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-lg-6" data-aos="fade-left" data-aos-duration="1000">
                     <div class="ps-lg-5 mt-5 mt-lg-0">
                         <span class="subtitle">À propos de l'ESBTP</span>
@@ -683,11 +684,11 @@
                                 <div class="feature-card p-4 rounded-lg h-100" style="background-color: var(--primary-light); border-left: 3px solid var(--primary);">
                                     <div class="feature-icon mb-3" style="color: var(--primary);">
                                         <i class="fas fa-graduation-cap fa-2x"></i>
-                                </div>
+                                    </div>
                                     <h5 class="feature-title">Enseignement de qualité</h5>
                                     <p class="feature-text mb-0" style="color: var(--gray);">Des professeurs expérimentés et des méthodes pédagogiques innovantes.</p>
-                                        </div>
-                                        </div>
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="feature-card p-4 rounded-lg h-100" style="background-color: var(--secondary-light); border-left: 3px solid var(--secondary);">
                                     <div class="feature-icon mb-3" style="color: var(--secondary);">
@@ -696,39 +697,39 @@
                                     <h5 class="feature-title">Équipements modernes</h5>
                                     <p class="feature-text mb-0" style="color: var(--gray);">Des laboratoires et ateliers équipés des dernières technologies.</p>
                                 </div>
-                                        </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="feature-card p-4 rounded-lg h-100" style="background-color: var(--primary-light); border-left: 3px solid var(--primary);">
                                     <div class="feature-icon mb-3" style="color: var(--primary);">
                                         <i class="fas fa-handshake fa-2x"></i>
-                                        </div>
+                                    </div>
                                     <h5 class="feature-title">Partenariats professionnels</h5>
                                     <p class="feature-text mb-0" style="color: var(--gray);">Des liens étroits avec les entreprises du secteur pour des stages et emplois.</p>
-                                    </div>
                                 </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="feature-card p-4 rounded-lg h-100" style="background-color: var(--secondary-light); border-left: 3px solid var(--secondary);">
                                     <div class="feature-icon mb-3" style="color: var(--secondary);">
                                         <i class="fas fa-certificate fa-2x"></i>
-                                        </div>
+                                    </div>
                                     <h5 class="feature-title">Diplômes reconnus</h5>
                                     <p class="feature-text mb-0" style="color: var(--gray);">Des formations certifiées et reconnues au niveau national et international.</p>
-                                        </div>
-                                    </div>
                                 </div>
+                            </div>
+                        </div>
                         
                         <div class="mt-5">
                             <a href="#formations" class="btn btn-primary">Découvrir nos programmes <i class="fas fa-arrow-right ms-2"></i></a>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
     <!-- Section Formations -->
     <section id="formations" class="section bg-light">
-            <div class="container">
+        <div class="container">
             <div class="text-center mb-5" data-aos="fade-up">
                 <span class="subtitle">Nos programmes académiques</span>
                 <h2 class="section-title">Formations adaptées aux besoins du marché</h2>
@@ -751,9 +752,9 @@
                         <a class="nav-link" data-filter="court" href="#">Formations courtes</a>
                     </li>
                 </ul>
-                </div>
-
-                <div class="row g-4">
+            </div>
+            
+            <div class="row g-4">
                 <!-- Formation 1 -->
                 <div class="col-lg-4 col-md-6 formation-item" data-category="licence" data-aos="fade-up" data-aos-delay="100">
                     <div class="formation-card card border-0 shadow-sm h-100">
@@ -761,12 +762,12 @@
                             <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1400&q=80" class="card-img-top" alt="Génie Civil">
                             <div class="formation-overlay d-flex align-items-center justify-content-center">
                                 <a href="#" class="btn btn-light btn-sm">Voir détails</a>
-                                </div>
+                            </div>
                             <div class="badge bg-primary position-absolute" style="top: 20px; right: 20px;">Licence</div>
                         </div>
                         <div class="card-body p-4">
                             <h5 class="card-title mb-3">Génie Civil</h5>
-                                <p class="card-text">Formation en conception, analyse et réalisation d'infrastructures civiles comme les ponts, routes et bâtiments.</p>
+                            <p class="card-text">Formation en conception, analyse et réalisation d'infrastructures civiles comme les ponts, routes et bâtiments.</p>
                             <hr>
                             <div class="formation-details">
                                 <div class="row g-4">
@@ -819,9 +820,9 @@
                         </div>
                         <div class="card-footer bg-white border-0 p-4">
                             <a href="#" class="btn btn-primary w-100">Plus de détails</a>
-                            </div>
                         </div>
                     </div>
+                </div>
 
                 <!-- Formation 2 -->
                 <div class="col-lg-4 col-md-6 formation-item" data-category="licence" data-aos="fade-up" data-aos-delay="200">
@@ -830,12 +831,12 @@
                             <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" class="card-img-top" alt="Travaux Publics">
                             <div class="formation-overlay d-flex align-items-center justify-content-center">
                                 <a href="#" class="btn btn-light btn-sm">Voir détails</a>
-                                </div>
+                            </div>
                             <div class="badge bg-primary position-absolute" style="top: 20px; right: 20px;">Licence</div>
                         </div>
                         <div class="card-body p-4">
                             <h5 class="card-title mb-3">Travaux Publics</h5>
-                                <p class="card-text">Spécialisation dans la construction d'infrastructures publiques comme les autoroutes, barrages et aéroports.</p>
+                            <p class="card-text">Spécialisation dans la construction d'infrastructures publiques comme les autoroutes, barrages et aéroports.</p>
                             <hr>
                             <div class="formation-details">
                                 <div class="row g-4">
@@ -843,53 +844,53 @@
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-clock"></i>
-                            </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Durée</small>
                                                 <p class="mb-0 small">3 ans</p>
-                        </div>
-                    </div>
-                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-graduation-cap"></i>
-                            </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Niveau requis</small>
                                                 <p class="mb-0 small">Bac</p>
-                        </div>
-                    </div>
-                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-users"></i>
-                            </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Places</small>
                                                 <p class="mb-0 small">35 disponibles</p>
-                        </div>
-                            </div>
-                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-calendar-alt"></i>
-                            </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Début</small>
                                                 <p class="mb-0 small">Septembre 2023</p>
-                        </div>
-                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                         <div class="card-footer bg-white border-0 p-4">
                             <a href="#" class="btn btn-primary w-100">Plus de détails</a>
-                </div>
-            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Formation 3 -->
@@ -899,37 +900,37 @@
                             <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1300&q=80" class="card-img-top" alt="Architecture">
                             <div class="formation-overlay d-flex align-items-center justify-content-center">
                                 <a href="#" class="btn btn-light btn-sm">Voir détails</a>
-                        </div>
+                            </div>
                             <div class="badge bg-primary position-absolute" style="top: 20px; right: 20px;">Licence</div>
-                    </div>
+                        </div>
                         <div class="card-body p-4">
                             <h5 class="card-title mb-3">Architecture</h5>
                             <p class="card-text">Formation en conception architecturale, design d'intérieur et planification urbaine pour créer des espaces fonctionnels.</p>
                             <hr>
                             <div class="formation-details">
-                        <div class="row g-4">
+                                <div class="row g-4">
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-clock"></i>
-                                                </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Durée</small>
                                                 <p class="mb-0 small">3 ans</p>
                                             </div>
-                                                </div>
-                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-graduation-cap"></i>
-                                                </div>
+                                            </div>
                                             <div>
                                                 <small class="text-muted">Niveau requis</small>
                                                 <p class="mb-0 small">Bac</p>
                                             </div>
-                                                </div>
-                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <div class="icon-circle me-2" style="min-width: 30px; width: 30px; height: 30px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
@@ -938,7 +939,7 @@
                                             <div>
                                                 <small class="text-muted">Places</small>
                                                 <p class="mb-0 small">30 disponibles</p>
-                                        </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-6">
@@ -959,9 +960,9 @@
                             <a href="#" class="btn btn-primary w-100">Plus de détails</a>
                         </div>
                     </div>
-                                </div>
-                            </div>
-
+                </div>
+            </div>
+            
             <div class="text-center mt-5" data-aos="fade-up">
                 <a href="#" class="btn btn-outline-primary btn-lg">Voir toutes nos formations</a>
             </div>
@@ -982,7 +983,7 @@
             </div>
             
             <div class="testimonial-slider position-relative" data-aos="fade-up" data-aos-delay="300">
-                                <div class="row">
+                <div class="row">
                     <div class="col-lg-4 col-md-6 mb-4">
                         <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
                             <div class="testimonial-rating mb-3">
@@ -991,22 +992,22 @@
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star text-warning"></i>
-                                                </div>
+                            </div>
                             <p class="testimonial-text mb-4">
                                 "La formation en Génie Civil à KLASSCI a été un véritable tremplin pour ma carrière. Les professeurs sont des professionnels du secteur qui partagent leur expérience concrète, et les projets pratiques m'ont permis d'acquérir des compétences directement applicables sur le terrain."
                             </p>
                             <div class="testimonial-user d-flex align-items-center">
                                 <div class="user-avatar me-3">
                                     <img src="https://randomuser.me/api/portraits/women/42.jpg" alt="Témoignage" class="rounded-circle" width="60" height="60">
-                                            </div>
+                                </div>
                                 <div class="user-info">
                                     <h6 class="mb-0">Sophie Kamga</h6>
                                     <span class="small text-muted">Diplômée en Génie Civil 2022</span>
-                                        </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="col-lg-4 col-md-6 mb-4">
                         <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
                             <div class="testimonial-rating mb-3">
@@ -1015,7 +1016,7 @@
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star text-warning"></i>
-                                                </div>
+                            </div>
                             <p class="testimonial-text mb-4">
                                 "J'ai choisi KLASSCI pour sa réputation d'excellence, et je n'ai pas été déçu. La qualité de l'enseignement, les équipements de pointe et le réseau de partenaires professionnels m'ont ouvert des portes dès l'obtention de mon diplôme. Aujourd'hui, je dirige ma propre entreprise d'architecture."
                             </p>
@@ -1028,9 +1029,9 @@
                                     <span class="small text-muted">Diplômé en Architecture 2020</span>
                                 </div>
                             </div>
-                                            </div>
-                                        </div>
-
+                        </div>
+                    </div>
+                    
                     <div class="col-lg-4 col-md-6 mb-4">
                         <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
                             <div class="testimonial-rating mb-3">
@@ -1039,7 +1040,7 @@
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star text-warning"></i>
                                 <i class="fas fa-star-half-alt text-warning"></i>
-                                                </div>
+                            </div>
                             <p class="testimonial-text mb-4">
                                 "En tant qu'étudiante actuelle en Travaux Publics, je suis impressionnée par la pédagogie innovante et l'accompagnement personnalisé offerts par KLASSCI. Les visites de chantiers et les ateliers pratiques nous permettent de confronter la théorie à la réalité du terrain. Une formation complète et stimulante!"
                             </p>
@@ -1052,18 +1053,18 @@
                                     <span class="small text-muted">Étudiante en Travaux Publics</span>
                                 </div>
                             </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="text-center mt-4">
                     <div class="testimonial-dots d-inline-flex">
                         <span class="dot active mx-1"></span>
                         <span class="dot mx-1"></span>
                         <span class="dot mx-1"></span>
-                                        </div>
-                                    </div>
-                                </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="row mt-5">
                 <div class="col-lg-8 mx-auto text-center" data-aos="fade-up">
@@ -1073,8 +1074,8 @@
                                 <div class="stat-item">
                                     <h3 class="stat-number text-primary mb-2"><span class="counter">98</span>%</h3>
                                     <p class="stat-text mb-0">Taux d'insertion professionnelle</p>
+                                </div>
                             </div>
-                        </div>
                             <div class="col-md-3 col-6">
                                 <div class="stat-item">
                                     <h3 class="stat-number text-primary mb-2"><span class="counter">1500</span>+</h3>
@@ -1095,14 +1096,14 @@
                             </div>
                         </div>
                     </div>
-                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
     <!-- Section Contact -->
     <section id="contact" class="section">
-            <div class="container">
+        <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
                     <h6 class="subtitle text-primary fw-bold mb-2" data-aos="fade-up">Contactez-nous</h6>
@@ -1113,7 +1114,7 @@
                 </div>
             </div>
             
-                <div class="row g-4">
+            <div class="row g-4">
                 <div class="col-lg-5" data-aos="fade-right">
                     <div class="contact-info p-4 bg-white rounded-4 shadow-sm h-100">
                         <h4 class="mb-4">Informations de contact</h4>
@@ -1160,14 +1161,14 @@
                         </div>
                         
                         <div class="social-links mt-4">
-                                <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
-                                <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
-                                <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
-                                <a href="#" class="me-2"><i class="fab fa-linkedin-in"></i></a>
-                            </div>
+                            <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="me-2"><i class="fab fa-linkedin-in"></i></a>
                         </div>
                     </div>
-
+                </div>
+                
                 <div class="col-lg-7" data-aos="fade-left">
                     <div class="contact-form p-4 bg-white rounded-4 shadow-sm">
                         <h4 class="mb-4">Envoyez-nous un message</h4>
@@ -1177,8 +1178,8 @@
                                     <div class="form-floating mb-3">
                                         <input type="text" class="form-control" id="floatingName" placeholder="Votre nom">
                                         <label for="floatingName">Votre nom</label>
-                        </div>
-                    </div>
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <div class="form-floating mb-3">
                                         <input type="email" class="form-control" id="floatingEmail" placeholder="Votre email">
@@ -1225,7 +1226,7 @@
     <footer class="bg-dark text-light pt-5 pb-3">
         <div class="container">
             <div class="row g-4">
-                    <div class="col-lg-3 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         <h4 class="mb-4 text-white">KLASSCI</h4>
                         <p>L'École Spéciale du Bâtiment et des Travaux Publics forme les professionnels de demain dans le secteur de la construction au Cameroun.</p>
@@ -1247,10 +1248,10 @@
                             <li><a href="#contact"><i class="fas fa-chevron-right me-2"></i> Contact</a></li>
                             <li><a href="#"><i class="fas fa-chevron-right me-2"></i> FAQ</a></li>
                             <li><a href="#"><i class="fas fa-chevron-right me-2"></i> Blog</a></li>
-                            </ul>
-                        </div>
+                        </ul>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                </div>
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         <h4 class="mb-4 text-white">Nos formations</h4>
                         <ul class="footer-links list-unstyled">
@@ -1259,9 +1260,9 @@
                             <li><a href="#"><i class="fas fa-chevron-right me-2"></i> Architecture</a></li>
                             <li><a href="#"><i class="fas fa-chevron-right me-2"></i> Gestion de Projets</a></li>
                             <li><a href="#"><i class="fas fa-chevron-right me-2"></i> Formation Continue</a></li>
-                            </ul>
-                        </div>
+                        </ul>
                     </div>
+                </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         <h4 class="mb-4 text-white">Contact</h4>
@@ -1271,47 +1272,47 @@
                             <p><i class="fas fa-envelope me-2"></i> info@klassci.cm</p>
                             <p><i class="fas fa-clock me-2"></i> Lun-Ven: 8h-17h</p>
                         </div>
-                        </div>
                     </div>
                 </div>
-
+            </div>
+            
             <hr class="mt-4 mb-3 border-secondary">
             
-                    <div class="row">
+            <div class="row">
                 <div class="col-md-6">
                     <p class="mb-md-0">© 2023 KLASSCI - École Spéciale du Bâtiment et des Travaux Publics. Tous droits réservés.</p>
-                        </div>
+                </div>
                 <div class="col-md-6 text-md-end">
                     <ul class="list-inline mb-0">
                         <li class="list-inline-item"><a href="#">Politique de confidentialité</a></li>
                         <li class="list-inline-item"><a href="#">Conditions d'utilisation</a></li>
                     </ul>
-                    </div>
                 </div>
+            </div>
         </div>
-        </footer>
-
+    </footer>
+    
     <!-- Bouton retour en haut -->
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="fas fa-arrow-up"></i></a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-        <script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
         // Initialisation AOS
         AOS.init({
             duration: 800,
             easing: 'ease-in-out',
             once: true
         });
-
+        
         // Navbar change on scroll
-            window.addEventListener('scroll', function() {
-                const navbar = document.querySelector('.navbar');
-                if (window.scrollY > 50) {
-                    navbar.classList.add('navbar-scrolled');
-                } else {
-                    navbar.classList.remove('navbar-scrolled');
-                }
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
             
             // Back to top button
             const backToTop = document.querySelector('.back-to-top');
@@ -1320,19 +1321,19 @@
             } else {
                 backToTop.classList.remove('active');
             }
-            });
-
+        });
+        
         // Scroll doux pour les liens d'ancrage
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    const targetId = this.getAttribute('href');
-                    if (targetId === '#') return;
-
-                    const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        window.scrollTo({
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
                         top: targetElement.offsetTop - 100,
                         behavior: 'smooth'
                     });
@@ -1395,14 +1396,14 @@
                         const endValue = parseInt(target.getAttribute('data-count'));
                         animateValue(target, 0, endValue, 2000);
                         observer.unobserve(target);
-                        }
+                    }
                 });
             }, { threshold: 0.5 });
             
             statValues.forEach(value => {
                 observer.observe(value);
-                });
             });
-        </script>
-    </body>
-</html>
+        });
+    </script>
+</body>
+</html> 
