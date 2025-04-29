@@ -338,7 +338,7 @@ if (!function_exists('getInitials')) {
                         <a href="{{ route('esbtp.attendances.create') }}" class="btn btn-success">
                             <i class="fas fa-clipboard-check me-2"></i>Nouvelle feuille de présence
                         </a>
-                        <a href="{{ route('esbtp.attendance-reports') }}" class="btn btn-info">
+                        <a href="{{ route('esbtp.attendances.rapport-form') }}" class="btn btn-info">
                             <i class="fas fa-chart-bar me-2"></i>Rapports de présence
                         </a>
                         <a href="{{ route('esbtp.export-attendances') }}" class="btn btn-primary">

@@ -112,9 +112,28 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 
 // Routes accessibles uniquement après authentification
 Route::middleware(['auth', 'installed'])->group(function () {
-    // Dashboard
-    // Route::get('/', [DashboardController::class, 'index'])->name('dashboard'); // Commenté pour éviter le conflit avec la route d'accueil
+    // Dashboard - Route principale qui redirige vers le tableau de bord approprié selon le rôle
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Routes spécifiques pour chaque type de tableau de bord
+    Route::middleware(['role:superAdmin'])->group(function () {
+        Route::get('/dashboard/superadmin', [DashboardController::class, 'superAdminDashboard'])->name('dashboard.superadmin');
+    });
+    
+    Route::middleware(['role:secretaire'])->group(function () {
+        Route::get('/dashboard/secretaire', [DashboardController::class, 'secretaireDashboard'])->name('dashboard.secretaire');
+    });
+    
+    Route::middleware(['role:etudiant'])->group(function () {
+        Route::get('/dashboard/etudiant', [DashboardController::class, 'etudiantDashboard'])->name('dashboard.etudiant');
+    });
+    
+    Route::middleware(['role:teacher'])->group(function () {
+        Route::get('/dashboard/teacher', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+        Route::get('/dashboard/teacher/timetable', [TeacherDashboardController::class, 'showTimetable'])->name('teacher.timetable');
+        Route::get('/dashboard/teacher/grades', [TeacherDashboardController::class, 'showGrades'])->name('teacher.grades');
+        Route::get('/dashboard/teacher/attendance', [TeacherDashboardController::class, 'showAttendance'])->name('teacher.attendance');
+    });
 
     // Routes pour la gestion du profil admin
     Route::middleware(['role:superAdmin|secretaire'])->group(function () {
@@ -605,12 +624,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
         Route::get('/unread-count', [ESBTPNotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
     });
 
-    // Vérifier si la route pour le tableau de bord étudiant existe déjà
-    // Si elle n'existe pas, l'ajouter
-    Route::middleware(['auth', 'role:etudiant'])->prefix('dashboard')->group(function () {
-        Route::get('/etudiant', [DashboardController::class, 'studentDashboard'])->name('dashboard.etudiant');
-    });
-
     // Student Progression Routes
     Route::prefix('esbtp')->middleware(['auth', 'role:superAdmin|secretaire'])->group(function () {
         Route::get('/progression', [StudentProgressionController::class, 'index'])->name('esbtp.progression.index');
@@ -876,5 +889,16 @@ Route::middleware(['auth', 'role:teacher|enseignant'])->group(function () {
     Route::get('/esbtp/emploi-temps/{emploi_temp}/edit', [ESBTPEmploiTempsController::class, 'edit'])->name('esbtp.emploi-temps.edit');
     Route::put('/esbtp/emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'update'])->name('esbtp.emploi-temps.update');
     
+    // Routes pour les présences
     Route::get('/teacher/attendances', [ESBTPAttendanceController::class, 'index'])->name('teacher.attendances');
+    
+    // Routes pour les rapports de présence
+    Route::get('/esbtp/attendances/rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])->name('esbtp.attendances.rapport-form');
+    Route::post('/esbtp/attendances/rapport', [ESBTPAttendanceController::class, 'rapport'])->name('esbtp.attendances.rapport');
+    
+    // Route pour l'exportation des présences
+    Route::get('/esbtp/export-attendances', [ESBTPAttendanceController::class, 'exportAttendances'])->name('esbtp.export-attendances');
+    
+    // Alias pour la compatibilité avec les templates existants
+    Route::get('/esbtp/attendance-reports', [ESBTPAttendanceController::class, 'rapportForm'])->name('esbtp.attendance-reports');
 });

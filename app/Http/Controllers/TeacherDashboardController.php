@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\ESBTPSeanceCours;
 use App\Models\ESBTPEmploiTemps;
 use App\Models\ESBTPAttendance;
+use App\Models\ESBTPNote;
+use App\Models\ESBTPEvaluation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -36,155 +38,197 @@ class TeacherDashboardController extends Controller
         
         // 3. Récupérer les notifications (si implémentées)
         $notifications = $this->getNotifications();
+        
+        // 4. Définir les jours de la semaine en français pour l'affichage
+        $joursSemaine = [
+            0 => 'Lundi',
+            1 => 'Mardi',
+            2 => 'Mercredi',
+            3 => 'Jeudi',
+            4 => 'Vendredi',
+            5 => 'Samedi', 
+            6 => 'Dimanche'
+        ];
 
         return view('dashboard.teacher', compact(
             'upcomingClasses', 
             'attendanceStats',
-            'notifications'
+            'notifications',
+            'joursSemaine'
         ));
     }
 
     /**
-     * Récupérer l'emploi du temps de l'enseignant
+     * Afficher l'emploi du temps de l'enseignant
      */
     public function showTimetable()
     {
         $user = Auth::user();
         $enseignantNom = $user->name;
-
+        
         // Récupérer toutes les séances de cours de l'enseignant
         $seances = ESBTPSeanceCours::where('enseignant', $enseignantNom)
-            ->where('is_active', true)
-            ->with(['matiere', 'emploiTemps.classe'])
             ->orderBy('jour')
             ->orderBy('heure_debut')
+            ->with(['emploiTemps.classe', 'matiere'])
             ->get();
-
+        
         // Organiser les séances par jour
-        $timetable = [];
-        for ($i = 1; $i <= 7; $i++) {
-            $timetable[$i] = $seances->where('jour', $i)->values();
+        $emploiTempsSemaine = [];
+        foreach ([0, 1, 2, 3, 4, 5, 6] as $jour) {
+            $emploiTempsSemaine[$jour] = $seances->where('jour', $jour)->sortBy('heure_debut');
         }
-
-        // Obtenir les noms des jours pour l'affichage
+        
+        // Définir les jours de la semaine en français pour l'affichage
         $joursSemaine = [
-            1 => 'Lundi',
-            2 => 'Mardi',
-            3 => 'Mercredi',
-            4 => 'Jeudi',
-            5 => 'Vendredi',
-            6 => 'Samedi',
-            7 => 'Dimanche'
+            0 => 'Lundi',
+            1 => 'Mardi',
+            2 => 'Mercredi',
+            3 => 'Jeudi',
+            4 => 'Vendredi',
+            5 => 'Samedi', 
+            6 => 'Dimanche'
         ];
-
-        return view('esbtp.emploi-temps.teacher', compact('timetable', 'joursSemaine'));
+        
+        return view('teacher.timetable', compact('emploiTempsSemaine', 'joursSemaine', 'enseignantNom'));
     }
 
     /**
-     * Récupérer les séances de cours à venir
+     * Afficher les notes saisies par l'enseignant
+     */
+    public function showGrades()
+    {
+        $user = Auth::user();
+        $enseignantNom = $user->name;
+        
+        // Récupérer les évaluations créées par cet enseignant
+        $evaluations = ESBTPEvaluation::where('enseignant', $enseignantNom)
+            ->with(['matiere', 'classe'])
+            ->orderBy('date', 'desc')
+            ->paginate(10);
+        
+        // Récupérer les dernières notes saisies par cet enseignant
+        $recentGrades = ESBTPNote::whereHas('evaluation', function($query) use ($enseignantNom) {
+                $query->where('enseignant', $enseignantNom);
+            })
+            ->with(['etudiant', 'evaluation.matiere'])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+        
+        return view('teacher.grades', compact('evaluations', 'recentGrades', 'enseignantNom'));
+    }
+
+    /**
+     * Afficher les présences enregistrées par l'enseignant
+     */
+    public function showAttendance()
+    {
+        $user = Auth::user();
+        $enseignantNom = $user->name;
+        
+        // Récupérer les séances de cours pour lesquelles l'enseignant a enregistré des présences
+        $seances = ESBTPSeanceCours::where('enseignant', $enseignantNom)
+            ->whereHas('attendances')
+            ->with(['emploiTemps.classe', 'matiere', 'attendances.etudiant'])
+            ->orderBy('date', 'desc')
+            ->paginate(10);
+        
+        // Récupérer les statistiques de présence par classe
+        $classeStats = DB::table('esbtp_attendances')
+            ->join('esbtp_seance_cours', 'esbtp_attendances.seance_cours_id', '=', 'esbtp_seance_cours.id')
+            ->join('esbtp_emploi_temps', 'esbtp_seance_cours.emploi_temps_id', '=', 'esbtp_emploi_temps.id')
+            ->join('esbtp_classes', 'esbtp_emploi_temps.classe_id', '=', 'esbtp_classes.id')
+            ->where('esbtp_seance_cours.enseignant', $enseignantNom)
+            ->select(
+                'esbtp_classes.nom as classe',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN esbtp_attendances.status = "present" THEN 1 ELSE 0 END) as presents'),
+                DB::raw('SUM(CASE WHEN esbtp_attendances.status = "absent" THEN 1 ELSE 0 END) as absents'),
+                DB::raw('SUM(CASE WHEN esbtp_attendances.status = "late" THEN 1 ELSE 0 END) as retards')
+            )
+            ->groupBy('esbtp_classes.nom')
+            ->get();
+        
+        return view('teacher.attendance', compact('seances', 'classeStats', 'enseignantNom'));
+    }
+
+    /**
+     * Récupérer les séances de cours à venir pour l'enseignant
      */
     private function getUpcomingClasses($enseignantNom)
     {
         $today = Carbon::today();
-        $nextWeek = Carbon::today()->addDays(7);
-
-        // Récupérer les emplois du temps actifs
-        $activeEmploiTemps = ESBTPEmploiTemps::where('is_active', true)
-            ->where(function($query) use ($today, $nextWeek) {
-                $query->where('date_debut', '<=', $nextWeek)
-                      ->where(function($q) use ($today) {
-                          $q->where('date_fin', '>=', $today)
-                            ->orWhereNull('date_fin');
-                      });
-            })
-            ->pluck('id');
-
-        if ($activeEmploiTemps->isEmpty()) {
+        $inAWeek = Carbon::today()->addDays(7);
+        
+        try {
+            return ESBTPSeanceCours::where('enseignant', $enseignantNom)
+                ->whereBetween('date', [$today->format('Y-m-d'), $inAWeek->format('Y-m-d')])
+                ->with(['matiere', 'emploiTemps.classe'])
+                ->orderBy('date')
+                ->orderBy('heure_debut')
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des séances à venir: ' . $e->getMessage());
             return collect();
         }
-
-        // Obtenir le jour de la semaine actuel (1 pour lundi, 7 pour dimanche)
-        $currentDay = (Carbon::now()->dayOfWeek ?: 7); // Convertir 0 (dimanche) en 7
-
-        // Récupérer les séances des 7 prochains jours
-        $upcomingClasses = ESBTPSeanceCours::whereIn('emploi_temps_id', $activeEmploiTemps)
-            ->where('enseignant', $enseignantNom)
-            ->where('is_active', true)
-            ->where(function($query) use ($currentDay) {
-                $query->where('jour', '>=', $currentDay) // Jours dans la semaine courante
-                      ->orWhere('jour', '<', $currentDay); // Jours dans la semaine suivante
-            })
-            ->with(['matiere', 'emploiTemps.classe'])
-            ->orderBy('jour')
-            ->orderBy('heure_debut')
-            ->take(5) // Limiter à 5 séances
-            ->get();
-
-        // Calculer la date réelle de chaque séance
-        $upcomingClasses->each(function($seance) use ($currentDay, $today) {
-            $dayDiff = $seance->jour - $currentDay;
-            if ($dayDiff < 0) {
-                $dayDiff += 7; // Ajouter une semaine si c'est un jour de la semaine prochaine
-            }
-            $seance->date = $today->copy()->addDays($dayDiff);
-        });
-
-        // Trier par date (jour de la semaine) puis par heure
-        return $upcomingClasses->sortBy([
-            fn ($a, $b) => $a->date->timestamp <=> $b->date->timestamp,
-            fn ($a, $b) => $a->heure_debut <=> $b->heure_debut
-        ])->values();
     }
 
     /**
-     * Calculer les statistiques de présence
+     * Calculer les statistiques de présence pour l'enseignant
      */
     private function getAttendanceStats($enseignantNom)
     {
-        // 1. Récupérer le nombre total de séances programmées (total)
-        $totalCourses = ESBTPSeanceCours::where('enseignant', $enseignantNom)
-            ->where('is_active', true)
-            ->whereHas('emploiTemps', function($query) {
-                $query->where('is_active', true);
-            })
-            ->where('jour', '<', (Carbon::now()->dayOfWeek ?: 7)) // Jours déjà passés
-            ->count();
-
-        // 2. Récupérer le nombre de séances marquées comme présent (si implémenté)
-        // Pour simplifier, nous supposons un taux de 80% de présence pour démonstration
-        $attendedCourses = ceil($totalCourses * 0.8);
-        $absentCourses = $totalCourses - $attendedCourses;
-        
-        // Calculer le taux de présence
-        $attendanceRate = $totalCourses > 0 ? ($attendedCourses / $totalCourses) * 100 : 100;
-
-        return [
-            'totalCourses' => $totalCourses,
-            'attendedCourses' => $attendedCourses,
-            'absentCourses' => $absentCourses,
-            'attendanceRate' => $attendanceRate
-        ];
+        try {
+            $seances = ESBTPSeanceCours::where('enseignant', $enseignantNom)->get();
+            $totalSeances = $seances->count();
+            
+            // Compter les séances où l'enseignant était présent (présence marquée)
+            $presentSeances = $seances->filter(function($seance) {
+                return $seance->presence_enseignant === true;
+            })->count();
+            
+            // Calculer le taux de présence
+            $attendanceRate = $totalSeances > 0 ? ($presentSeances / $totalSeances) * 100 : 0;
+            
+            return [
+                'totalCourses' => $totalSeances,
+                'attendedCourses' => $presentSeances,
+                'absentCourses' => $totalSeances - $presentSeances,
+                'attendanceRate' => $attendanceRate
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du calcul des statistiques de présence: ' . $e->getMessage());
+            return [
+                'totalCourses' => 0,
+                'attendedCourses' => 0,
+                'absentCourses' => 0,
+                'attendanceRate' => 0
+            ];
+        }
     }
 
     /**
-     * Récupérer les notifications de l'enseignant
+     * Récupérer les notifications pour l'enseignant
      */
     private function getNotifications()
     {
-        // Simuler des notifications pour démonstration
-        return collect([
-            (object)[
-                'id' => 1,
-                'created_at' => Carbon::now()->subHours(2),
-                'message' => 'Réunion pédagogique prévue le 15 juin à 14h.',
-                'type' => 'info'
-            ],
-            (object)[
-                'id' => 2,
-                'created_at' => Carbon::now()->subDay(),
-                'message' => 'Date limite de soumission des notes fixée au 20 juin.',
-                'type' => 'urgent'
-            ]
-        ]);
+        try {
+            return \App\Models\Notification::where('user_id', Auth::id())
+                ->orWhere(function($query) {
+                    $query->where('recipient_type', 'teacher')
+                        ->whereNull('recipient_id');
+                })
+                ->orWhere(function($query) {
+                    $query->where('recipient_type', 'all');
+                })
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des notifications: ' . $e->getMessage());
+            return collect();
+        }
     }
 } 

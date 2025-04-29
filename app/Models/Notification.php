@@ -90,4 +90,26 @@ class Notification extends Model
         $this->is_read = false;
         $this->save();
     }
+
+    /**
+     * Get the count of unread notifications for a specific user.
+     *
+     * @param int $userId The ID of the user
+     * @return int The count of unread notifications
+     */
+    public static function getUnreadCountForUser($userId)
+    {
+        try {
+            if (!$userId) {
+                return 0;
+            }
+            
+            return self::where('user_id', $userId)
+                ->where('is_read', false)
+                ->count();
+        } catch (\Exception $e) {
+            \Log::error('Error getting unread notification count: ' . $e->getMessage());
+            return 0;
+        }
+    }
 } 

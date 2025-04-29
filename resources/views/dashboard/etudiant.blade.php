@@ -35,13 +35,13 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Numéro matricule</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $etudiant->matricule }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $student->matricule }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-id-card fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.etudiants.show', ['etudiant' => $etudiant->id]) }}" class="btn btn-sm btn-primary mt-3">Voir mon profil</a>
+                    <a href="{{ route('esbtp.etudiants.show', ['etudiant' => $student->id]) }}" class="btn btn-sm btn-primary mt-3">Voir mon profil</a>
                 </div>
             </div>
         </div>

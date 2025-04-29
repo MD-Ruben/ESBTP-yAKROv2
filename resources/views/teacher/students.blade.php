@@ -1,206 +1,302 @@
 @extends('layouts.app')
 
-@section('title', 'Mes Étudiants')
+@section('title', 'Étudiants - Enseignant')
 
 @section('content')
 <div class="container-fluid px-4">
-    <h1 class="mt-4">Mes Étudiants</h1>
+    <h1 class="mt-4">Gestion des étudiants</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Tableau de bord</a></li>
-        <li class="breadcrumb-item active">Mes Étudiants</li>
+        <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Tableau de bord</a></li>
+        <li class="breadcrumb-item active">Étudiants</li>
     </ol>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
+    <!-- Filtres -->
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <i class="fas fa-user-graduate me-1"></i>
-                Liste des étudiants
-            </div>
-            <div class="d-flex">
-                <form action="{{ route('students.index') }}" method="GET" class="d-flex me-2">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Rechercher un étudiant..." name="search" value="{{ request('search') }}">
-                        <button class="btn btn-outline-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="card-body">
+            <form method="GET" action="{{ route('teacher.students') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="classe_id" class="form-label">Classe</label>
+                    <select class="form-select" id="classe_id" name="classe_id">
+                        <option value="">Toutes les classes</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ request('classe_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Recherche</label>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Nom, prénom, matricule..." value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="sort" class="form-label">Trier par</label>
+                    <select class="form-select" id="sort" name="sort">
+                        <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Nom</option>
+                        <option value="matricule" {{ request('sort') == 'matricule' ? 'selected' : '' }}>Matricule</option>
+                        <option value="moyenne" {{ request('sort') == 'moyenne' ? 'selected' : '' }}>Moyenne</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
                         <i class="fas fa-filter me-1"></i> Filtrer
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                        <li><a class="dropdown-item" href="{{ route('students.index') }}">Tous les étudiants</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Par classe</h6></li>
-                        <!-- Ajouter dynamiquement les classes ici -->
-                    </ul>
+                    <a href="{{ route('teacher.students') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync-alt me-1"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Liste des étudiants -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-users me-1"></i>
+                        Liste des étudiants
+                    </div>
+                    <div>
+                        <span class="badge bg-primary">{{ $students->total() }} étudiants</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if($students->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Matricule</th>
+                                        <th>Nom & Prénom</th>
+                                        <th>Classe</th>
+                                        <th>Moyenne</th>
+                                        <th>Présence</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($students as $student)
+                                        <tr>
+                                            <td class="text-center">
+                                                <img src="{{ $student->photo ? asset('storage/' . $student->photo) : asset('images/default-profile.png') }}" 
+                                                     alt="Photo de {{ $student->user->name }}" 
+                                                     class="rounded-circle" 
+                                                     width="40" height="40">
+                                            </td>
+                                            <td>{{ $student->matricule }}</td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold">{{ $student->user->name }}</span>
+                                                    <small class="text-muted">{{ $student->user->email }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if($student->classe)
+                                                    <span class="badge bg-info">{{ $student->classe->name }}</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Non assigné</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $moyenne = $student->evaluations->where('teacher_id', auth()->user()->teacher->id)->avg('note');
+                                                @endphp
+                                                @if($moyenne)
+                                                    <span class="badge {{ $moyenne >= 10 ? 'bg-success' : 'bg-danger' }}">
+                                                        {{ number_format($moyenne, 2) }}/20
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary">N/A</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $attendance = $student->calculateAttendanceForTeacher(auth()->user()->teacher->id);
+                                                    $rate = $attendance['rate'] ?? 0;
+                                                @endphp
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                        <div class="progress-bar {{ $rate >= 80 ? 'bg-success' : ($rate >= 50 ? 'bg-warning' : 'bg-danger') }}" 
+                                                             role="progressbar" 
+                                                             style="width: {{ $rate }}%" 
+                                                             aria-valuenow="{{ $rate }}" 
+                                                             aria-valuemin="0" 
+                                                             aria-valuemax="100">
+                                                        </div>
+                                                    </div>
+                                                    <small>{{ number_format($rate, 0) }}%</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ route('teacher.student.show', $student->id) }}" class="btn btn-sm btn-info" title="Détails">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route('teacher.student.grades', $student->id) }}" class="btn btn-sm btn-primary" title="Notes">
+                                                        <i class="fas fa-star"></i>
+                                                    </a>
+                                                    <a href="{{ route('teacher.student.attendance', $student->id) }}" class="btn btn-sm btn-warning" title="Présence">
+                                                        <i class="fas fa-calendar-check"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-center mt-4">
+                            {{ $students->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">Aucun étudiant trouvé pour les critères sélectionnés.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Matricule</th>
-                            <th>Nom complet</th>
-                            <th>Classe</th>
-                            <th>Email</th>
-                            <th>Téléphone</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($students as $student)
-                            <tr>
-                                <td>{{ $student->matricule }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ $student->user->profile_image ? asset('storage/'.$student->user->profile_image) : asset('images/default-avatar.png') }}" 
-                                             alt="Photo de profil" class="rounded-circle me-2" width="32" height="32">
-                                        {{ $student->nom }} {{ $student->prenom }}
-                                    </div>
-                                </td>
-                                <td>
-                                    @if($student->inscription && $student->inscription->classe)
-                                        {{ $student->inscription->classe->nom }}
-                                    @else
-                                        Non inscrit
-                                    @endif
-                                </td>
-                                <td>{{ $student->user->email ?? 'Non défini' }}</td>
-                                <td>{{ $student->telephone ?? 'Non défini' }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('grades.create') }}?student_id={{ $student->id }}" class="btn btn-sm btn-outline-success" title="Noter">
-                                            <i class="fas fa-graduation-cap"></i>
-                                        </a>
-                                        <a href="{{ route('attendances.mark') }}?student_id={{ $student->id }}" class="btn btn-sm btn-outline-primary" title="Marquer présence">
-                                            <i class="fas fa-clipboard-check"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-outline-info" title="Détails" 
-                                                data-bs-toggle="modal" data-bs-target="#studentDetailModal{{ $student->id }}">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Modal de détails de l'étudiant -->
-                            <div class="modal fade" id="studentDetailModal{{ $student->id }}" tabindex="-1" aria-labelledby="studentDetailModalLabel{{ $student->id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="studentDetailModalLabel{{ $student->id }}">Détails de l'étudiant</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="row">
-                                                <div class="col-md-4 text-center">
-                                                    <img src="{{ $student->user->profile_image ? asset('storage/'.$student->user->profile_image) : asset('images/default-avatar.png') }}" 
-                                                         alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                                                    <h5>{{ $student->nom }} {{ $student->prenom }}</h5>
-                                                    <p class="text-muted">Matricule: {{ $student->matricule }}</p>
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <h6 class="border-bottom pb-2 mb-3">Informations personnelles</h6>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Date de naissance:</div>
-                                                        <div class="col-md-8">{{ $student->date_naissance ? \Carbon\Carbon::parse($student->date_naissance)->format('d/m/Y') : 'Non définie' }}</div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Lieu de naissance:</div>
-                                                        <div class="col-md-8">{{ $student->lieu_naissance ?? 'Non défini' }}</div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Genre:</div>
-                                                        <div class="col-md-8">{{ $student->sexe ?? 'Non défini' }}</div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Email:</div>
-                                                        <div class="col-md-8">{{ $student->user->email ?? 'Non défini' }}</div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Téléphone:</div>
-                                                        <div class="col-md-8">{{ $student->telephone ?? 'Non défini' }}</div>
-                                                    </div>
-                                                    
-                                                    <h6 class="border-bottom pb-2 mb-3 mt-4">Informations académiques</h6>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Classe actuelle:</div>
-                                                        <div class="col-md-8">
-                                                            @if($student->inscription && $student->inscription->classe)
-                                                                {{ $student->inscription->classe->nom }}
-                                                            @else
-                                                                Non inscrit
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Filière:</div>
-                                                        <div class="col-md-8">
-                                                            @if($student->inscription && $student->inscription->classe && $student->inscription->classe->filiere)
-                                                                {{ $student->inscription->classe->filiere->nom }}
-                                                            @else
-                                                                Non définie
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-4 fw-bold">Année d'inscription:</div>
-                                                        <div class="col-md-8">
-                                                            @if($student->inscription && $student->inscription->annee_universitaire)
-                                                                {{ $student->inscription->annee_universitaire->nom }}
-                                                            @else
-                                                                Non définie
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                                            <div class="btn-group">
-                                                <a href="{{ route('grades.create') }}?student_id={{ $student->id }}" class="btn btn-success">
-                                                    <i class="fas fa-graduation-cap me-2"></i> Noter
-                                                </a>
-                                                <a href="{{ route('attendances.mark') }}?student_id={{ $student->id }}" class="btn btn-primary">
-                                                    <i class="fas fa-clipboard-check me-2"></i> Marquer présence
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center">Aucun étudiant trouvé</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+        <!-- Statistiques et actions -->
+        <div class="col-xl-4">
+            <!-- Statistiques par classe -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Répartition par classe
+                </div>
+                <div class="card-body">
+                    @if($classeStats->count() > 0)
+                        <div class="chart-container" style="position: relative; height:200px;">
+                            <canvas id="classeDistributionChart"></canvas>
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">Aucune donnée disponible.</p>
+                        </div>
+                    @endif
+                </div>
             </div>
-            
-            <div class="d-flex justify-content-center mt-4">
-                {{ $students->links() }}
+
+            <!-- Dernières notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-star me-1"></i>
+                    Dernières notes attribuées
+                </div>
+                <div class="card-body">
+                    @if($recentGrades->count() > 0)
+                        <ul class="list-group list-group-flush">
+                            @foreach($recentGrades as $grade)
+                                <li class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold">{{ $grade->student->user->name }}</div>
+                                            <small class="text-muted">{{ $grade->evaluation->title }} - {{ $grade->evaluation->matiere->name }}</small>
+                                        </div>
+                                        <span class="badge {{ $grade->note >= 10 ? 'bg-success' : 'bg-danger' }} fs-6">
+                                            {{ number_format($grade->note, 1) }}/20
+                                        </span>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <div class="mt-3">
+                            <a href="{{ route('teacher.grades') }}" class="btn btn-outline-primary btn-sm w-100">
+                                Voir toutes les notes
+                            </a>
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">Aucune note récente.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-bolt me-1"></i>
+                    Actions rapides
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ route('teacher.grades.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-1"></i> Créer une évaluation
+                        </a>
+                        <a href="{{ route('esbtp.attendances.create') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-clipboard-check me-1"></i> Saisir des présences
+                        </a>
+                        <a href="{{ route('teacher.export.students') }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-excel me-1"></i> Exporter la liste
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit form when select changes
+        document.querySelectorAll('#classe_id, #sort').forEach(function(element) {
+            element.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+
+        // Setup classe distribution chart if canvas exists
+        const chartCanvas = document.getElementById('classeDistributionChart');
+        if (chartCanvas) {
+            const chartData = {
+                labels: [
+                    @foreach($classeStats as $stat)
+                        '{{ $stat->name }}',
+                    @endforeach
+                ],
+                datasets: [{
+                    label: 'Nombre d\'étudiants',
+                    data: [
+                        @foreach($classeStats as $stat)
+                            {{ $stat->count }},
+                        @endforeach
+                    ],
+                    backgroundColor: [
+                        '#6366f1', '#ec4899', '#22c55e', '#f59e0b', '#ef4444', '#0ea5e9',
+                        '#8b5cf6', '#14b8a6', '#84cc16', '#a855f7'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            new Chart(chartCanvas, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 @endsection 

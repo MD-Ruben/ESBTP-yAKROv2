@@ -51,6 +51,9 @@ class DatabaseSeeder extends Seeder
         // Add test users with different roles
         if (app()->environment('local', 'development', 'testing')) {
             $this->call(UsersTestSeeder::class);
+            
+            // New Test Users Seeder with student, secretary, and admin accounts
+            $this->call(TestUsersSeeder::class);
         }
     }
 }

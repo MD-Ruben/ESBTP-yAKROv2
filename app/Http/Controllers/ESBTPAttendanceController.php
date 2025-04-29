@@ -42,6 +42,11 @@ class ESBTPAttendanceController extends Controller
         // Get all subjects for the filter dropdown
         $matieres = ESBTPMatiere::orderBy('name')->get();
 
+        // Récupérer les enseignants pour le filtre
+        $teachers = User::whereHas('roles', function($query) {
+            $query->where('name', 'enseignant');
+        })->get();
+
         // Build the base query with necessary relationships
         $query = ESBTPAttendance::with([
             'etudiant.user',
@@ -252,7 +257,8 @@ class ESBTPAttendanceController extends Controller
             'totalAttendances',
             'attendancesThisMonth',
             'averageAttendanceRate',
-            'classesWithAttendance'
+            'classesWithAttendance',
+            'teachers'
         ));
     }
 
@@ -1018,5 +1024,105 @@ class ESBTPAttendanceController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
         }
+    }
+
+    /**
+     * Exporte les données de présence au format CSV.
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function exportAttendances(Request $request)
+    {
+        // Build the query with necessary relationships
+        $query = ESBTPAttendance::with([
+            'etudiant.user',
+            'seanceCours.matiere',
+            'seanceCours.emploiTemps.classe'
+        ]);
+
+        // Apply filters if provided
+        if ($request->filled('classe_id')) {
+            $query->whereHas('seanceCours.emploiTemps', function ($q) use ($request) {
+                $q->where('classe_id', $request->classe_id);
+            });
+        }
+
+        if ($request->filled('matiere_id')) {
+            $query->whereHas('seanceCours', function ($q) use ($request) {
+                $q->where('matiere_id', $request->matiere_id);
+            });
+        }
+
+        if ($request->filled('date_debut')) {
+            $query->whereDate('date', '>=', $request->date_debut);
+        }
+
+        if ($request->filled('date_fin')) {
+            $query->whereDate('date', '<=', $request->date_fin);
+        }
+
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+
+        // Get student filter
+        if ($request->filled('etudiant_id')) {
+            $query->where('etudiant_id', $request->etudiant_id);
+        }
+
+        // Get all attendances based on filters
+        $attendances = $query->orderBy('date', 'desc')->get();
+
+        // Define filename
+        $filename = 'presences_' . date('Y-m-d_His') . '.csv';
+
+        // Create CSV response
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function() use ($attendances) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM to ensure French characters display correctly
+            fputs($file, "\xEF\xBB\xBF");
+            
+            // CSV headers
+            fputcsv($file, [
+                'Date',
+                'Classe',
+                'Matière',
+                'Étudiant',
+                'Statut',
+                'Heure Début',
+                'Heure Fin',
+                'Commentaire'
+            ]);
+            
+            // CSV data
+            foreach ($attendances as $attendance) {
+                $row = [
+                    $attendance->date ? $attendance->date->format('d/m/Y') : 'N/A',
+                    $attendance->seanceCours && $attendance->seanceCours->emploiTemps && $attendance->seanceCours->emploiTemps->classe ? $attendance->seanceCours->emploiTemps->classe->name : 'N/A',
+                    $attendance->seanceCours && $attendance->seanceCours->matiere ? $attendance->seanceCours->matiere->name : 'N/A',
+                    $attendance->etudiant ? $attendance->etudiant->nom . ' ' . $attendance->etudiant->prenoms : 'N/A',
+                    ucfirst($attendance->statut),
+                    $attendance->seanceCours ? substr($attendance->seanceCours->heure_debut, 0, 5) : 'N/A',
+                    $attendance->seanceCours ? substr($attendance->seanceCours->heure_fin, 0, 5) : 'N/A',
+                    $attendance->commentaire
+                ];
+                
+                fputcsv($file, $row);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
