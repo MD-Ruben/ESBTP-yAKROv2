@@ -24,8 +24,8 @@ class CreatePermissionTables extends Migration
 
         Schema::create($tableNames['permissions'], function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('guard_name');
+            $table->string('name',125);
+            $table->string('guard_name',125);
             $table->string('category')->nullable(); // Pour organiser les permissions par catégorie
             $table->text('description')->nullable(); // Description de la permission
             $table->timestamps();
@@ -39,8 +39,8 @@ class CreatePermissionTables extends Migration
                 $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
-            $table->string('name');
-            $table->string('guard_name');
+            $table->string('name',125);
+            $table->string('guard_name',125);
             $table->text('description')->nullable(); // Description du rôle
             $table->boolean('is_default')->default(false); // Indique si c'est un rôle par défaut
             $table->timestamps();

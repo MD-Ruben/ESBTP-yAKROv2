@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('esbtp_seance_cours', function (Blueprint $table) {
             $table->id();
             $table->foreignId('classe_id')->constrained('esbtp_classes')->onDelete('cascade');
-            $table->foreignId('matiere_id')->constrained('esbtp_matieres')->onDelete('cascade');
+            $table->foreignId('matiere_id')->nullable()->constrained('esbtp_matieres')->onDelete('set null');
             $table->foreignId('enseignant_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('jour');
             $table->time('heure_debut');

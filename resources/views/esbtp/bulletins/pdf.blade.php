@@ -15,7 +15,7 @@
         /* Styles généraux */
         body {
             font-family: Arial, sans-serif;
-            font-size: 8pt;
+            font-size: 9pt;
             line-height: 1.3;
             background-color: white;
             color: #000;
@@ -148,10 +148,12 @@
             font-weight: bold;
             text-align: center;
             font-size: 8pt;
+            padding: 5px 3px; 
         }
         .total-row {
             background-color: #f2f2f2;
             font-weight: bold;
+            text-align: left;
         }
 
         /* Tableau des absences */
@@ -229,6 +231,9 @@
         @page {
             size: A4 portrait;
             margin: 0.5cm;
+            @top-center {
+        content: element(page-header);
+    }
         }
     </style>
 </head>
@@ -313,13 +318,12 @@
                     </tr>
                     <tr>
                         <td class="fw-bold">Effectif :</td>
-                        <td>{{ $bulletin->effectif_classe ?? '0' }}</td>
+                        <td>{{ $effectifClasse }}</td>
                     </tr>
                 </table>
             </div>
             <div style="clear: both;"></div>
         </div>
-
         <!-- Tableau des matières et notes - Enseignement Général -->
         <table class="grades-table">
             <thead>
@@ -353,29 +357,35 @@
                     </tr>
                 @endforelse
                 <tr class="total-row">
-                    <td style="text-align: left;">Moyenne enseignement général</td>
-                    <td colspan="6">{{ number_format($moyenneGeneraux, 2, '.', '') }}</td>
-                </tr>
+                    <td style="text-align: left; width:25%;">Moyenne enseignement général</td>
+                    <td colspan="6">{{ number_format($moyenneGeneraux, 2, '.', '') }}</td>                </tr>
             </tbody>
         </table>
-
-        <!-- Tableau des notes - Enseignement Technique -->
         <table class="grades-table">
             <thead>
-                <tr class="section-header">
-                    <td colspan="7">Enseignement Technique</td>
+                <tr>
+                    <th>Matière</th>
+                    <th>Moyenne M</th>
+                    <th>Coef C</th>
+                    <th>Moy.Pond M*C</th>
+                    <th>Rang</th>
+                    <th>Professeurs</th>
+                    <th>Appréciations</th>
                 </tr>
             </thead>
             <tbody>
+                <tr class="section-header">
+                    <td colspan="7">Enseignement Technique</td>
+                </tr>
                 @forelse($resultatsTechniques as $resultat)
                     <tr>
-                        <td style="text-align: left;">{{ $resultat->matiere && ($resultat->matiere->nom || $resultat->matiere->name) ? ($resultat->matiere->nom ?: $resultat->matiere->name) : 'Matière non définie' }}</td>
-                        <td>{{ number_format($resultat->moyenne, 2, '.', '') }}</td>
-                        <td>{{ $resultat->coefficient }}</td>
-                        <td>{{ number_format($resultat->moyenne * $resultat->coefficient, 2, '.', '') }}</td>
-                        <td>{{ $resultat->rang ?? '-' }}</td>
-                        <td>{{ $resultat->professeur ?? 'N/A' }}</td>
-                        <td>{{ $resultat->appreciation ?? 'N/A' }}</td>
+                    <td style="text-align: left;">{{ $resultat->matiere && ($resultat->matiere->nom || $resultat->matiere->name) ? ($resultat->matiere->nom ?: $resultat->matiere->name) : 'Matière non définie' }}</td>
+                    <td>{{ number_format($resultat->moyenne, 2, '.', '') }}</td>
+                    <td>{{ $resultat->coefficient }}</td>
+                    <td>{{ number_format($resultat->moyenne * $resultat->coefficient, 2, '.', '') }}</td>
+                    <td>{{ $resultat->rang ?? '-' }}</td>
+                    <td>{{ $resultat->professeur ?? 'N/A' }}</td>
+                    <td>{{ $resultat->appreciation ?? 'N/A' }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -383,11 +393,50 @@
                     </tr>
                 @endforelse
                 <tr class="total-row">
-                    <td style="text-align: left;">Moyenne enseignement technique</td>
+                    <td style="text-align: left; width:25%;">Moyenne enseignement technique</td>
                     <td colspan="6">{{ number_format($moyenneTechnique, 2, '.', '') }}</td>
-                </tr>
+                    </tr>
             </tbody>
         </table>
+
+        <!-- Tableau des notes - Enseignement Technique
+        <table class="grades-table">
+        <thead>
+            <tr>
+                <th>Matière</th>
+                <th>Moyenne M</th>
+                <th>Coef C</th>
+                <th>Moy.Pond M*C</th>
+                <th>Rang</th>
+                <th>Professeurs</th>
+                <th>Appréciations</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="section-header">
+                <td colspan="7">Enseignement Technique</td>
+            </tr>
+            @forelse($resultatsTechniques as $resultat)
+                <tr>
+                    <td style="text-align: left;">{{ $resultat->matiere && ($resultat->matiere->nom || $resultat->matiere->name) ? ($resultat->matiere->nom ?: $resultat->matiere->name) : 'Matière non définie' }}</td>
+                    <td>{{ number_format($resultat->moyenne, 2, '.', '') }}</td>
+                    <td>{{ $resultat->coefficient }}</td>
+                    <td>{{ number_format($resultat->moyenne * $resultat->coefficient, 2, '.', '') }}</td>
+                    <td>{{ $resultat->rang ?? '-' }}</td>
+                    <td>{{ $resultat->professeur ?? 'N/A' }}</td>
+                    <td>{{ $resultat->appreciation ?? 'N/A' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7">Aucun résultat disponible pour cette section</td>
+                </tr>
+            @endforelse
+            <tr class="total-row">
+                <td style="text-align: left;">Moyenne enseignement technique</td>
+                <td colspan="6">{{ number_format($moyenneTechnique, 2, '.', '') }}</td>
+            </tr>
+        </tbody>
+        </table> -->
 
         <!-- Absences -->
         <table class="absence-table">
@@ -420,9 +469,13 @@
                     <td>Moyenne Brute</td>
                     <td class="result-value"><span class="result-cadre">{{ number_format($moyenneGenerale, 2, '.', '') }}</span></td>
                     <td style="text-align: center;">MENTION</td>
+                    
                     <td></td>
                     <td style="text-align: center;">STATISTIQUES</td>
+
                     <td></td>
+                </tr>
+                <tr>
                 </tr>
                 <tr>
                     <td>Note d'assiduité</td>
@@ -433,8 +486,18 @@
                     <td></td>
                 </tr>
                 <tr>
+                </tr>
+                <tr>
                     <td>Moyenne 1er Semestre</td>
-                    <td class="result-value"><span class="result-cadre">{{ $moyenneSemestre1 ?? '0.00' }}</span></td>
+                        <td class="result-value">
+                            <span class="result-cadre">
+                                @if($moyenneSemestre1 !== null)
+                                    {{ number_format($moyenneSemestre1, 2) }}
+                                @else
+                                    N/A
+                                @endif
+                            </span>
+                        </td>
                     <td style="text-align: center;">Encouragement</td>
                     <td><span class="result-cadre">{{ (isset($bulletin->mention) && $bulletin->mention == 'Encouragement') ? 'X' : '' }}</span></td>
                     <td>Plus forte moyenne</td>
@@ -442,7 +505,7 @@
                 </tr>
                 <tr>
                     <td>Rang</td>
-                    <td class="result-value"><span class="result-cadre">{{ $bulletin->rang ?? 'N/A' }}</span></td>
+                    <td class="result-value"><span class="result-cadre">{{$studentRang ?? 'N/A' }}</span></td>
                     <td style="text-align: center;">Tableau d'honneur</td>
                     <td><span class="result-cadre">{{ (isset($bulletin->mention) && $bulletin->mention == 'Tableau d\'honneur') ? 'X' : '' }}</span></td>
                     <td>Plus faible moyenne</td>
@@ -467,21 +530,34 @@
             </tbody>
         </table>
 
-        <!-- Signatures et décision -->
-        <div class="decision-section">
-            <div class="decision-col">
-                <p class="decision-title">Décision du conseil de classe</p>
-                <p class="decision-result">{{ $bulletin->decision_conseil ?? 'Travail Insuffisant' }}</p>
-            </div>
-            <div class="signature-col">
-                <p class="signature-title">Signature de la Directrice des Etudes</p>
-                @if(isset($bulletin->signature_direction) && $bulletin->signature_direction)
-                    <img src="{{ public_path('img/signatures/direction.png') }}" height="40" alt="Signature Direction">
-                @endif
-            </div>
-        </div>
-    </div>
+       <!-- Décision et Signature -->
+       
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+        <div style="margin-top: 30px;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="text-align: center; padding-right:150px; border-top: 1px solid #000; padding-top: 10px;">
+                <strong>Décision du conseil de classe</strong><br>
+                <div style="min-height: 80px; margin-top: 15px;">
+                    {{ $bulletin->decision_conseil ?? '' }}
+                </div>
+            </td>
+            <td style="text-align: center; border-top: 1px solid #000; padding-top: 10px;">
+                <strong >Signature de la Directrice des Etudes</strong><br>
+                <div style="min-height: 80px; margin-top: 15px;">
+                    @if(isset($bulletin->signature_direction) && $bulletin->signature_direction)
+                        <img src="{{ public_path('img/signatures/direction.png') }}" height="50" alt="Signature Direction">
+                    @endif
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
+        </tr>
+    </table>
+</div>
     <!-- Pied de page -->
     <div class="footer">
         <p>Bulletin informatisé, aucun duplicata n'est délivré</p>

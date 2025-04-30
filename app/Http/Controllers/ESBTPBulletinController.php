@@ -768,7 +768,7 @@ class ESBTPBulletinController extends Controller
             ];
         }
     }
-
+/////////////////////
     /**
      * Calcule le total des heures d'absence pour un bulletin.
      *
@@ -2597,6 +2597,39 @@ class ESBTPBulletinController extends Controller
                     }
                 }
 
+                // Créer un tableau avec les moyennes des étudiants
+                $moyennesClasse = [];
+
+                foreach ($etudiantsClasse as $etud) {
+                    $moyenne = $this->calculerMoyenneEtudiant($etud->id, $classe_id, $periode, $annee_universitaire_id);
+                    if ($moyenne > 0) {
+                        $moyennesClasse[$etud->id] = $moyenne;
+                    }
+                }
+
+                // Trier les moyennes dans l’ordre décroissant
+                arsort($moyennesClasse);
+
+                function formatRangAvecSuffix($rang){
+                    if ($rang == 1) {
+                        return '1er';
+                    }
+                    return $rang . 'ème';
+                }
+                // Déterminer le rang de l’étudiant courant
+                $rang = 'N/A';
+                $position = 1;
+
+                foreach ($moyennesClasse as $id => $moyenne) {
+                    if ($id == $etudiant_id) {
+                        $rang = formatRangAvecSuffix($position);
+                        break;
+                    }
+                    $position++;
+                }
+
+
+
                 // S'assurer que nous avons au moins un étudiant avec une moyenne valide
                 if ($sommeMoyennes > 0) {
                     $moyenneClasse = $sommeMoyennes / $effectifClasse;
@@ -2649,12 +2682,13 @@ class ESBTPBulletinController extends Controller
                 'absencesJustifiees' => $absencesJustifiees,
                 'absencesNonJustifiees' => $absencesNonJustifiees,
                 'noteAssiduite' => $noteAssiduite, // Utiliser la valeur calculée au lieu d'une chaîne vide
-                'moyenneSemestre1' => null, // À implémenter si nécessaire
+                'moyenneSemestre1' =>number_format($moyenneGenerale, 2), // À implémenter si nécessaire
                 'plusForteMoyenne' => $bulletin->plus_forte_moyenne ?? number_format($plusForteMoyenne, 2),
                 'plusFaibleMoyenne' => $bulletin->plus_faible_moyenne ?? number_format($plusFaibleMoyenne, 2),
                 'moyenneClasse' => $bulletin->moyenne_classe ?? number_format($moyenneClasse, 2),
                 'effectifClasse' => $effectifClasse,
-                'logoBase64' => $logoBase64
+                'logoBase64' => $logoBase64,
+                'studentRang' => $rang
             ];
 
             // Journaliser les données de debug avant génération du PDF
@@ -2737,6 +2771,22 @@ class ESBTPBulletinController extends Controller
     {
         $sommeNotes = 0;
         $sommeCoefficients = 0;
+        $request = request();
+                    // Récupérer les paramètres
+                    $classe_id = $request->classe_id;
+                    // Récupérer etudiant_id soit depuis etudiant_id, soit depuis bulletin
+                    $etudiant_id = $request->etudiant_id ?? $request->bulletin;
+                    $periode = $request->periode;
+                    $annee_universitaire_id = $request->annee_universitaire_id;
+                    $anneeUniversitaire = ESBTPAnneeUniversitaire::findOrFail($annee_universitaire_id);
+                                // Calculer les absences depuis les enregistrements d'attendance
+            $dateDebut = $anneeUniversitaire->date_debut;
+            $dateFin = $anneeUniversitaire->date_fin;
+            
+        //Utilisation du service d'absences pour calculer les absences
+        $absences = $this->absenceService->calculerDetailAbsences($etudiant_id, $classe_id, $dateDebut, $dateFin);
+        $absencesJustifiees = $absences['justifiees'];
+        $absencesNonJustifiees = $absences['non_justifiees'];
 
         foreach ($resultats as $resultat) {
             $sommeNotes += $resultat->moyenne * $resultat->coefficient;
@@ -2744,7 +2794,7 @@ class ESBTPBulletinController extends Controller
         }
 
         if ($sommeCoefficients > 0) {
-            return $sommeNotes / $sommeCoefficients;
+            return ($sommeNotes / $sommeCoefficients) +$this->calculerNoteAssiduite($absencesJustifiees,$absencesNonJustifiees);
         }
 
         return 0;
@@ -2759,16 +2809,40 @@ class ESBTPBulletinController extends Controller
      */
     private function calculerNoteAssiduite($absencesJustifiees, $absencesNonJustifiees)
     {
+
         // Chaque heure d'absence non justifiée pénalise plus que les justifiées
-        $totalPenalite = ($absencesJustifiees * 0.1) + ($absencesNonJustifiees * 0.5);
+        //$totalPenalite = ($absencesJustifiees * 0.1) + ($absencesNonJustifiees * 0.5);
+         switch (true) {
+                    case $absencesNonJustifiees == 0:
+                        return 0.13;
+                        break;
+                    case $absencesNonJustifiees == 1:
+                        return 0;
+                        break;
+                    case $absencesNonJustifiees == 2:
+                        return -0.13;
+                        break;
+                    case $absencesNonJustifiees == 3:
+                        return -0.39;
+                        break;
+                    case $absencesNonJustifiees == 4:
+                        return -0.39;
+                        break;
+                    case $absencesNonJustifiees >= 5: // 5 ou plus
+                        return -0.5;
+                }
 
         // La note de base est 20, on soustrait les pénalités
-        $note = 20 - $totalPenalite;
+        // $note = 20 + $totalPenalite;
 
-        // La note ne peut pas être négative
-        if ($note < 0) $note = 0;
+        // // La note ne peut pas être négative
+        // if ($note < 0) $note = 0;
 
-        return number_format($note, 2);
+        // //Une note ne peut pas être supérieur à 20
+        // if ($note > 20 ) $note = 20;
+
+        // return number_format($note,2);
+
     }
 
     /**
@@ -3871,5 +3945,39 @@ class ESBTPBulletinController extends Controller
     }
 
 }
+// private function calculerNoteAssiduite($justifiees, $nonJustifiees)
+// {
+//     $totalAbsences = $justifiees + $nonJustifiees;
+
+//     switch ($totalAbsences) {
+//         case 0:
+//             return 0.13;
+//         case 1:
+//             return 0;
+//         case 2:
+//             return -0.13;
+//         case 3:
+//         case 4:
+//             return -0.39;
+//         default: // 5 ou plus
+//             return -0.5;
+//     }
+// }
+// private function calculerNoteAssiduite($justifiees, $nonJustifiees)
+//             {
+//                 $totalAbsences = $justifiees + $nonJustifiees;
+            
+//                 if ($totalAbsences == 0) {
+//                     return 0.13;
+//                 } elseif ($totalAbsences == 1) {
+//                     return 0;
+//                 } elseif ($totalAbsences == 2) {
+//                     return -0.13;
+//                 } elseif ($totalAbsences == 3 || $totalAbsences == 4) {
+//                     return -0.39;
+//                 } else { // 5 ou plus
+//                     return -0.5;
+//                 }
+//             }
 
 
