@@ -292,11 +292,29 @@
                     @endphp
 
                     @if($seanceToDisplay && $cellOccupied)
-                        <td rowspan="{{ $rowspan }}" class="session-cell session-{{ $seanceToDisplay->type_seance }}">
+                    <td rowspan="{{ $rowspan }}" class="session-cell session-{{ $seanceToDisplay->type_seance }}">
+                        @if(in_array($seanceToDisplay->type_seance, ['pause', 'dejeuner']))
+                            {{-- Affichage simplifié pour les pauses --}}
+                            <strong>
+                                {{ $seanceToDisplay->type_seance === 'pause' ? 'Récréation' : 'Pause déjeuner' }}
+                            </strong><br>
+                            {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                        @else
+                            {{-- Affichage normal pour cours, TD, etc. --}}
+                            <strong>
+                                {{ $seanceToDisplay->matiere?->name ?? 'Non défini' }}
+                            </strong><br>
+                            {{ $seanceToDisplay->enseignantName ?? '' }}<br>
+                            {{ $seanceToDisplay->salle ?? 'Non définie' }} | 
+                            {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                        @endif
+                    </td>
+
+                        <!-- <td rowspan="{{ $rowspan }}" class="session-cell session-{{ $seanceToDisplay->type_seance }}">
                             <strong>{{ $seanceToDisplay->matiere ? $seanceToDisplay->matiere->name : 'Non défini' }}</strong><br>
                             {{ $seanceToDisplay->enseignantName }}<br>
                             {{ $seanceToDisplay->salle ?? 'Non défini' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }}-{{ $seanceToDisplay->heure_fin->format('H:i') }}
-                        </td>
+                        </td> -->
                     @elseif(!$cellOccupied)
                         <td></td>
                     @endif

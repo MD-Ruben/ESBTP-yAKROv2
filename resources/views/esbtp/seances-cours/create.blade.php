@@ -268,22 +268,24 @@
                 // Make hidden fields not required
                 $('#matiere_id').prop('required', false);
                 $('#enseignant').prop('required', false);
+                $('#salle').prop('required', false);
+                $('#classroom-col').hide();
 
                 // For recreation, hide classroom too, but keep it for lunch break
                 if (sessionType === 'pause') {
                     console.log('Hiding classroom for recreation');
                     $('#classroom-col').slideUp(300);
-                    $('#salle').prop('required', false);
+                    //$('#salle').prop('required', false);
 
                     // Update info message
-                    $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Récréation :</strong> Seuls le jour et les horaires sont requis.</div>').slideDown(300);
+                    // $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Récréation :</strong> Seuls le jour et les horaires sont requis.</div>').slideDown(300);
                 } else {
                     console.log('Showing classroom for lunch break');
-                    $('#classroom-col').slideDown(300);
-                    $('#salle').prop('required', true);
+                    //$('#classroom-col').slideDown(300);
+                    //$('#salle').prop('required', true);
 
                     // Update info message
-                    $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Pause déjeuner :</strong> La salle est requise mais pas la matière ni l\'enseignant.</div>').slideDown(300);
+                    // $infoMessage.html('<div class="alert alert-info mt-2"><i class="fas fa-info-circle me-2"></i><strong>Pause déjeuner :</strong> La salle est requise mais pas la matière ni l\'enseignant.</div>').slideDown(300);
                 }
             } else {
                 console.log('Showing all fields');
