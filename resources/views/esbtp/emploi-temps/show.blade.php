@@ -448,7 +448,40 @@
                                         @endphp
 
                                         @if($seanceToDisplay && $cellOccupied)
-                                            <td class="align-middle" rowspan="{{ $rowspan }}">
+
+                                        <td class="align-middle" rowspan="{{ $rowspan }}">
+                                            <div class="session-cell session-{{ $seanceToDisplay->type_seance }} {{ $seanceToDisplay->is_active ? '' : 'session-inactive' }}"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="@if(in_array($seanceToDisplay->type_seance, ['pause', 'dejeuner']))
+                                                            {{ $seanceToDisplay->type_seance === 'pause' ? 'Récréation' : 'Pause déjeuner' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                                                        @else
+                                                            {{ is_object($seanceToDisplay->matiere) ? $seanceToDisplay->matiere->name : 'Matière non définie' }} | {{ $seanceToDisplay->enseignantName }} | {{ $seanceToDisplay->salle ?? 'Salle non définie' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                                                        @endif">
+                                                
+                                                @if(in_array($seanceToDisplay->type_seance, ['pause', 'dejeuner']))
+                                                    <div class="session-info session-matiere">
+                                                        {{ $seanceToDisplay->type_seance === 'pause' ? 'Récréation' : 'Pause déjeuner' }}
+                                                    </div>
+                                                    <div class="session-info session-details">
+                                                        {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                                                    </div>
+                                                @else
+                                                    <div class="session-info session-matiere">
+                                                        {{ is_object($seanceToDisplay->matiere) ? $seanceToDisplay->matiere->name : 'Matière non définie' }}
+                                                    </div>
+                                                    <div class="session-info session-enseignant">
+                                                        {{ $seanceToDisplay->enseignantName }}
+                                                    </div>
+                                                    <div class="session-info session-details">
+                                                        {{ $seanceToDisplay->salle ?? 'Salle non définie' }} | {{ $seanceToDisplay->heure_debut->format('H:i') }} - {{ $seanceToDisplay->heure_fin->format('H:i') }}
+                                                    </div>
+                                                @endif
+
+                                                <!-- actions... -->
+                                            </div>
+                                        </td>
+                                            <!-- <td class="align-middle" rowspan="{{ $rowspan }}">
                                                 <div class="session-cell session-{{ $seanceToDisplay->type_seance }} {{ $seanceToDisplay->is_active ? '' : 'session-inactive' }}"
                                                      data-bs-toggle="tooltip"
                                                      data-bs-placement="top"
@@ -477,7 +510,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </td>
+                                            </td> -->
                                         @elseif(!$cellOccupied)
                                             <td>
                                                 <a href="{{ route('esbtp.seances-cours.create', ['emploi_temps_id' => $emploiTemps->id ?? 0, 'jour' => $day, 'heure_debut' => $timeSlot]) }}" class="btn-add-session">
