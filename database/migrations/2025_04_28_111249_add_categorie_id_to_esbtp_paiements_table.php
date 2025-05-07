@@ -16,7 +16,8 @@ class AddCategorieIdToEsbtpPaiementsTable extends Migration
     public function up()
     {
         Schema::table('esbtp_paiements', function (Blueprint $table) {
-            $table->foreignId('categorie_id')->nullable()->after('type_paiement')->constrained('esbtp_categorie_paiements')->onDelete('set null');
+            $table->foreignId('categorie_id')->nullable();//->after('type_paiement')->constrained('esbtp_categorie_paiements')->onDelete('set null');
+            $table->string('type_paiement')->nullable();
         });
 
         // Mettre à jour les enregistrements existants
@@ -33,6 +34,7 @@ class AddCategorieIdToEsbtpPaiementsTable extends Migration
         Schema::table('esbtp_paiements', function (Blueprint $table) {
             $table->dropForeign(['categorie_id']);
             $table->dropColumn('categorie_id');
+            $table->dropColumn('type_paiement');
         });
     }
 

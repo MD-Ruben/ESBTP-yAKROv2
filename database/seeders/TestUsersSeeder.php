@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\ESBTPEtudiant;
 use App\Models\ESBTPClasse;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Str;
 
 class TestUsersSeeder extends Seeder
@@ -23,15 +22,14 @@ class TestUsersSeeder extends Seeder
         // Create roles if they don't exist
         $roles = ['superAdmin', 'secretaire', 'etudiant', 'teacher'];
         foreach ($roles as $roleName) {
-            if (!Role::where('name', $roleName)->exists()) {
-                Role::create(['name' => $roleName]);
-            }
+            Role::firstOrCreate(['name' => $roleName]);
         }
-        
+
         // Create SuperAdmin user
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@esbtp.ci'],
             [
+                'username' => 'superadmin',
                 'name' => 'Super Admin',
                 'first_name' => 'Super',
                 'last_name' => 'Admin',
@@ -40,13 +38,14 @@ class TestUsersSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ]
         );
-        
+
         $superAdmin->assignRole('superAdmin');
-        
+
         // Create Secretary user
         $secretaire = User::firstOrCreate(
             ['email' => 'secretaire@esbtp.ci'],
             [
+                'username' => 'secretaire',
                 'name' => 'Secretaire Test',
                 'first_name' => 'Secretaire',
                 'last_name' => 'Test',
@@ -55,13 +54,14 @@ class TestUsersSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ]
         );
-        
+
         $secretaire->assignRole('secretaire');
-        
+
         // Create Student user
         $etudiant = User::firstOrCreate(
             ['email' => 'etudiant@esbtp.ci'],
             [
+                'username' => 'etudiant',
                 'name' => 'Etudiant Test',
                 'first_name' => 'Etudiant',
                 'last_name' => 'Test',
@@ -70,13 +70,14 @@ class TestUsersSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ]
         );
-        
+
         $etudiant->assignRole('etudiant');
-        
+
         // Create Teacher user
         $teacher = User::firstOrCreate(
             ['email' => 'teacher@esbtp.ci'],
             [
+                'username' => 'teacher',
                 'name' => 'Teacher Test',
                 'first_name' => 'Teacher',
                 'last_name' => 'Test',
@@ -85,15 +86,13 @@ class TestUsersSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ]
         );
-        
+
         $teacher->assignRole('teacher');
-        
+
         // Create student profile for the student user if it doesn't exist
-        $etudiantProfile = ESBTPEtudiant::where('user_id', $etudiant->id)->first();
-        if (!$etudiantProfile) {
-            // Try to find a class for the student
+        if (!ESBTPEtudiant::where('user_id', $etudiant->id)->exists()) {
             $classe = ESBTPClasse::first();
-            
+
             ESBTPEtudiant::create([
                 'user_id' => $etudiant->id,
                 'matricule' => 'ETU' . date('Y') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT),
@@ -109,11 +108,11 @@ class TestUsersSeeder extends Seeder
                 'created_by' => $superAdmin->id,
             ]);
         }
-        
+
         $this->command->info('Test users created successfully:');
         $this->command->info('SuperAdmin - Email: superadmin@esbtp.ci, Password: password123');
         $this->command->info('Secretary - Email: secretaire@esbtp.ci, Password: password123');
         $this->command->info('Student - Email: etudiant@esbtp.ci, Password: password123');
         $this->command->info('Teacher - Email: teacher@esbtp.ci, Password: password123');
     }
-} 
+}
