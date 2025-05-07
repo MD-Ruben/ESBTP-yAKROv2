@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Attendance extends Model
 {
@@ -188,5 +189,133 @@ class Attendance extends Model
         return $query->whereHas('courseSession', function($q) use ($teacherId) {
             $q->where('teacher_id', $teacherId);
         });
+    }
+
+    /**
+     * Calcule le pourcentage de présence pour un étudiant spécifique.
+     * 
+     * @param int $studentId ID de l'étudiant
+     * @param string|null $startDate Date de début (format Y-m-d)
+     * @param string|null $endDate Date de fin (format Y-m-d)
+     * @return float Pourcentage de présence (0-100)
+     */
+    public static function getStudentAttendancePercentage($studentId, $startDate = null, $endDate = null)
+    {
+        try {
+            // Récupérer l'étudiant et ses classes
+            $student = Student::find($studentId);
+            if (!$student) {
+                return 0.0;
+            }
+            
+            // Trouver les IDs des classes de l'étudiant
+            $classIds = DB::table('student_course_class')
+                ->where('student_id', $studentId)
+                ->pluck('course_class_id');
+                
+            if ($classIds->isEmpty()) {
+                // Alternative : vérifier si l'étudiant est dans le modèle ESBTPEtudiant
+                $esbtpStudent = \App\Models\ESBTPEtudiant::where('id', $studentId)
+                    ->orWhere('user_id', function($query) use ($studentId) {
+                        $query->select('user_id')
+                            ->from('students')
+                            ->where('id', $studentId);
+                    })
+                    ->first();
+                    
+                if ($esbtpStudent && $esbtpStudent->classe_id) {
+                    // Utiliser la logique ESBTP pour les présences
+                    return self::getESBTPAttendancePercentage($esbtpStudent->id, $startDate, $endDate);
+                }
+                
+                return 100.0; // Si pas de classe, on considère 100% de présence
+            }
+
+            // Requête de base pour les sessions de cours des classes de l'étudiant
+            $courseSessions = CourseSession::whereIn('course_class_id', $classIds);
+            
+            // Filtrer par période si spécifiée
+            if ($startDate && $endDate) {
+                $courseSessions->whereBetween('date', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $courseSessions->where('date', '>=', $startDate);
+            } elseif ($endDate) {
+                $courseSessions->where('date', '<=', $endDate);
+            } else {
+                // Par défaut, on prend le semestre en cours
+                $currentDate = now();
+                // Si on est dans le premier semestre (septembre à janvier)
+                if ($currentDate->month >= 9 || $currentDate->month <= 1) {
+                    $startDate = $currentDate->copy()->month(9)->startOfMonth();
+                    $endDate = $currentDate->copy()->addYear()->month(1)->endOfMonth();
+                } else { // Deuxième semestre (février à juin)
+                    $startDate = $currentDate->copy()->month(2)->startOfMonth();
+                    $endDate = $currentDate->copy()->month(6)->endOfMonth();
+                }
+                $courseSessions->whereBetween('date', [$startDate, $endDate]);
+            }
+            
+            // Sessions passées seulement
+            $courseSessions->where('date', '<=', now());
+            
+            // Compter le total de sessions
+            $totalSessions = $courseSessions->count();
+            
+            if ($totalSessions === 0) {
+                return 100.0; // Si pas de session, on considère 100% de présence
+            }
+            
+            // Compter les présences
+            $presentCount = self::where('student_id', $studentId)
+                ->whereIn('status', ['present', 'late']) // présent ou en retard est considéré comme présent
+                ->whereIn('course_session_id', $courseSessions->pluck('id'))
+                ->count();
+            
+            // Calculer le pourcentage
+            return ($presentCount / $totalSessions) * 100;
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans le calcul du taux de présence: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+    
+    /**
+     * Calcule le pourcentage de présence pour un étudiant ESBTP.
+     * 
+     * @param int $studentId ID de l'étudiant ESBTP
+     * @param string|null $startDate Date de début (format Y-m-d)
+     * @param string|null $endDate Date de fin (format Y-m-d)
+     * @return float Pourcentage de présence (0-100)
+     */
+    public static function getESBTPAttendancePercentage($studentId, $startDate = null, $endDate = null)
+    {
+        try {
+            // Utiliser le modèle ESBTPAttendance pour calculer le taux de présence
+            $query = \App\Models\ESBTPAttendance::where('etudiant_id', $studentId);
+            
+            // Filtrer par période si spécifiée
+            if ($startDate && $endDate) {
+                $query->whereBetween('date', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $query->where('date', '>=', $startDate);
+            } elseif ($endDate) {
+                $query->where('date', '<=', $endDate);
+            }
+            
+            $attendances = $query->get();
+            $totalAttendances = $attendances->count();
+            
+            if ($totalAttendances === 0) {
+                return 100.0; // Si pas de présence enregistrée, on considère 100% de présence
+            }
+            
+            $presentCount = $attendances->whereIn('status', ['present', 'late'])->count();
+            
+            // Calculer le pourcentage
+            return ($presentCount / $totalAttendances) * 100;
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans le calcul du taux de présence ESBTP: ' . $e->getMessage());
+            return 0.0;
+        }
     }
 } 

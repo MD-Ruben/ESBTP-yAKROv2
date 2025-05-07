@@ -108,4 +108,26 @@ class Message extends Model
     {
         return $this->recipient_type !== null && $this->recipient_type !== 'user';
     }
+
+    /**
+     * Get the count of unread messages for a specific user.
+     *
+     * @param int $userId The ID of the user
+     * @return int The count of unread messages
+     */
+    public static function getUnreadCountForUser($userId)
+    {
+        try {
+            if (!$userId) {
+                return 0;
+            }
+            
+            return self::where('recipient_id', $userId)
+                ->where('is_read', false)
+                ->count();
+        } catch (\Exception $e) {
+            \Log::error('Error getting unread message count: ' . $e->getMessage());
+            return 0;
+        }
+    }
 }

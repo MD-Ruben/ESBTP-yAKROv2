@@ -17,9 +17,9 @@
     --primary: #0056b3;         /* Bleu principal */
     --primary-dark: #004494;    /* Bleu foncé pour hover */
     --primary-light: #e6f0fa;   /* Bleu très clair pour fonds */
-    --secondary: #ff8c00;       /* Orange pour accents */
-    --secondary-dark: #e67e00;  /* Orange foncé pour hover */
-    --secondary-light: #fff4e6; /* Orange très clair pour fonds */
+    --secondary: #e74c3c;       /* Rouge pour accents */
+    --secondary-dark: #c0392b;  /* Rouge foncé pour hover */
+    --secondary-light: #fae6e6; /* Rouge très clair pour fonds */
     
     /* Couleurs neutres */
     --dark: #212529;            /* Presque noir pour texte principal */

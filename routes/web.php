@@ -32,6 +32,12 @@ use App\Http\Controllers\ESBTPPaiementController;
 use App\Http\Controllers\ESBTPNotificationController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\StudentProgressionController;
+use App\Http\Controllers\ESBTPComptabiliteController;
+use App\Http\Controllers\ESBTPSecretaireController;
+use App\Http\Controllers\ESBTPEnseignantController;
+use App\Http\Controllers\DepensesController;
+use App\Http\Controllers\ESBTPCategoriePaiementController;
+use App\Http\Controllers\TeacherDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,10 +61,24 @@ Route::get('/test-emploi-temps-show', function () {
     return $controller->show($emploiTemps);
 });
 
-// Route d'accueil
+// Route d'accueil - Modifiée pour utiliser la vue de solution logicielle par défaut
 Route::get('/', function () {
-    return view('welcome');
+    // Charger la vue de solution logicielle comme page d'accueil principale
+    return view('welcome-software')->withHeaders([
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0'
+    ]);
 })->name('welcome');
+
+// Route pour l'ancienne version de l'école (si nécessaire pour référence)
+Route::get('/school', function () {
+    return view('welcome-redesign')->withHeaders([
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0'
+    ]);
+})->name('welcome.school');
 
 // Routes pour l'installation
 Route::prefix('install')->group(function () {
@@ -92,9 +112,28 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 
 // Routes accessibles uniquement après authentification
 Route::middleware(['auth', 'installed'])->group(function () {
-    // Dashboard
-    // Route::get('/', [DashboardController::class, 'index'])->name('dashboard'); // Commenté pour éviter le conflit avec la route d'accueil
+    // Dashboard - Route principale qui redirige vers le tableau de bord approprié selon le rôle
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Routes spécifiques pour chaque type de tableau de bord
+    Route::middleware(['role:superAdmin'])->group(function () {
+        Route::get('/dashboard/superadmin', [DashboardController::class, 'superAdminDashboard'])->name('dashboard.superadmin');
+    });
+    
+    Route::middleware(['role:secretaire'])->group(function () {
+        Route::get('/dashboard/secretaire', [DashboardController::class, 'secretaireDashboard'])->name('dashboard.secretaire');
+    });
+    
+    Route::middleware(['role:etudiant'])->group(function () {
+        Route::get('/dashboard/etudiant', [DashboardController::class, 'etudiantDashboard'])->name('dashboard.etudiant');
+    });
+    
+    Route::middleware(['role:teacher'])->group(function () {
+        Route::get('/dashboard/teacher', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+        Route::get('/dashboard/teacher/timetable', [TeacherDashboardController::class, 'showTimetable'])->name('teacher.timetable');
+        Route::get('/dashboard/teacher/grades', [TeacherDashboardController::class, 'showGrades'])->name('teacher.grades');
+        Route::get('/dashboard/teacher/attendance', [TeacherDashboardController::class, 'showAttendance'])->name('teacher.attendance');
+    });
 
     // Routes pour la gestion du profil admin
     Route::middleware(['role:superAdmin|secretaire'])->group(function () {
@@ -120,7 +159,7 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('annees-universitaires', ESBTPAnneeUniversitaireController::class);
 
             // Routes pour les secrétaires
-            Route::resource('secretaires', \App\Http\Controllers\ESBTP\SecretaireAdminController::class);
+            Route::resource('secretaires', ESBTPSecretaireController::class);
 
             // Dashboard superAdmin
             Route::get('/dashboard', [App\Http\Controllers\ESBTP\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
@@ -137,6 +176,8 @@ Route::middleware(['auth', 'installed'])->group(function () {
                     'destroy' => 'classes.destroy'
                 ])
                 ->middleware(['permission:create_classe|create classes|edit_classes|edit classes|delete_classes|delete classes']);
+                
+            // Routes du module comptabilité - PROVISOIREMENT SUPPRIMÉ POUR REDÉFINITION
         });
 
         // Routes accessibles aux superAdmin et secrétaires
@@ -186,35 +227,35 @@ Route::middleware(['auth', 'installed'])->group(function () {
 
             // Routes pour les emplois du temps ESBTP (définies individuellement)
             Route::get('emploi-temps', [ESBTPEmploiTempsController::class, 'index'])
-                ->name('emploi-temps.index')
+                ->name('esbtp.emploi-temps.index')
                 ->middleware(['permission:view_timetables']);
 
             Route::get('emploi-temps/create', [ESBTPEmploiTempsController::class, 'create'])
-                ->name('emploi-temps.create')
+                ->name('esbtp.emploi-temps.create')
                 ->middleware(['permission:create_timetable']);
 
             Route::post('emploi-temps', [ESBTPEmploiTempsController::class, 'store'])
-                ->name('emploi-temps.store')
+                ->name('esbtp.emploi-temps.store')
                 ->middleware(['permission:create_timetable']);
 
             Route::get('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'show'])
-                ->name('emploi-temps.show')
+                ->name('esbtp.emploi-temps.show')
                 ->middleware(['permission:view_timetables']);
 
             Route::get('emploi-temps/{emploi_temp}/edit', [ESBTPEmploiTempsController::class, 'edit'])
-                ->name('emploi-temps.edit')
+                ->name('esbtp.emploi-temps.edit')
                 ->middleware(['permission:edit_timetables']);
 
             Route::put('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'update'])
-                ->name('emploi-temps.update')
+                ->name('esbtp.emploi-temps.update')
                 ->middleware(['permission:edit_timetables']);
 
             Route::delete('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'destroy'])
-                ->name('emploi-temps.destroy')
+                ->name('esbtp.emploi-temps.destroy')
                 ->middleware(['permission:delete_timetables']);
 
             Route::get('emploi-temps/{emploi_temp}/export-pdf', [ESBTPEmploiTempsController::class, 'generatePdf'])
-                ->name('emploi-temps.export-pdf')
+                ->name('esbtp.emploi-temps.export-pdf')
                 ->middleware(['permission:view_timetables']);
 
             // Routes pour les résultats
@@ -239,23 +280,50 @@ Route::middleware(['auth', 'installed'])->group(function () {
             Route::resource('seances-cours', ESBTPSeanceCoursController::class)
                 ->parameters(['seances-cours' => 'seance']);
 
-            // Routes pour les présences
-            Route::get('/attendances', [ESBTPAttendanceController::class, 'index'])->name('attendances.index')
-                ->middleware('permission:view attendances');
-            Route::get('/attendances/create', [ESBTPAttendanceController::class, 'create'])->name('attendances.create')
-                ->middleware('permission:create attendance');
-            Route::post('/attendances', [ESBTPAttendanceController::class, 'store'])->name('attendances.store')
-                ->middleware('permission:create attendance');
-            Route::get('/attendances/{attendance}/edit', [ESBTPAttendanceController::class, 'edit'])->name('attendances.edit')
-                ->middleware('permission:edit attendances');
-            Route::put('/attendances/{attendance}', [ESBTPAttendanceController::class, 'update'])->name('attendances.update')
-                ->middleware('permission:edit attendances');
-            Route::delete('/attendances/{attendance}', [ESBTPAttendanceController::class, 'destroy'])->name('attendances.destroy')
-                ->middleware('permission:delete attendances');
-            Route::get('/attendances/rapport', [ESBTPAttendanceController::class, 'rapportForm'])->name('attendances.rapport-form')
-                ->middleware('permission:view attendances');
-            Route::post('/attendances/rapport', [ESBTPAttendanceController::class, 'rapport'])->name('attendances.rapport')
-                ->middleware('permission:view attendances');
+            // Routes pour les présences/absences (esbtp namespace)
+            Route::name('attendances.')->group(function() {
+                Route::get('/attendances', [ESBTPAttendanceController::class, 'index'])
+                    ->name('index')
+                    ->middleware('permission:view attendances');
+                
+                Route::get('/attendances/create', [ESBTPAttendanceController::class, 'create'])
+                    ->name('create')
+                    ->middleware('permission:create attendance');
+                
+                Route::post('/attendances', [ESBTPAttendanceController::class, 'store'])
+                    ->name('store')
+                    ->middleware('permission:create attendance');
+                
+                // Static segment routes first
+                Route::get('/attendances/rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])
+                    ->name('rapport-form')
+                    ->middleware('permission:view attendances');
+                
+                Route::post('/attendances/rapport', [ESBTPAttendanceController::class, 'rapport'])
+                    ->name('rapport')
+                    ->middleware('permission:view attendances');
+                
+                // Then parameter routes
+                Route::get('/attendances/{attendance}', [ESBTPAttendanceController::class, 'show'])
+                    ->name('show')
+                    ->middleware('permission:view attendances');
+                
+                Route::get('/attendances/{attendance}/edit', [ESBTPAttendanceController::class, 'edit'])
+                    ->name('edit')
+                    ->middleware('permission:edit attendances');
+                
+                Route::put('/attendances/{attendance}', [ESBTPAttendanceController::class, 'update'])
+                    ->name('update')
+                    ->middleware('permission:edit attendances');
+                
+                Route::delete('/attendances/{attendance}', [ESBTPAttendanceController::class, 'destroy'])
+                    ->name('destroy')
+                    ->middleware('permission:delete attendances');
+                
+                Route::post('/attendances/{absenceId}/process-justification', [ESBTPAttendanceController::class, 'processJustification'])
+                    ->name('process-justification')
+                    ->middleware('permission:edit attendances');
+            });
 
             // Paiements
             Route::get('/paiements', [App\Http\Controllers\ESBTPPaiementController::class, 'index'])->name('paiements.index');
@@ -369,9 +437,18 @@ Route::middleware(['auth', 'installed'])->group(function () {
 
             // Routes pour les notes
             Route::resource('notes', ESBTPNoteController::class)
+                ->names([
+                    'index' => 'esbtp.notes.index',
+                    'create' => 'esbtp.notes.create',
+                    'store' => 'esbtp.notes.store',
+                    'show' => 'esbtp.notes.show',
+                    'edit' => 'esbtp.notes.edit',
+                    'update' => 'esbtp.notes.update',
+                    'destroy' => 'esbtp.notes.destroy'
+                ])
                 ->middleware(['permission:view_grades|create_grade|edit_grades|delete_grades']);
-            Route::get('evaluations/{evaluation}/saisie-rapide', [ESBTPNoteController::class, 'saisieRapide'])->name('notes.saisie-rapide');
-            Route::post('notes/store-batch', [ESBTPNoteController::class, 'enregistrerSaisieRapide'])->name('notes.store-batch');
+            Route::get('evaluations/{evaluation}/saisie-rapide', [ESBTPNoteController::class, 'saisieRapide'])->name('esbtp.notes.saisie-rapide');
+            Route::post('notes/store-batch', [ESBTPNoteController::class, 'enregistrerSaisieRapide'])->name('esbtp.notes.store-batch');
         });
 
         // Espace étudiant - routes accessibles pour les étudiants
@@ -464,20 +541,15 @@ Route::middleware(['auth', 'installed'])->group(function () {
 
             // Route de suppression des emplois du temps
             Route::delete('emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'destroy'])
-                ->name('emploi-temps.destroy')
+                ->name('esbtp.emploi-temps.destroy')
                 ->middleware(['permission:delete_timetables']);
         });
 
         // Emploi du temps routes
         Route::get('/emploi-temps/{emploi_temp}/add-session', [ESBTPEmploiTempsController::class, 'addSession'])
-            ->name('emploi-temps.add-session');
+            ->name('esbtp.emploi-temps.add-session');
         Route::post('/emploi-temps/{emploi_temp}/store-session', [ESBTPEmploiTempsController::class, 'storeSession'])
-            ->name('emploi-temps.store-session');
-
-        // Traitement des justifications d'absence (pour les administrateurs et secrétaires)
-        Route::post('/attendances/{absenceId}/process-justification', [ESBTPAttendanceController::class, 'processJustification'])
-            ->name('attendances.process-justification')
-            ->middleware('permission:edit_attendances|edit attendances');
+            ->name('esbtp.emploi-temps.store-session');
     });
 
     // Routes pour les paramètres et les rôles
@@ -550,12 +622,6 @@ Route::middleware(['auth', 'installed'])->group(function () {
         Route::post('/{id}/read', [ESBTPNotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
         Route::post('/mark-all-read', [ESBTPNotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
         Route::get('/unread-count', [ESBTPNotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
-    });
-
-    // Vérifier si la route pour le tableau de bord étudiant existe déjà
-    // Si elle n'existe pas, l'ajouter
-    Route::middleware(['auth', 'role:etudiant'])->prefix('dashboard')->group(function () {
-        Route::get('/etudiant', [DashboardController::class, 'studentDashboard'])->name('dashboard.etudiant');
     });
 
     // Student Progression Routes
@@ -674,3 +740,165 @@ Route::get('/esbtp-special/bulletins/generate', [ESBTPBulletinController::class,
 
 // Route pour télécharger un bulletin au format PDF
 Route::get('/esbtp/bulletins/{bulletin}/download', [ESBTPBulletinController::class, 'genererPDF'])->name('esbtp.bulletins.download');
+
+// Routes pour la gestion des secrétaires
+Route::prefix('secretaires')->name('secretaires.')->group(function () {
+    Route::get('/', [ESBTPSecretaireController::class, 'index'])->name('index');
+    Route::get('/create', [ESBTPSecretaireController::class, 'create'])->name('create');
+    Route::post('/', [ESBTPSecretaireController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [ESBTPSecretaireController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ESBTPSecretaireController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ESBTPSecretaireController::class, 'destroy'])->name('destroy');
+});
+
+// Routes pour la gestion des enseignants
+Route::prefix('esbtp/enseignants')->name('esbtp.enseignants.')->group(function () {
+    Route::get('/', [ESBTPEnseignantController::class, 'index'])->name('index');
+    Route::get('/create', [ESBTPEnseignantController::class, 'create'])->name('create');
+    Route::post('/', [ESBTPEnseignantController::class, 'store'])->name('store');
+    Route::get('/{id}', [ESBTPEnseignantController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [ESBTPEnseignantController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ESBTPEnseignantController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ESBTPEnseignantController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/promote', [ESBTPEnseignantController::class, 'promoteToAdmin'])->name('promote');
+    Route::post('/{id}/demote', [ESBTPEnseignantController::class, 'demoteFromAdmin'])->name('demote');
+});
+
+// Groupe de routes pour la comptabilité
+Route::middleware(['auth', 'permission:access_comptabilite_module'])->prefix('esbtp/comptabilite')->name('esbtp.comptabilite.')->group(function () {
+    // Dashboard comptabilité
+    Route::get('/', [ESBTPComptabiliteController::class, 'index'])->name('index');
+    
+    // Paiements
+    // Gestion des paiements
+    Route::get('/paiements', [ESBTPComptabiliteController::class, 'paiements'])->name('paiements');
+    Route::get('/paiements/create', [ESBTPComptabiliteController::class, 'createPaiement'])->name('paiements.create');
+    Route::post('/paiements', [ESBTPComptabiliteController::class, 'storePaiement'])->name('paiements.store');
+    Route::get('/paiements/{id}', [ESBTPComptabiliteController::class, 'showPaiement'])->name('paiements.show');
+    Route::get('/paiements/{id}/edit', [ESBTPComptabiliteController::class, 'editPaiement'])->name('paiements.edit');
+    Route::put('/paiements/{id}', [ESBTPComptabiliteController::class, 'updatePaiement'])->name('paiements.update');
+    Route::post('/paiements/{id}/valider', [ESBTPComptabiliteController::class, 'validerPaiement'])->name('paiements.valider');
+    Route::post('/paiements/{id}/rejeter', [ESBTPComptabiliteController::class, 'rejeterPaiement'])->name('paiements.rejeter');
+    Route::get('/paiements/{id}/recu', [ESBTPComptabiliteController::class, 'genererRecu'])->name('paiements.recu');
+    
+    // Gestion des frais de scolarité
+    Route::get('/frais-scolarite', [ESBTPComptabiliteController::class, 'fraisScolarite'])->name('frais-scolarite');
+    Route::get('/frais-scolarite/create', [ESBTPComptabiliteController::class, 'createFraisScolarite'])->name('frais-scolarite.create');
+    Route::post('/frais-scolarite', [ESBTPComptabiliteController::class, 'storeFraisScolarite'])->name('frais-scolarite.store');
+    Route::get('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'showFraisScolarite'])->name('frais-scolarite.show');
+    Route::get('/frais-scolarite/{id}/edit', [ESBTPComptabiliteController::class, 'editFraisScolarite'])->name('frais-scolarite.edit');
+    Route::put('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'updateFraisScolarite'])->name('frais-scolarite.update');
+    Route::delete('/frais-scolarite/{id}', [ESBTPComptabiliteController::class, 'destroyFraisScolarite'])->name('frais-scolarite.destroy');
+    
+    // Gestion des dépenses
+    Route::get('/depenses', [DepensesController::class, 'index'])->name('depenses');
+    Route::get('/depenses/create', [DepensesController::class, 'create'])->name('depenses.create');
+    Route::post('/depenses', [DepensesController::class, 'store'])->name('depenses.store');
+    Route::get('/depenses/{id}', [DepensesController::class, 'show'])->name('depenses.show');
+    Route::get('/depenses/{id}/edit', [DepensesController::class, 'edit'])->name('depenses.edit');
+    Route::put('/depenses/{id}', [DepensesController::class, 'update'])->name('depenses.update');
+    Route::delete('/depenses/{id}', [DepensesController::class, 'destroy'])->name('depenses.destroy');
+    
+    // Gestion des catégories de dépenses
+    Route::get('/depenses/categories', [DepensesController::class, 'categories'])->name('depenses.categories');
+    Route::post('/depenses/categories', [DepensesController::class, 'storeCategory'])->name('depenses.categories.store');
+    Route::put('/depenses/categories/{id}', [DepensesController::class, 'updateCategory'])->name('depenses.categories.update');
+    Route::delete('/depenses/categories/{id}', [DepensesController::class, 'destroyCategory'])->name('depenses.categories.destroy');
+    
+    // Gestion des bourses et aides
+    Route::get('/bourses', [ESBTPComptabiliteController::class, 'bourses'])->name('bourses');
+    Route::get('/bourses/create', [ESBTPComptabiliteController::class, 'createBourse'])->name('bourses.create');
+    Route::post('/bourses', [ESBTPComptabiliteController::class, 'storeBourse'])->name('bourses.store');
+    Route::get('/bourses/{id}', [ESBTPComptabiliteController::class, 'showBourse'])->name('bourses.show');
+    Route::get('/bourses/{id}/edit', [ESBTPComptabiliteController::class, 'editBourse'])->name('bourses.edit');
+    Route::put('/bourses/{id}', [ESBTPComptabiliteController::class, 'updateBourse'])->name('bourses.update');
+    Route::delete('/bourses/{id}', [ESBTPComptabiliteController::class, 'destroyBourse'])->name('bourses.destroy');
+    
+    // Gestion des salaires
+    Route::get('/salaires', [ESBTPComptabiliteController::class, 'salaires'])->name('salaires');
+    Route::get('/salaires/create', [ESBTPComptabiliteController::class, 'createSalaire'])->name('salaires.create');
+    Route::post('/salaires', [ESBTPComptabiliteController::class, 'storeSalaire'])->name('salaires.store');
+    Route::get('/salaires/{id}', [ESBTPComptabiliteController::class, 'showSalaire'])->name('salaires.show');
+    Route::get('/salaires/{id}/edit', [ESBTPComptabiliteController::class, 'editSalaire'])->name('salaires.edit');
+    Route::put('/salaires/{id}', [ESBTPComptabiliteController::class, 'updateSalaire'])->name('salaires.update');
+    Route::delete('/salaires/{id}', [ESBTPComptabiliteController::class, 'destroySalaire'])->name('salaires.destroy');
+    Route::get('/salaires/{id}/bulletin', [ESBTPComptabiliteController::class, 'bulletinSalaire'])->name('salaires.bulletin');
+    
+    // Gestion des fournisseurs
+    Route::get('/fournisseurs', [ESBTPComptabiliteController::class, 'fournisseurs'])->name('fournisseurs');
+    Route::get('/fournisseurs/create', [ESBTPComptabiliteController::class, 'createFournisseur'])->name('fournisseurs.create');
+    Route::post('/fournisseurs', [ESBTPComptabiliteController::class, 'storeFournisseur'])->name('fournisseurs.store');
+    Route::get('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'showFournisseur'])->name('fournisseurs.show');
+    Route::get('/fournisseurs/{id}/edit', [ESBTPComptabiliteController::class, 'editFournisseur'])->name('fournisseurs.edit');
+    Route::put('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'updateFournisseur'])->name('fournisseurs.update');
+    Route::delete('/fournisseurs/{id}', [ESBTPComptabiliteController::class, 'destroyFournisseur'])->name('fournisseurs.destroy');
+    
+    // Gestion des factures
+    Route::get('/factures', [ESBTPComptabiliteController::class, 'factures'])->name('factures');
+    Route::get('/factures/create', [ESBTPComptabiliteController::class, 'createFacture'])->name('factures.create');
+    Route::post('/factures', [ESBTPComptabiliteController::class, 'storeFacture'])->name('factures.store');
+    Route::get('/factures/{id}', [ESBTPComptabiliteController::class, 'showFacture'])->name('factures.show');
+    Route::get('/factures/{id}/edit', [ESBTPComptabiliteController::class, 'editFacture'])->name('factures.edit');
+    Route::put('/factures/{id}', [ESBTPComptabiliteController::class, 'updateFacture'])->name('factures.update');
+    Route::delete('/factures/{id}', [ESBTPComptabiliteController::class, 'destroyFacture'])->name('factures.destroy');
+    Route::get('/factures/{id}/pdf', [ESBTPComptabiliteController::class, 'pdfFacture'])->name('factures.pdf');
+    
+    // Tableau de bord et rapports financiers
+    Route::get('/rapports', [ESBTPComptabiliteController::class, 'rapports'])->name('rapports');
+    Route::get('/rapports/generate', [ESBTPComptabiliteController::class, 'generateReport'])->name('rapports.generate');
+    Route::post('/rapports/export', [ESBTPComptabiliteController::class, 'exportReport'])->name('rapports.export');
+    
+    // Configuration du module comptabilité
+    Route::get('/configuration', [ESBTPComptabiliteController::class, 'configuration'])->name('configuration');
+    Route::post('/configuration', [ESBTPComptabiliteController::class, 'updateConfiguration'])->name('configuration.update');
+    
+    // Gestion des catégories de paiement
+    Route::prefix('categories-paiement')->name('categories-paiement.')->group(function () {
+        Route::get('/', [ESBTPCategoriePaiementController::class, 'index'])->name('index');
+        Route::get('/create', [ESBTPCategoriePaiementController::class, 'create'])->name('create');
+        Route::post('/', [ESBTPCategoriePaiementController::class, 'store'])->name('store');
+        Route::get('/{categorie}', [ESBTPCategoriePaiementController::class, 'show'])->name('show');
+        Route::get('/{categorie}/edit', [ESBTPCategoriePaiementController::class, 'edit'])->name('edit');
+        Route::put('/{categorie}', [ESBTPCategoriePaiementController::class, 'update'])->name('update');
+        Route::delete('/{categorie}', [ESBTPCategoriePaiementController::class, 'destroy'])->name('destroy');
+        Route::patch('/{categorie}/toggle-status', [ESBTPCategoriePaiementController::class, 'toggleStatus'])->name('toggle-status');
+    });
+});
+
+// Routes pour le tableau de bord enseignant
+Route::middleware(['auth', 'role:teacher|enseignant'])->group(function () {
+    Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+    Route::get('/teacher/timetable', [App\Http\Controllers\TeacherDashboardController::class, 'showTimetable'])->name('teacher.timetable');
+    
+    // Routes CRUD pour les notes accessibles aux enseignants
+    Route::get('/esbtp/notes', [ESBTPNoteController::class, 'index'])->name('esbtp.notes.index');
+    Route::get('/esbtp/notes/create', [ESBTPNoteController::class, 'create'])->name('esbtp.notes.create');
+    Route::post('/esbtp/notes', [ESBTPNoteController::class, 'store'])->name('esbtp.notes.store');
+    Route::get('/esbtp/notes/{note}', [ESBTPNoteController::class, 'show'])->name('esbtp.notes.show');
+    Route::get('/esbtp/notes/{note}/edit', [ESBTPNoteController::class, 'edit'])->name('esbtp.notes.edit');
+    Route::put('/esbtp/notes/{note}', [ESBTPNoteController::class, 'update'])->name('esbtp.notes.update');
+    Route::delete('/esbtp/notes/{note}', [ESBTPNoteController::class, 'destroy'])->name('esbtp.notes.destroy');
+    Route::get('/esbtp/evaluations/{evaluation}/saisie-rapide', [ESBTPNoteController::class, 'saisieRapide'])->name('esbtp.notes.saisie-rapide');
+    Route::post('/esbtp/notes/store-batch', [ESBTPNoteController::class, 'enregistrerSaisieRapide'])->name('esbtp.notes.store-batch');
+    
+    // Routes pour emploi-temps pour les enseignants
+    Route::get('/esbtp/emploi-temps', [ESBTPEmploiTempsController::class, 'index'])->name('esbtp.emploi-temps.index');
+    Route::get('/esbtp/emploi-temps/create', [ESBTPEmploiTempsController::class, 'create'])->name('esbtp.emploi-temps.create');
+    Route::post('/esbtp/emploi-temps', [ESBTPEmploiTempsController::class, 'store'])->name('esbtp.emploi-temps.store');
+    Route::get('/esbtp/emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'show'])->name('esbtp.emploi-temps.show');
+    Route::get('/esbtp/emploi-temps/{emploi_temp}/edit', [ESBTPEmploiTempsController::class, 'edit'])->name('esbtp.emploi-temps.edit');
+    Route::put('/esbtp/emploi-temps/{emploi_temp}', [ESBTPEmploiTempsController::class, 'update'])->name('esbtp.emploi-temps.update');
+    
+    // Routes pour les présences
+    Route::get('/teacher/attendances', [ESBTPAttendanceController::class, 'index'])->name('teacher.attendances');
+    
+    // Routes pour les rapports de présence
+    Route::get('/esbtp/attendances/rapport-form', [ESBTPAttendanceController::class, 'rapportForm'])->name('esbtp.attendances.rapport-form');
+    Route::post('/esbtp/attendances/rapport', [ESBTPAttendanceController::class, 'rapport'])->name('esbtp.attendances.rapport');
+    
+    // Route pour l'exportation des présences
+    Route::get('/esbtp/export-attendances', [ESBTPAttendanceController::class, 'exportAttendances'])->name('esbtp.export-attendances');
+    
+    // Alias pour la compatibilité avec les templates existants
+    Route::get('/esbtp/attendance-reports', [ESBTPAttendanceController::class, 'rapportForm'])->name('esbtp.attendance-reports');
+});

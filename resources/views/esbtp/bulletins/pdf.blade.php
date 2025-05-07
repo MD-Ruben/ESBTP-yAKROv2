@@ -260,15 +260,10 @@
 
         <div class="header-row">
             <div class="header-left">
-                <div class="esbtp-logo">
-                    @if($logoBase64)
-                        <img src="{{ $logoBase64 }}" alt="Logo ESBTP">
-                    @else
-                        <!-- Fallback direct URL pour l'image du logo -->
-                        <img src="{{ public_path('images/esbtp_logo.png') }}" alt="Logo ESBTP"
-                            onerror="this.onerror=null; this.src='{{ public_path('images/logo.jpeg') }}';
-                            this.onerror=null; this.style.display='none';">
-                    @endif
+                <div class="logo">
+                    <img src="{{ public_path('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI"
+                          onerror="this.onerror=null; this.src='{{ public_path('images/LOGO-KLASSCI-PNG.png') }}';"
+                          style="max-height: 80px;">
                 </div>
             </div>
             <div class="header-center">

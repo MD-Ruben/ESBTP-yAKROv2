@@ -24,6 +24,7 @@ class CourseSession extends Model
      */
     protected $fillable = [
         'element_constitutif_id', // EC concerné
+        'course_class_id', // Classe associée à la séance
         'teacher_id', // Enseignant qui donne le cours
         'classroom_id', // Salle de classe
         'date', // Date de la séance
@@ -100,6 +101,16 @@ class CourseSession extends Model
     public function documents()
     {
         return $this->hasMany(Document::class);
+    }
+
+    /**
+     * Obtenir la classe associée à cette séance.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function courseClass()
+    {
+        return $this->belongsTo(CourseClass::class);
     }
 
     /**
