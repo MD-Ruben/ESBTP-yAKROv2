@@ -34,7 +34,7 @@ class ESBTPEnseignantController extends Controller
      */
     public function create()
     {
-        $matieres = ESBTPMatiere::orderBy('nom')->get();
+        $matieres = ESBTPMatiere::orderBy('name')->get();
         return view('esbtp.enseignants.create', compact('matieres'));
     }
 
