@@ -95,7 +95,32 @@ try {
         'inscriptions.view', 'inscriptions.create', 'inscriptions.edit', 'inscriptions.delete', 'inscriptions.validate',
 
         // Paiements - Ajout des permissions pour les paiements
-        'view-paiements', 'create-paiements', 'edit-paiements', 'delete-paiements', 'validate-paiements'
+        'view-paiements', 'create-paiements', 'edit-paiements', 'delete-paiements', 'validate-paiements',
+
+        //Comptabilité
+        'access_comptabilite_module',
+        'view_paiements',
+    'create_paiements',
+    'edit_paiements',
+    'delete_paiements',
+    'view_frais_scolarite',
+    'create_frais_scolarite',
+    'edit_frais_scolarite',
+    'delete_frais_scolarite',
+    'view_depenses',
+    'create_depenses',
+    'edit_depenses',
+    'delete_depenses',
+    'view_salaires',
+    'create_salaires',
+    'edit_salaires',
+    'delete_salaires',
+    'view_bourses',
+    'create_bourses',
+    'edit_bourses',
+    'delete_bourses',
+    'view_reporting_financier',
+    'export_reporting_financier',
     ];
 
     echo "Vérification et création des permissions...\n";
@@ -291,5 +316,7 @@ try {
     echo "\n❌ ERREUR CRITIQUE: " . $e->getMessage() . "\n";
     echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
 }
+
+
 
 echo "\n=== Fin du script ===\n";

@@ -97,7 +97,7 @@
                         <select class="form-select @error('matieres') is-invalid @enderror" id="matieres" name="matieres[]" multiple>
                             @foreach($matieres as $matiere)
                             <option value="{{ $matiere->id }}" {{ in_array($matiere->id, old('matieres', [])) ? 'selected' : '' }}>
-                                {{ $matiere->nom }} ({{ $matiere->code }})
+                                {{ $matiere->name }} ({{ $matiere->code }})
                             </option>
                             @endforeach
                         </select>

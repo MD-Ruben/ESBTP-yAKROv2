@@ -112,18 +112,18 @@ class ESBTPDepense extends Model
      * @param  string  $dateFin
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopePeriode($query, $dateDebut, $dateFin)
-    {
-        if ($dateDebut && $dateFin) {
-            return $query->whereBetween('date_depense', [$dateDebut, $dateFin]);
-        } elseif ($dateDebut) {
-            return $query->where('date_depense', '>=', $dateDebut);
-        } elseif ($dateFin) {
-            return $query->where('date_depense', '<=', $dateFin);
-        }
+    // public function scopePeriode($query, $dateDebut, $dateFin)
+    // {
+    //     if ($dateDebut && $dateFin) {
+    //         return $query->whereBetween('date_depense', [$dateDebut, $dateFin]);
+    //     } elseif ($dateDebut) {
+    //         return $query->where('date_depense', '>=', $dateDebut);
+    //     } elseif ($dateFin) {
+    //         return $query->where('date_depense', '<=', $dateFin);
+    //     }
         
-        return $query;
-    }
+    //     return $query;
+    // }
 
     /**
      * Scope a query to filter expenses by category.

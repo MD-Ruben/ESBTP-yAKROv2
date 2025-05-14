@@ -34,12 +34,12 @@
 
     <!-- Custom CSS -->
     <link href="{{ asset('css/nextadmin.css') }}" rel="stylesheet">
-
+    
     <!-- Styles supplémentaires -->
     <style>
         /* Amélioration de la visibilité des éléments de la navbar */
-        .navbar-user-name, 
-        .dropdown-user-name, 
+        .navbar-user-name,
+        .dropdown-user-name,
         .dropdown-user-email,
         .notification-title,
         .notification-text,
@@ -48,23 +48,23 @@
         .quick-action-text {
             color: var(--nextadmin-gray-700) !important;
         }
-        
+
         .navbar-title {
             display: flex;
             align-items: center;
         }
-        
+
         /* S'assurer que les icônes sont bien visibles */
-        .navbar-icon i, 
+        .navbar-icon i,
         .menu-icon i {
             color: var(--nextadmin-gray-700);
         }
-        
+
         /* Améliorer le contraste dans les dropdowns */
         .dropdown-item {
             color: var(--nextadmin-gray-700) !important;
         }
-        
+
         .dropdown-header {
             color: var(--nextadmin-gray-900) !important;
             font-weight: 600;
@@ -93,9 +93,9 @@
                                 <div class="menu-text">Accueil</div>
                             </a>
                     </div>
-                        
+
                         <div class="menu-category">Gestion académique</div>
-                        
+
                         <!-- Accordion Menu - Filières & Classes -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.filieres.*') || Request::routeIs('esbtp.classes.*') ? 'active' : '' }}">
@@ -118,7 +118,7 @@
                                 </a>
                     </div>
                         </div>
-                        
+
                         <!-- Accordion Menu - Étudiants -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.etudiants.*') || Request::routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
@@ -131,7 +131,7 @@
                                     <span class="menu-dot"></span>
                                     <span>Liste des étudiants</span>
                                 </a>
-                                <a href="{{ route('esbtp.etudiants.create') }}" class="menu-sublink {{ Request::routeIs('esbtp.etudiants.create') ? 'active' : '' }}">
+                                <a href="{{ route('esbtp.inscriptions.create') }}" class="menu-sublink {{ Request::routeIs('esbtp.inscriptions.create') ? 'active' : '' }}">
                                     <span class="menu-dot"></span>
                                     <span>Ajouter un étudiant</span>
                                 </a>
@@ -141,7 +141,7 @@
                                 </a>
                     </div>
                     </div>
-                        
+
                         <!-- Accordion Menu - Enseignement -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.matieres.*') || Request::routeIs('esbtp.evaluations.*') || Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
@@ -156,7 +156,7 @@
                                 </a>
                                 <a href="{{ route('esbtp.evaluations.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
                                     <span class="menu-dot"></span>
-                                    <span>Examens & Évaluations</span>
+                                    <span>Évaluations</span>
                                 </a>
                                 <a href="{{ route('esbtp.emploi-temps.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
                                     <span class="menu-dot"></span>
@@ -164,7 +164,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <!-- Accordion Menu - Bulletins & Notes -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.notes.*') || Request::routeIs('esbtp.bulletins.*') || Request::routeIs('esbtp.resultats.*') ? 'active' : '' }}">
@@ -177,19 +177,19 @@
                                     <span class="menu-dot"></span>
                                     <span>Gestion des notes</span>
                                 </a>
-                                <a href="{{ route('esbtp.bulletins.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
+                                <!--<a href="{{ route('esbtp.bulletins.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.bulletins.*') ? 'active' : '' }}">
                                     <span class="menu-dot"></span>
                                     <span>Bulletins scolaires</span>
-                                </a>
+                                </a>-->
                                 <a href="{{ route('esbtp.resultats.index') }}" class="menu-sublink {{ Request::routeIs('esbtp.resultats.*') ? 'active' : '' }}">
                                     <span class="menu-dot"></span>
                                     <span>Résultats & Classements</span>
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="menu-category">Administration</div>
-                        
+
                         <!-- Accordion Menu - Personnel -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.enseignants.*') || Request::routeIs('secretaires.*') ? 'active' : '' }}">
@@ -208,7 +208,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <!-- Autres menus -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.attendances.index') }}" class="menu-link {{ Request::routeIs('esbtp.attendances.*') ? 'active' : '' }}">
@@ -216,21 +216,21 @@
                                 <div class="menu-text">Présences</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-item">
                             <a href="{{ route('esbtp.comptabilite.index') }}" class="menu-link {{ Request::routeIs('esbtp.comptabilite.*') ? 'active' : '' }}">
                                 <div class="menu-icon"><i class="fas fa-money-bill-wave"></i></div>
                                 <div class="menu-text">Comptabilité</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-item">
                             <a href="{{ route('esbtp.annonces.index') }}" class="menu-link {{ Request::routeIs('esbtp.annonces.*') ? 'active' : '' }}">
                                 <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
                                 <div class="menu-text">Annonces</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Système</div>
                         <div class="menu-item">
                             <a href="{{ route('settings.index') }}" class="menu-link {{ Request::routeIs('settings.*') ? 'active' : '' }}">
@@ -249,9 +249,9 @@
                                 <div class="menu-text">Accueil</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Gestion académique</div>
-                        
+
                         <!-- Accordion Menu - Étudiants & Inscriptions -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.etudiants.*') || Request::routeIs('esbtp.inscriptions.*') ? 'active' : '' }}">
@@ -274,7 +274,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <!-- Filières & Classes -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.filieres.*') || Request::routeIs('esbtp.classes.*') ? 'active' : '' }}">
@@ -297,9 +297,9 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="menu-category">Enseignement</div>
-                        
+
                         <!-- Accordion Menu - Notes & Bulletins -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.notes.*') || Request::routeIs('esbtp.bulletins.*') || Request::routeIs('esbtp.resultats.*') ? 'active' : '' }}">
@@ -322,7 +322,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <!-- Examens & Évaluations -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.evaluations.index') }}" class="menu-link {{ Request::routeIs('esbtp.evaluations.*') ? 'active' : '' }}">
@@ -330,7 +330,7 @@
                                 <div class="menu-text">Examens & Évaluations</div>
                             </a>
                         </div>
-                        
+
                         <!-- Emploi du temps -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.emploi-temps.index') }}" class="menu-link {{ Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
@@ -338,7 +338,7 @@
                                 <div class="menu-text">Emplois du temps</div>
                             </a>
                         </div>
-                        
+
                         <!-- Gestion de présence -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.attendances.index') }}" class="menu-link {{ Request::routeIs('esbtp.attendances.*') ? 'active' : '' }}">
@@ -346,9 +346,9 @@
                                 <div class="menu-text">Gestion des présences</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Comptabilité</div>
-                        
+
                         <!-- Accordion Menu - Comptabilité -->
                         <div class="menu-accordion">
                             <button class="menu-accordion-btn {{ Request::routeIs('esbtp.comptabilite.*') || Request::routeIs('esbtp.paiements.*') ? 'active' : '' }}">
@@ -375,9 +375,9 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="menu-category">Communication</div>
-                        
+
                         <!-- Annonces -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.annonces.index') }}" class="menu-link {{ Request::routeIs('esbtp.annonces.*') ? 'active' : '' }}">
@@ -385,7 +385,7 @@
                                 <div class="menu-text">Annonces</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mon compte -->
                         <div class="menu-item">
                             <a href="{{ route('admin.profile') }}" class="menu-link {{ Request::routeIs('admin.profile') ? 'active' : '' }}">
@@ -404,9 +404,9 @@
                                 <div class="menu-text">Accueil</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Enseignement</div>
-                        
+
                         <!-- Gestion des notes -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.notes.index') }}" class="menu-link {{ Request::routeIs('esbtp.notes.*') ? 'active' : '' }}">
@@ -422,7 +422,7 @@
                                 <div class="menu-text">Examens & Évaluations</div>
                             </a>
                         </div>
-                        
+
                         <!-- Emploi du temps -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.emploi-temps.index') }}" class="menu-link {{ Request::routeIs('esbtp.emploi-temps.*') ? 'active' : '' }}">
@@ -430,7 +430,7 @@
                                 <div class="menu-text">Emploi du temps</div>
                             </a>
                         </div>
-                        
+
                         <!-- Gestion de présence -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.attendances.index') }}" class="menu-link {{ Request::routeIs('esbtp.attendances.*') ? 'active' : '' }}">
@@ -438,9 +438,9 @@
                                 <div class="menu-text">Gestion des présences</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Étudiants</div>
-                        
+
                         <!-- Liste des étudiants -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.etudiants.index') }}" class="menu-link {{ Request::routeIs('esbtp.etudiants.*') ? 'active' : '' }}">
@@ -456,7 +456,7 @@
                                 <div class="menu-text">Classes</div>
                             </a>
                         </div>
-                        
+
                 <div class="menu-category">Communication</div>
 
                         <!-- Annonces -->
@@ -466,7 +466,7 @@
                                 <div class="menu-text">Annonces</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mon compte -->
                         <div class="menu-item">
                             <a href="{{ route('admin.profile') }}" class="menu-link {{ Request::routeIs('admin.profile') ? 'active' : '' }}">
@@ -487,13 +487,13 @@
                         </div>
 
                         <div class="menu-category">Informations personnelles</div>
-                        
+
                         <!-- Numéro matricule -->
                         <div class="menu-item">
                             <div class="menu-link">
                                 <div class="menu-icon"><i class="fas fa-id-card"></i></div>
                                 <div class="menu-text">
-                                    Matricule: 
+                                    Matricule:
                                     <span class="fw-bold text-primary">
                                         @php
                                             $etudiant = auth()->user()->etudiant;
@@ -503,16 +503,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Assiduité -->
                         <div class="menu-item">
                             <div class="menu-link">
                                 <div class="menu-icon"><i class="fas fa-chart-bar"></i></div>
                                 <div class="menu-text">
-                                    Assiduité: 
+                                    Assiduité:
                                     @php
                                         $etudiant = auth()->user()->etudiant;
-                                        $attendancePercentage = isset($attendancePercentage) ? $attendancePercentage : 
+                                        $attendancePercentage = isset($attendancePercentage) ? $attendancePercentage :
                                             (auth()->user()->etudiant ? \App\Models\Attendance::getStudentAttendancePercentage(auth()->user()->etudiant->id) : 0);
                                     @endphp
                                     <span class="badge {{ $attendancePercentage >= 90 ? 'bg-success' : ($attendancePercentage >= 75 ? 'bg-warning' : 'bg-danger') }}">
@@ -521,13 +521,13 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Notifications non lues -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mes-notifications.index') }}" class="menu-link {{ Request::routeIs('esbtp.mes-notifications.*') ? 'active' : '' }}">
                                 <div class="menu-icon"><i class="fas fa-bell"></i></div>
                                 <div class="menu-text">
-                                    Notifications 
+                                    Notifications
                                     @php
                                         $unreadCount = \App\Models\Notification::getUnreadCountForUser(auth()->id());
                                     @endphp
@@ -539,7 +539,7 @@
                         </div>
 
                         <div class="menu-category">Scolarité</div>
-                        
+
                         <!-- Mon profil -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mon-profil.index') }}" class="menu-link {{ Request::routeIs('esbtp.mon-profil.*') ? 'active' : '' }}">
@@ -547,7 +547,7 @@
                                 <div class="menu-text">Mon profil</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mes notes -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mes-notes.index') }}" class="menu-link {{ Request::routeIs('esbtp.mes-notes.*') ? 'active' : '' }}">
@@ -555,7 +555,7 @@
                                 <div class="menu-text">Mes notes</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mon emploi du temps -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mon-emploi-temps.index') }}" class="menu-link {{ Request::routeIs('esbtp.mon-emploi-temps.*') ? 'active' : '' }}">
@@ -563,7 +563,7 @@
                                 <div class="menu-text">Mon emploi du temps</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mes examens -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mes-evaluations.index') }}" class="menu-link {{ Request::routeIs('esbtp.mes-evaluations.*') ? 'active' : '' }}">
@@ -571,7 +571,7 @@
                                 <div class="menu-text">Mes examens</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mon bulletin -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mon-bulletin.index') }}" class="menu-link {{ Request::routeIs('esbtp.mon-bulletin.*') ? 'active' : '' }}">
@@ -579,7 +579,7 @@
                                 <div class="menu-text">Mon bulletin</div>
                             </a>
                         </div>
-                        
+
                         <!-- Mes absences -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mes-absences.index') }}" class="menu-link {{ Request::routeIs('esbtp.mes-absences.*') ? 'active' : '' }}">
@@ -587,9 +587,9 @@
                                 <div class="menu-text">Mes absences</div>
                             </a>
                         </div>
-                        
+
                         <div class="menu-category">Communication</div>
-                        
+
                         <!-- Mes messages -->
                         <div class="menu-item">
                             <a href="{{ route('esbtp.mes-messages.index') }}" class="menu-link {{ Request::routeIs('esbtp.mes-messages.*') ? 'active' : '' }}">
@@ -623,7 +623,7 @@
                             <span class="ms-2 fw-bold">KLASSCI</span>
                         </div>
                     </div>
-                    
+
                     <div class="navbar-center d-none d-lg-block">
                         <div class="navbar-search">
                             <div class="navbar-search-icon">
@@ -632,7 +632,7 @@
                             <input type="text" placeholder="Rechercher..." class="form-control">
                         </div>
                     </div>
-                    
+
                     <div class="navbar-right">
                         <!-- Notifications -->
                         <div class="dropdown">
@@ -689,7 +689,7 @@
                 </li>
                             </ul>
                         </div>
-                        
+
                         <!-- Messages -->
                         <div class="dropdown">
                             <button class="navbar-icon" type="button" id="messagesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -867,22 +867,22 @@
             if (sidebarToggle && sidebar) {
                 sidebarToggle.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
-                    
+
                     // Adjust for mobile
                     if (window.innerWidth < 992) {
                         sidebar.classList.toggle('show');
                     }
                 });
             }
-            
+
             // Accordion Toggle
             const accordionButtons = document.querySelectorAll('.menu-accordion-btn');
-            
+
             accordionButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     this.classList.toggle('active');
                     const content = this.nextElementSibling;
-                    
+
                     if (content.classList.contains('show')) {
                         content.classList.remove('show');
                     } else {
@@ -900,10 +900,10 @@
                             sidebar.classList.remove('collapsed');
                         }
                     }
-            
+
             // Initial check
             checkWidth();
-            
+
             // Check on resize
             window.addEventListener('resize', checkWidth);
     });
@@ -911,5 +911,8 @@
 
     <!-- Scripts additionnels -->
     @yield('scripts')
+    
+    <!-- Script pour gérer les images manquantes avec des illustrations thématiques -->
+    <script src="{{ asset('js/image-replacement.js') }}"></script>
 </body>
 </html>

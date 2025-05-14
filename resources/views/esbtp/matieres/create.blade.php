@@ -44,9 +44,9 @@
 
                                         <!-- Nom complet de la matière (nom) -->
                                         <div class="mb-3">
-                                            <label for="nom" class="form-label">Nom complet de la matière <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control @error('nom') is-invalid @enderror" id="nom" name="nom" value="{{ old('nom') }}" required>
-                                            @error('nom')
+                                            <label for="name" class="form-label">Nom complet de la matière<span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                                            @error('name')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -237,7 +237,7 @@
         });
 
         // Génération automatique du code
-        $('#nom').on('blur', function() {
+        $('#name').on('blur', function() {
             if ($('#code').val() === '') {
                 let name = $(this).val().trim().toUpperCase();
                 if (name) {

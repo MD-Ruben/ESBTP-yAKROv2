@@ -84,5 +84,8 @@
 
     <!-- Scripts additionnels -->
     @yield('scripts')
+    
+    <!-- Script pour gérer les images manquantes avec des illustrations thématiques -->
+    <script src="{{ asset('js/image-replacement.js') }}"></script>
 </body>
 </html> 
