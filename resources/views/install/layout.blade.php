@@ -283,7 +283,7 @@
         <div class="install-container px-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <img src="{{ asset('images/@esbtp_logo.png') }}" alt="ESBTP-Yakro" class="h-12 mr-4">
+                    <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="KLASSCI" class="h-12 mr-4">
                     <h1 class="text-2xl font-bold text-gray-800">ESBTP-Yakro</h1>
                 </div>
                 <div class="text-gray-600">

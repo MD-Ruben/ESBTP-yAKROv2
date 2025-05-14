@@ -25,7 +25,7 @@ class ESBTPMatiere extends Model
     protected $fillable = [
         'name',
         'code',
-        'nom',
+        // 'nom',
         'description',
         'coefficient',
         'heures_cm',
@@ -40,8 +40,8 @@ class ESBTPMatiere extends Model
         'is_active',
         'created_by',
         'updated_by',
-        'coefficient_default',
-        'total_heures_default'
+        // 'coefficient_default',
+        // 'total_heures_default'
     ];
 
     /**

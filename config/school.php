@@ -15,7 +15,7 @@ return [
     'phone' => '+225 27 22 44 52 14',
     'email' => 'esbtp@aviso.ci',
     'website' => 'www.esbtp-ci.net',
-    'logo' => 'images/esbtp_logo.png',
+    'logo' => 'images/LOGO-KLASSCI-PNG.png',
 
     /*
     |--------------------------------------------------------------------------

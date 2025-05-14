@@ -5,30 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ESBTP') }} - Connexion</title>
+    <title>{{ config('app.name', 'KLASSCI') }} - Connexion</title>
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Animation CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <style>
         :root {
-            --esbtp-orange: #f29400;
-            --esbtp-green: #01632f;
-            --esbtp-white: #ffffff;
-            --esbtp-light-green: rgba(1, 99, 47, 0.05);
-            --esbtp-light-orange: rgba(242, 148, 0, 0.1);
+            /* Palette de couleurs */
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: rgba(99, 102, 241, 0.1);
+            --secondary: #ec4899;
+            --secondary-dark: #db2777;
+            --secondary-light: rgba(236, 72, 153, 0.1);
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --light: #f8fafc;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+
+            /* Bordures */
+            --border-radius-sm: 0.25rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 1rem;
+            --border-radius-xl: 1.5rem;
+            --border-radius-pill: 9999px;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(236, 72, 153, 0.8) 100%),
+                        url('{{ asset('images/login_bg.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--esbtp-light-green), var(--esbtp-light-orange));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -37,253 +58,471 @@
             overflow-x: hidden;
         }
 
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            z-index: -1;
-        }
-
-        body::before {
-            background: radial-gradient(var(--esbtp-light-orange), transparent 70%);
-            top: -100px;
-            right: -100px;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        body::after {
-            background: radial-gradient(var(--esbtp-light-green), transparent 70%);
-            bottom: -100px;
-            left: -100px;
-            animation: float 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-            100% { transform: translateY(0) rotate(0deg); }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
         }
 
         .login-container {
             width: 100%;
-            max-width: 450px;
-            perspective: 1000px;
+            max-width: 480px;
+            z-index: 10;
         }
 
         .card {
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius-xl);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
             border: none;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            transform-style: preserve-3d;
-            transition: all 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .card:hover {
-            transform: translateY(-5px) rotateX(5deg);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 45px 80px -15px rgba(0, 0, 0, 0.4);
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--esbtp-green), #014a23);
-            color: white;
-            border-radius: 20px 20px 0 0 !important;
-            padding: 30px 20px;
+            background: white;
+            border-bottom: none;
+            padding: 2.5rem 2.5rem 0;
             text-align: center;
-            border-bottom: 5px solid var(--esbtp-orange);
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: white;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            z-index: 1;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-logo {
+            max-width: 150px;
+            margin-bottom: 1.5rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            filter: drop-shadow(0 10px 15px rgba(99, 102, 241, 0.3));
+            animation: logoFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        .login-title {
+            color: var(--dark);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .login-subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-control {
+            padding: 1rem 1.25rem;
+            border-radius: var(--border-radius-md);
+            border: 1.5px solid var(--gray-light);
+            background-color: white;
+            color: var(--dark);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            height: auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .form-label {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            letter-spacing: 0.2px;
+        }
+
+        .input-group-text {
+            background-color: var(--primary-light);
+            border: 1.5px solid var(--primary-light);
+            color: var(--primary);
+            border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+            padding: 0 1.25rem;
+        }
+
+        .btn {
+            padding: 1rem 1.75rem;
+            border-radius: var(--border-radius-pill);
+            font-weight: 600;
+            transition: all 0.4s ease;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 35px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-2px);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .form-check-label {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        .alert {
+            border-radius: var(--border-radius-md);
+            border: none;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: flex-start;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert i {
+            margin-right: 1rem;
+            font-size: 1.25rem;
+            margin-top: 0.2rem;
+        }
+
+        .alert-success {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border-left: 5px solid var(--success);
+        }
+
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-left: 5px solid var(--danger);
+        }
+
+        .back-to-home {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background-color: rgba(15, 23, 42, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-pill);
+            transition: all 0.3s ease;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-to-home:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            color: white;
+            transform: translateX(-8px);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .animated-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            z-index: 1;
+        }
+
+        .shape1 {
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: rgba(99, 102, 241, 0.3);
+            animation: shapeFloat1 25s infinite alternate ease-in-out;
+        }
+
+        .shape2 {
+            bottom: -300px;
+            left: -200px;
+            width: 700px;
+            height: 700px;
+            background: rgba(236, 72, 153, 0.3);
+            animation: shapeFloat2 30s infinite alternate ease-in-out;
+        }
+
+        .shape3 {
+            bottom: 50px;
+            right: 10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.2);
+            animation: shapeFloat3 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes shapeFloat1 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(100px, 150px) rotate(15deg); }
+        }
+
+        @keyframes shapeFloat2 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-150px, 100px) rotate(-20deg); }
+        }
+
+        @keyframes shapeFloat3 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, -80px) scale(1.2); }
+        }
+
+        .small.text-primary {
+            color: var(--primary) !important;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .small.text-primary:hover {
+            color: var(--secondary) !important;
+            text-decoration: underline;
+        }
+
+        .text-muted {
+            color: var(--gray) !important;
+        }
+
+        .login-features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            margin-top: 2.5rem;
+        }
+
+        .login-features .feature-item {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 0.85rem 1.5rem;
+            border-radius: var(--border-radius-pill);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-features .feature-item:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .login-features .feature-item i {
+            margin-right: 0.85rem;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Séparateur stylisé */
+        .custom-separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--gray);
+        }
+
+        .custom-separator::before,
+        .custom-separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .custom-separator::before {
+            margin-right: 1rem;
+        }
+
+        .custom-separator::after {
+            margin-left: 1rem;
+        }
+
+        /* Animation du bouton de connexion */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Indication de force du mot de passe */
+        .password-strength {
+            height: 5px;
+            margin-top: 0.5rem;
+            border-radius: var(--border-radius-pill);
+            background-color: var(--gray-light);
             position: relative;
             overflow: hidden;
         }
 
-        .card-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            transform: rotate(30deg);
+        .password-strength-meter {
+            height: 100%;
+            width: 0;
+            border-radius: var(--border-radius-pill);
+            transition: width 0.5s ease, background-color 0.5s ease;
         }
 
-        .school-logo {
-            max-width: 80px;
-            margin-bottom: 15px;
-            animation: pulse 2s infinite;
+        .password-strength-text {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            text-align: right;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .card-body {
-            padding: 30px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(to right, var(--esbtp-orange), #f2a730);
-            border: none;
-            padding: 12px 25px;
-            font-weight: 600;
-            border-radius: 30px;
-            box-shadow: 0 5px 15px rgba(242, 148, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(to right, var(--esbtp-green), #018a42);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(1, 99, 47, 0.4);
-        }
-
-        .form-control {
-            padding: 12px 15px;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
-            background-color: #f8fafc;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: var(--esbtp-orange);
-            box-shadow: 0 0 0 3px rgba(242, 148, 0, 0.1);
-            background-color: white;
-        }
-
-        .input-group-text {
-            border-radius: 10px 0 0 10px;
-            background-color: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-right: none;
-            color: var(--esbtp-green);
-        }
-
-        .form-control {
-            border-radius: 0 10px 10px 0;
-        }
-
-        .btn-link {
-            color: var(--esbtp-green);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-link:hover {
-            color: var(--esbtp-orange);
-            text-decoration: underline;
-        }
-
-        .home-link {
-            color: var(--esbtp-green);
+        /* Icône de sécurité animée */
+        .security-badge {
             display: inline-flex;
             align-items: center;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.8rem;
             font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .home-link:hover {
-            color: var(--esbtp-orange);
-            transform: translateX(-5px);
-        }
-
-        .home-link i {
-            margin-right: 8px;
-        }
-
-        .form-check-input:checked {
-            background-color: var(--esbtp-green);
-            border-color: var(--esbtp-green);
-        }
-
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
-
-        .alert-success {
-            background-color: rgba(25, 135, 84, 0.1);
-            color: #198754;
-        }
-
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-
-        /* Animation pour les champs du formulaire */
-        .animate__animated {
-            animation-duration: 0.6s;
-        }
-
-        .animate__delay-1 {
-            animation-delay: 0.1s;
-        }
-
-        .animate__delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .animate__delay-3 {
-            animation-delay: 0.3s;
-        }
-
-        /* Effet de particules */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            pointer-events: none;
-        }
-
-        .particle {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--border-radius-pill);
             position: absolute;
-            border-radius: 50%;
-            opacity: 0.5;
-            animation: particleFloat 15s infinite linear;
+            top: -10px;
+            right: 20px;
         }
 
-        @keyframes particleFloat {
-            0% { transform: translateY(0) rotate(0deg); }
-            100% { transform: translateY(-100vh) rotate(360deg); }
+        .security-badge i {
+            margin-right: 0.5rem;
+            animation: securityPulse 2s infinite;
+        }
+
+        @keyframes securityPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        @media (max-width: 767.98px) {
+            .card-header,
+            .card-body {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-title {
+                font-size: 1.75rem;
+            }
+            
+            .back-to-home {
+                top: 1.25rem;
+                left: 1.25rem;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .login-features {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .login-features .feature-item {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 0.85rem 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Particules d'arrière-plan -->
-    <div class="particles" id="particles"></div>
+    <a href="{{ url('/') }}" class="back-to-home">
+        <i class="fas fa-arrow-left"></i>
+        <span>Retour à l'accueil</span>
+    </a>
+
+    <div class="animated-shape shape1"></div>
+    <div class="animated-shape shape2"></div>
+    <div class="animated-shape shape3"></div>
 
     <div class="container">
-        <div class="login-container animate__animated animate__fadeIn">
+        <div class="login-container" data-aos="fade-up" data-aos-duration="800">
             <div class="card">
                 <div class="card-header">
-                    <!-- Si vous avez un logo, vous pouvez l'ajouter ici -->
-                    <!-- <img src="{{ asset('images/esbtp-logo.png') }}" alt="ESBTP Logo" class="school-logo"> -->
-                    <h3 class="mb-0 animate__animated animate__fadeInDown">École Spéciale du Bâtiment et des Travaux Publics</h3>
-                    <p class="mb-0 mt-2 animate__animated animate__fadeInUp">Système de Gestion Universitaire</p>
+                    <img src="{{ asset('images/LOGO-KLASSCI-PNG.png') }}" alt="KLASSCI Logo" class="login-logo">
+                    <h1 class="login-title">Bienvenue sur KLASSCI</h1>
+                    <p class="login-subtitle">Connectez-vous pour accéder à votre espace personnel</p>
                 </div>
-                <div class="card-body p-4">
-                    @if (session('status'))
-                        <div class="alert alert-success mb-3 animate__animated animate__fadeIn" role="alert">
-                            <i class="fas fa-check-circle me-2"></i> {{ session('status') }}
+                <div class="card-body">
+                    <div class="security-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Connexion sécurisée</span>
+                    </div>
+
+                    @if(session('status'))
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle"></i>
+                            <div>{{ session('status') }}</div>
                         </div>
                     @endif
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger mb-3 animate__animated animate__fadeIn">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <ul class="mb-0 list-unstyled">
+                                @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
@@ -293,91 +532,146 @@
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
 
-                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-1">
+                        <div class="mb-4">
                             <label for="username" class="form-label">Nom d'utilisateur</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus placeholder="username">
+                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autofocus placeholder="Votre nom d'utilisateur">
+                                @error('username')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
-                            @error('username')
-                                <div class="invalid-feedback d-block mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </div>
-                            @enderror
+                            <small class="form-text text-muted mt-2">Utilisez votre nom d'utilisateur (exemple: superadmin)</small>
                         </div>
 
-                        <div class="mb-3 animate__animated animate__fadeInUp animate__delay-2">
-                            <label for="password" class="form-label">Mot de passe</label>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="password" class="form-label mb-0">Mot de passe</label>
+                                @if (Route::has('password.request'))
+                                    <a href="{{ route('password.request') }}" class="small text-primary">Mot de passe oublié ?</a>
+                                @endif
+                            </div>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password" placeholder="••••••••">
+                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password" placeholder="Votre mot de passe">
+                                <button type="button" class="btn btn-outline-secondary toggle-password" onclick="togglePasswordVisibility()">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="password-strength-meter" id="strengthMeter"></div>
                             </div>
                         </div>
 
-                        <div class="mb-3 form-check animate__animated animate__fadeInUp animate__delay-3">
+                        <div class="mb-4 form-check">
                             <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                             <label class="form-check-label" for="remember">
                                 Se souvenir de moi
                             </label>
                         </div>
 
-                        <div class="d-grid gap-2 mb-3 animate__animated animate__fadeInUp animate__delay-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i> Connexion
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary animate-pulse">
+                                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
                             </button>
                         </div>
-
-                        <div class="text-center animate__animated animate__fadeInUp animate__delay-3">
-                            @if (Route::has('password.request'))
-                                <a class="btn btn-link" href="{{ route('password.request') }}">
-                                    <i class="fas fa-key me-1"></i> Mot de passe oublié ?
-                                </a>
-                            @endif
+                        
+                        <div class="custom-separator">
+                            <span>ou</span>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="{{ url('/') }}#demo" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-play-circle me-2"></i>Demander une démo
+                            </a>
                         </div>
                     </form>
+
+                    <div class="text-center mt-4">
+                        <p class="small text-muted">&copy; {{ date('Y') }} KLASSCI. Tous droits réservés.</p>
+                    </div>
                 </div>
             </div>
-            <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-3">
-                <a href="{{ url('/') }}" class="home-link">
-                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
-                </a>
+            
+            <div class="login-features" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-item">
+                    <i class="fas fa-lock"></i>
+                    <span>Connexion sécurisée</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Protection des données</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Support 24/7</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Création des particules d'arrière-plan
         document.addEventListener('DOMContentLoaded', function() {
-            const particlesContainer = document.getElementById('particles');
-            const colors = ['#01632f33', '#f2940033', '#01632f22', '#f2940022'];
-
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-
-                // Taille aléatoire
-                const size = Math.random() * 30 + 10;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-
-                // Position aléatoire
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-
-                // Couleur aléatoire
-                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-                // Durée d'animation aléatoire
-                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
-
-                // Délai d'animation aléatoire
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-
-                particlesContainer.appendChild(particle);
+            AOS.init();
+            
+            // Ajout de la force du mot de passe
+            const passwordInput = document.getElementById('password');
+            const strengthMeter = document.getElementById('strengthMeter');
+            
+            if (passwordInput && strengthMeter) {
+                passwordInput.addEventListener('input', function() {
+                    const val = passwordInput.value;
+                    const strengthValue = calculatePasswordStrength(val);
+                    
+                    strengthMeter.style.width = strengthValue + '%';
+                    
+                    if (strengthValue < 30) {
+                        strengthMeter.style.backgroundColor = '#ef4444';
+                    } else if (strengthValue < 60) {
+                        strengthMeter.style.backgroundColor = '#f59e0b';
+                    } else {
+                        strengthMeter.style.backgroundColor = '#22c55e';
+                    }
+                });
+                
+                // Fonction pour calculer la force du mot de passe
+                function calculatePasswordStrength(password) {
+                    if (!password) return 0;
+                    
+                    let strength = 0;
+                    
+                    // Longueur minimale
+                    if (password.length >= 8) strength += 25;
+                    
+                    // Complexité
+                    if (/[A-Z]/.test(password)) strength += 25;
+                    if (/[0-9]/.test(password)) strength += 25;
+                    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+                    
+                    return strength;
+                }
             }
         });
+        
+        // Fonction pour afficher/masquer le mot de passe
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.querySelector('.toggle-password i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.classList.remove('fa-eye');
+                toggleButton.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.classList.remove('fa-eye-slash');
+                toggleButton.classList.add('fa-eye');
+            }
+        }
     </script>
 </body>
 </html>

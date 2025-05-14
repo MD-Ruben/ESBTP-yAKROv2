@@ -120,7 +120,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ public_path('images/esbtp_logo.png') }}" alt="Logo ESBTP" class="logo">
+            <img src="{{ public_path('images/LOGO-KLASSCI-PNG.png') }}" alt="Logo KLASSCI" class="logo">
             <div class="title">Ecole Spéciale du Bâtiment et des Travaux Publics</div>
             <div class="subtitle">Reçu de Paiement</div>
         </div>

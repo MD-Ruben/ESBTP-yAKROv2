@@ -40,5 +40,6 @@ class Kernel extends ConsoleKernel
         Commands\ActivateAllTimetables::class,
         Commands\FixTimetablesCommand::class,
         Commands\SyncStudentEmailsCommand::class,
+        Commands\CreateTestUsersCommand::class,
     ];
 }

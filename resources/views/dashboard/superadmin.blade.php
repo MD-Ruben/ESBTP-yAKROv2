@@ -3,9 +3,30 @@
 @section('title', 'Tableau de bord Super Admin')
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="my-4">Bienvenue, {{ $user->name }}</h1>
-    <p class="text-muted">Gestion administrative ESBTP-yAKRO</p>
+<div class="container-fluid">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Tableau de bord</h1>
+            <p class="page-subtitle">Gestion administrative ESBTP-yAKRO</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Actualiser">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-plus me-2"></i> Actions rapides
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" href="{{ route('esbtp.etudiants.create') }}"><i class="fas fa-user-plus me-2"></i> Nouvel étudiant</a></li>
+                    <li><a class="dropdown-item" href="{{ route('esbtp.evaluations.create') }}"><i class="fas fa-file-alt me-2"></i> Créer examen</a></li>
+                    <li><a class="dropdown-item" href="{{ route('esbtp.annonces.create') }}"><i class="fas fa-bullhorn me-2"></i> Publier annonce</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ route('esbtp.bulletins.generate') }}"><i class="fas fa-print me-2"></i> Générer bulletins</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     @php
         $pendingInscriptionsCount = \App\Models\ESBTPInscription::where('status', 'pending')->count();
@@ -27,287 +48,383 @@
     </div>
     @endif
 
-    <div class="row">
-        @if($pendingInscriptionsCount > 0)
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2" style="border-left: 5px solid #f6c23e;">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Inscriptions en attente</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingInscriptionsCount }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-clock fa-2x text-warning"></i>
-                        </div>
+    <!-- Stat Cards -->
+    <div class="row dashboard-stats">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-primary-light text-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ $totalStudents ?? 0 }}</div>
+                    <div class="stat-card-label">Étudiants</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> 4.25%
                     </div>
-                    <a href="{{ route('esbtp.inscriptions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning mt-3">
-                        <i class="fas fa-check me-1"></i>Valider les inscriptions
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-success-light text-success">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ $totalFilieres ?? 0 }}</div>
+                    <div class="stat-card-label">Filières</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-warning-light text-warning">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ $totalMatieres ?? 0 }}</div>
+                    <div class="stat-card-label">Matières</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-info-light text-info">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ $totalClasses ?? 0 }}</div>
+                    <div class="stat-card-label">Classes</div>
+                    <div class="stat-card-change positive">
+                        <i class="fas fa-arrow-up"></i> 2.8%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">Statistiques des inscriptions</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="chartOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                            Mensuel
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chartOptions">
+                            <li><a class="dropdown-item active" href="#">Mensuel</a></li>
+                            <li><a class="dropdown-item" href="#">Trimestriel</a></li>
+                            <li><a class="dropdown-item" href="#">Annuel</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="inscriptionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Overview -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">Paiements</h5>
+                    <a href="{{ route('esbtp.comptabilite.index') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-external-link-alt"></i>
                     </a>
                 </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalStudents))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Étudiants</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents }}</div>
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="text-center">
+                            <h6 class="text-muted mb-1">Total payé</h6>
+                            <h4 class="mb-0 text-success">{{ number_format(45070000, 0, ',', ' ') }} FCFA</h4>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        <div class="text-center">
+                            <h6 class="text-muted mb-1">Montant dû</h6>
+                            <h4 class="mb-0 text-danger">{{ number_format(32400000, 0, ',', ' ') }} FCFA</h4>
                         </div>
                     </div>
-                    <a href="{{ route('esbtp.etudiants-inscriptions.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les étudiants</a>
+                    <div class="chart-container">
+                        <canvas id="paymentsChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-        @endif
-
-        @if(isset($totalSecretaires))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Secrétaires</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSecretaires }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.secretaires.index') }}" class="btn btn-sm btn-success mt-3">Gérer les secrétaires</a>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalFilieres))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Filières</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalFilieres }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.filieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les filières</a>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalFormations))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Formations</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalFormations }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-book fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.formations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les formations</a>
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
 
-    <div class="row">
-        @if(isset($totalNiveaux))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Niveaux d'études</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalNiveaux }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-layer-group fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.niveaux-etudes.index') }}" class="btn btn-sm btn-primary mt-3">Gérer les niveaux</a>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalClasses))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Classes</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalClasses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.student.classes.index') }}" class="btn btn-sm btn-success mt-3">Gérer les classes</a>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalMatieres))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Matières</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalMatieres }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-book-open fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.matieres.index') }}" class="btn btn-sm btn-info mt-3">Gérer les matières</a>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        @if(isset($totalExamens))
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Examens</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalExamens }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="{{ route('esbtp.evaluations.index') }}" class="btn btn-sm btn-warning mt-3">Gérer les examens</a>
-                </div>
-            </div>
-        </div>
-        @endif
-    </div>
-
-    <!-- Examens à venir -->
-    @if(isset($upcomingExamens) && $upcomingExamens->count() > 0)
     <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Examens à venir</h6>
+        <!-- Recent Inscriptions -->
+        <div class="col-xl-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Inscriptions récentes</h5>
+                    <a href="{{ route('esbtp.inscriptions.index') }}" class="btn btn-sm btn-primary">Voir tout</a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="nextadmin-table">
                             <thead>
                                 <tr>
-                                    <th>Classe</th>
-                                    <th>Type</th>
-                                    <th>Matière</th>
+                                    <th>Étudiant</th>
+                                    <th>Filière</th>
                                     <th>Date</th>
-                                    <th>Actions</th>
+                                    <th>Statut</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($upcomingExamens as $examen)
                                 <tr>
-                                    <td>{{ $examen->classe->nom ?? 'N/A' }}</td>
-                                    <td>{{ $examen->type }}</td>
-                                    <td>{{ $examen->matiere->nom ?? 'N/A' }}</td>
-                                    <td>{{ $examen->date->format('d/m/Y') }}</td>
                                     <td>
-                                        <a href="{{ route('evaluations.show', $examen->id) }}" class="btn btn-sm btn-info">Détails</a>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>Konan Yves</div>
+                                        </div>
                                     </td>
+                                    <td>Informatique</td>
+                                    <td>06/11/2023</td>
+                                    <td><span class="badge bg-success">Validé</span></td>
                                 </tr>
-                                @endforeach
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>Touré Fatima</div>
+                                        </div>
+                                    </td>
+                                    <td>Comptabilité</td>
+                                    <td>04/11/2023</td>
+                                    <td><span class="badge bg-warning text-dark">En attente</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>Diallo Mohamed</div>
+                                        </div>
+                                    </td>
+                                    <td>Électronique</td>
+                                    <td>03/11/2023</td>
+                                    <td><span class="badge bg-success">Validé</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>Koffi Anne</div>
+                                        </div>
+                                    </td>
+                                    <td>Génie Civil</td>
+                                    <td>01/11/2023</td>
+                                    <td><span class="badge bg-success">Validé</span></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+                <div class="card-footer text-center">
+                    <a href="{{ route('esbtp.inscriptions.index') }}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-right me-1"></i> Voir toutes les inscriptions
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    @endif
 
-    <!-- Messages récents -->
-    @if(isset($recentMessages) && $recentMessages->count() > 0)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Messages récents</h6>
+        <!-- Upcoming Exams -->
+        <div class="col-xl-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Examens à venir</h5>
+                    <a href="{{ route('esbtp.evaluations.index') }}" class="btn btn-sm btn-primary">Voir tout</a>
                 </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        @foreach($recentMessages as $message)
-                        <a href="{{ route('messages.show', $message->id) }}" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">{{ $message->subject }}</h5>
-                                <small>{{ $message->created_at->diffForHumans() }}</small>
-                            </div>
-                            <p class="mb-1">{{ Str::limit($message->content, 100) }}</p>
-                            <small>De: {{ $message->sender->name ?? 'Système' }}</small>
-                        </a>
-                        @endforeach
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="nextadmin-table">
+                            <thead>
+                                <tr>
+                                    <th>Matière</th>
+                                    <th>Classe</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Mathématiques</td>
+                                    <td>1ère année Informatique</td>
+                                    <td>15/11/2023</td>
+                                    <td>
+                                        <button class="table-action-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Programmation Java</td>
+                                    <td>2ème année Informatique</td>
+                                    <td>17/11/2023</td>
+                                    <td>
+                                        <button class="table-action-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Analyse financière</td>
+                                    <td>3ème année Comptabilité</td>
+                                    <td>18/11/2023</td>
+                                    <td>
+                                        <button class="table-action-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Résistance des matériaux</td>
+                                    <td>2ème année Génie Civil</td>
+                                    <td>20/11/2023</td>
+                                    <td>
+                                        <button class="table-action-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="text-center mt-3">
-                        <a href="{{ route('messages.index') }}" class="btn btn-primary">Voir tous les messages</a>
-                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ route('esbtp.evaluations.index') }}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-right me-1"></i> Voir tous les examens
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    @endif
-
-    <!-- Notifications récentes -->
-    @if(isset($recentNotifications) && $recentNotifications->count() > 0)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Notifications récentes</h6>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        @foreach($recentNotifications as $notification)
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">{{ $notification->title }}</h5>
-                                <small>{{ $notification->created_at->diffForHumans() }}</small>
-                            </div>
-                            <p class="mb-1">{{ $notification->message }}</p>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Inscriptions Chart
+        const inscriptionsCtx = document.getElementById('inscriptionsChart').getContext('2d');
+        const inscriptionsChart = new Chart(inscriptionsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [
+                    {
+                        label: 'Inscriptions',
+                        data: [30, 40, 35, 50, 49, 60, 70, 91, 125, 85, 60, 45],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Validations',
+                        data: [20, 35, 30, 45, 40, 55, 65, 85, 115, 80, 50, 40],
+                        borderColor: '#22c55e',
+                        tension: 0.4,
+                        borderDash: [],
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Payments Chart
+        const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
+        const paymentsChart = new Chart(paymentsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [
+                    {
+                        label: 'Montant reçu',
+                        data: [2500000, 3200000, 3500000, 4000000, 4200000, 3800000, 3200000, 3700000, 4500000, 5000000, 4800000, 3000000],
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Montant dû',
+                        data: [2000000, 2700000, 3000000, 3500000, 3700000, 3300000, 2700000, 3200000, 4000000, 4500000, 4300000, 2500000],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000000) + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 @endsection

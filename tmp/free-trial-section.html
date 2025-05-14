@@ -1,0 +1,179 @@
+<!-- Free Trial Section -->
+<section class="free-trial py-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(99, 102, 241, 0.1) 100%); border-radius: 20px; margin: 40px 0;">
+    <!-- Éléments décoratifs animés -->
+    <div class="position-absolute top-0 end-0" style="width: 300px; height: 300px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15)); border-radius: 50%; transform: translate(50%, -50%); filter: blur(60px); animation: float 15s infinite alternate ease-in-out;"></div>
+    <div class="position-absolute bottom-0 start-0" style="width: 250px; height: 250px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(236, 72, 153, 0.15)); border-radius: 50%; transform: translate(-50%, 50%); filter: blur(50px); animation: float 20s infinite alternate-reverse ease-in-out;"></div>
+    
+    <div class="container py-5 position-relative">
+        <div class="row align-items-center g-5">
+            <!-- Colonne visuelle à gauche -->
+            <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-up" data-aos-duration="1000">
+                <div class="position-relative text-center">
+                    <!-- Image principale avec effet de profondeur -->
+                    <div style="transform: perspective(1000px) rotateY(-5deg) rotateX(5deg); transition: all 0.5s ease;">
+                        <img src="{{ asset('images/devices-mockup.png') }}" alt="Devices Mockup" class="img-fluid rounded-4 shadow-lg" style="border: 10px solid white; transform: translateZ(20px);">
+                    </div>
+                    
+                    <!-- Icônes flottantes avec ombre et animation -->
+                    <div class="position-absolute" style="top: 15%; right: -15px; z-index: 3; animation: float 6s infinite ease-in-out;">
+                        <div class="bg-white rounded-circle p-3 shadow-lg d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);">
+                            <i class="fas fa-chart-pie fa-2x" style="background: linear-gradient(135deg, #6366f1, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="position-absolute" style="bottom: 20%; left: -15px; z-index: 3; animation: float 7s 2s infinite ease-in-out;">
+                        <div class="bg-white rounded-circle p-3 shadow-lg d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);">
+                            <i class="fas fa-calendar-alt fa-2x" style="background: linear-gradient(135deg, #ec4899, #d946ef); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Badge KLASSCI pulsant -->
+                    <div class="position-absolute" style="bottom: -25px; right: 25%; animation: pulse 3s infinite ease-in-out;">
+                        <div class="bg-white rounded-circle shadow-lg p-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);">
+                            <img src="{{ asset('icons/klassci.jpeg') }}" alt="KLASSCI Logo" style="width: 80px; height: auto; border-radius: 50%;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Colonne contenu à droite -->
+            <div class="col-lg-6" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                <div class="free-trial-content">
+                    <!-- Badge premium avec dégradé et animation -->
+                    <div style="display: inline-block; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border-radius: 30px; padding: 10px 20px; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.5px; box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5); transform: translateY(0); transition: all 0.3s ease;" class="premium-badge">
+                        DIGITALISEZ VOTRE ÉCOLE AVEC KLASSCI
+                    </div>
+                    
+                    <!-- Titre principal avec effet de dégradé -->
+                    <h2 class="mt-4 mb-4" style="font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2;">
+                        Essai sans engagement de 30 jours
+                    </h2>
+                    
+                    <!-- Sous-titre avec accents colorés -->
+                    <h3 class="mb-4 fw-bolder" style="line-height: 1.5; font-size: 1.4rem;">
+                        Découvrez une nouvelle façon de gérer votre école: 
+                        <span style="color: #6366f1; font-weight: 700;">plus simple</span>, 
+                        <span style="color: #6366f1; font-weight: 700;">plus rapide</span> et 
+                        <span style="color: #6366f1; font-weight: 700;">plus efficace</span>.
+                    </h3>
+                    
+                    <p class="mb-5" style="font-size: 1.1rem; color: #64748b;">Profitez de votre essai gratuit pour explorer toutes les fonctionnalités!</p>
+                    
+                    <!-- Caractéristiques avec animation et effet de survol -->
+                    <div class="mb-5">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="feature-hover-item" style="display: flex; align-items: center; padding: 16px; border-radius: 12px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05); transform: translateY(0); transition: all 0.3s ease;">
+                                    <i class="fas fa-check-circle fa-lg me-3" style="color: #6366f1;"></i>
+                                    <span style="font-weight: 500;">Accès complet à toutes les fonctionnalités</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-hover-item" style="display: flex; align-items: center; padding: 16px; border-radius: 12px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05); transform: translateY(0); transition: all 0.3s ease;">
+                                    <i class="fas fa-check-circle fa-lg me-3" style="color: #6366f1;"></i>
+                                    <span style="font-weight: 500;">Formation en ligne gratuite</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-hover-item" style="display: flex; align-items: center; padding: 16px; border-radius: 12px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05); transform: translateY(0); transition: all 0.3s ease;">
+                                    <i class="fas fa-check-circle fa-lg me-3" style="color: #6366f1;"></i>
+                                    <span style="font-weight: 500;">Support technique dédié</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-hover-item" style="display: flex; align-items: center; padding: 16px; border-radius: 12px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05); transform: translateY(0); transition: all 0.3s ease;">
+                                    <i class="fas fa-check-circle fa-lg me-3" style="color: #6366f1;"></i>
+                                    <span style="font-weight: 500;">Aucune carte de crédit requise</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action avec animation et ombre -->
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#" class="action-button-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 16px 30px; border-radius: 50px; font-weight: 600; letter-spacing: 0.5px; display: inline-flex; align-items: center; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); transform: translateY(0); transition: all 0.4s ease; position: relative; overflow: hidden; text-decoration: none;">
+                            <span>Commencer mon essai gratuit</span>
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                        
+                        <a href="#contact" class="action-button-secondary" style="background: transparent; color: #6366f1; border: 2px solid #6366f1; padding: 16px 30px; border-radius: 50px; font-weight: 600; letter-spacing: 0.5px; display: inline-flex; align-items: center; transform: translateY(0); transition: all 0.4s ease; text-decoration: none;">
+                            <span>Demander une démo</span>
+                            <i class="fas fa-headset ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Animation CSS et JS -->
+<style>
+@keyframes float {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(0, -15px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation au survol pour les badges et boutons
+    const premiumBadge = document.querySelector('.premium-badge');
+    if (premiumBadge) {
+        premiumBadge.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+            this.style.boxShadow = '0 15px 25px -10px rgba(99, 102, 241, 0.6)';
+        });
+        premiumBadge.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 10px 20px -10px rgba(99, 102, 241, 0.5)';
+        });
+    }
+    
+    // Animation au survol pour les éléments de fonctionnalités
+    const featureItems = document.querySelectorAll('.feature-hover-item');
+    featureItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1)';
+            this.style.backgroundColor = 'white';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px -3px rgba(0, 0, 0, 0.05)';
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        });
+    });
+    
+    // Animation au survol pour les boutons d'action
+    const primaryButton = document.querySelector('.action-button-primary');
+    if (primaryButton) {
+        primaryButton.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 15px 30px -5px rgba(99, 102, 241, 0.5)';
+        });
+        primaryButton.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 10px 20px -5px rgba(99, 102, 241, 0.4)';
+        });
+    }
+    
+    const secondaryButton = document.querySelector('.action-button-secondary');
+    if (secondaryButton) {
+        secondaryButton.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        });
+        secondaryButton.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.backgroundColor = 'transparent';
+        });
+    }
+});
+</script> 

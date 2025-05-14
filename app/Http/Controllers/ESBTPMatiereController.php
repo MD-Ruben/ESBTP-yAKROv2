@@ -51,7 +51,7 @@ class ESBTPMatiereController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:esbtp_matieres,code',
-            'nom' => 'required|string|max:255',
+            // 'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'coefficient' => 'required|numeric|min:0',
             'heures_cm' => 'required|integer|min:0',
@@ -60,7 +60,7 @@ class ESBTPMatiereController extends Controller
             'heures_stage' => 'required|integer|min:0',
             'heures_perso' => 'required|integer|min:0',
             'niveau_etude_id' => 'nullable|exists:esbtp_niveau_etudes,id',
-            'filiere_id' => 'nullable|exists:esbtp_filieres,id',
+            //'filiere_id' => 'nullable|exists:esbtp_filieres,id',
             'type_formation' => 'required|in:generale,technologique_professionnelle',
             'couleur' => 'nullable|string|max:50',
             'is_active' => 'required|boolean',

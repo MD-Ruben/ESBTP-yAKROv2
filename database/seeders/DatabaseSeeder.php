@@ -44,5 +44,16 @@ class DatabaseSeeder extends Seeder
         //     ESBTPBulletinSeeder::class,
         //     ESBTPBulletinDetailsSeeder::class,   // Migration des données bulletin vers le nouveau format
         // ]);
+
+        // Add the expense categories seeder
+        $this->call(ESBTPCategorieDepenseSeeder::class);
+        
+        // Add test users with different roles
+        if (app()->environment('local', 'development', 'testing')) {
+            $this->call(UsersTestSeeder::class);
+            
+            // New Test Users Seeder with student, secretary, and admin accounts
+            $this->call(TestUsersSeeder::class);
+        }
     }
 }
